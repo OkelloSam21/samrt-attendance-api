@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.ktor)
+    kotlin("plugin.serialization") version "2.1.10"
 }
 
 group = "com.smart-attendance"
@@ -38,6 +39,8 @@ dependencies {
     implementation(libs.ktor.server.content.negotiation.jvm)
     implementation(libs.ktor.kotlinx.serialization)
 
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0")
+
     implementation("org.jetbrains.exposed:exposed-core:0.43.0")
     implementation("org.jetbrains.exposed:exposed-dao:0.43.0")
     implementation("org.jetbrains.exposed:exposed-jdbc:0.43.0")
@@ -56,5 +59,15 @@ dependencies {
 
     implementation("io.ktor:ktor-server-cors:2.3.5")
 
+    implementation("com.google.zxing:core:3.5.1")
+    implementation("com.google.zxing:javase:3.5.1")
+
+    implementation("io.ktor:ktor-server-auth-jwt:2.3.6")
+    implementation("io.ktor:ktor-server-auth-jwt:2.3.6")
+
+    //swagger
+    implementation("io.ktor:ktor-server-swagger:2.3.6")
+
+    implementation("io.github.cdimascio:dotenv-kotlin:6.4.1")
 
 }
