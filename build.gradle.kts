@@ -48,7 +48,7 @@ dependencies {
 
     implementation("com.zaxxer:HikariCP:5.0.1")
 
-    implementation("mysql:mysql-connector-java:8.0.33") // MySQL driver
+    implementation("mysql:mysql-connector-java:8.2.0") // MySQL driver
 
     implementation("org.mindrot:jbcrypt:0.4")
 
@@ -69,5 +69,7 @@ dependencies {
     implementation("io.ktor:ktor-server-swagger:2.3.6")
 
     implementation("io.github.cdimascio:dotenv-kotlin:6.4.1")
+
+    implementation("io.ktor:ktor-server-status-pages:3.1.1")
 
 }
