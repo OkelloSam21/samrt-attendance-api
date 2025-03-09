@@ -1,39 +1,71 @@
 package auth
 
-//import java.util.*
-//
-//object JwtConfig {
-//    private const val secret = "your_secret_key"
-//    private const val issuer = "com.example"
-//    private const val audience = "com.example.audience"
-//    private const val validityInMs = 36_000_00 * 10 // 10 hours
-//
-//    private val algorithm = Algorithm.HMAC256(secret)
-//
-//    val verifier = JWT.require(algorithm)
-//        .withIssuer(issuer)
-//        .withAudience(audience)
-//        .build()
-//
-//    fun generateToken(username: String): String = JWT.create()
-//        .withIssuer(issuer)
-//        .withAudience(audience)
-//        .withClaim("username", username)
-//        .withExpiresAt(Date(System.currentTimeMillis() + validityInMs))
-//        .sign(algorithm)
-//}
-//
-//fun Application.configureSecurity() {
-//    install(Authentication) {
-//        jwt("auth-jwt") {
-//            realm = "ktor app"
-//            verifier(JwtConfig.verifier)
-//            validate { credential ->
-//                if (credential.payload.getClaim("username").asString().isNotEmpty())
-//                    JWTPrincipal(credential.payload)
-//                else
-//                    null
-//            }
-//        }
-//    }
-//}
+import com.auth0.jwt.JWT
+import com.auth0.jwt.algorithms.Algorithm
+import io.ktor.http.*
+import io.ktor.server.application.*
+import io.ktor.server.auth.*
+import io.ktor.server.auth.jwt.*
+import io.ktor.server.response.*
+import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
+import util.*
+import java.util.*
+
+
+data class JwtConfig(
+    val secret: String,
+    val issuer: String = "ktor-app",
+    val audience: String = "ktor-app-auth",
+    val realm: String = "ktor-app"
+)
+
+fun Application.configureAuthentication() {
+    val jwtConfig =loadJwtConfig()
+    install(Authentication) {
+        jwt("auth-jwt") {
+            realm = jwtConfig.realm
+            verifier(
+//                for the secrete use the one specified inside the .env file
+
+                JWT.require(Algorithm.HMAC256(jwtConfig.secret))
+                    .withIssuer(jwtConfig.issuer)
+                    .withAudience(jwtConfig.audience)
+                    .build()
+            )
+            validate { credential ->
+                if (credential.payload.getClaim("userId").asString() != null) {
+                    JWTPrincipal(credential.payload)
+                } else null
+            }
+            @Serializable
+            data class ErrorResponse(val error: String)
+
+            challenge { _, _ ->
+                call.application.environment.log.warn("Unauthorized access attempt")
+
+                call.application.launch {
+                    call.respond(HttpStatusCode.Unauthorized, ErrorResponse("Invalid token"))
+                }
+            }
+        }
+    }
+}
+
+fun generateAccessToken(userId: String): String {
+    return JWT.create()
+        .withIssuer(ISSUER)
+        .withAudience(AUDIENCE)
+        .withClaim("userId", userId)
+        .withExpiresAt(Date(System.currentTimeMillis() + ACCESS_TOKEN_EXPIRATION))
+        .sign(Algorithm.HMAC256(SECRET))
+}
+
+fun generateRefreshToken(userId: String): String {
+    return JWT.create()
+        .withIssuer(ISSUER)
+        .withAudience(AUDIENCE)
+        .withClaim("userId", userId)
+        .withExpiresAt(Date(System.currentTimeMillis() + REFRESH_TOKEN_EXPIRATION))
+        .sign(Algorithm.HMAC256(SECRET))
+}
