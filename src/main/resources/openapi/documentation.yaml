@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
-  title: Education Management API
-  description: API for managing educational resources including users, courses, assignments, and attendance
+  title: Smart attendance api
+  description: APi for managing educational resources inclucding users, course-assignments and attendance
   version: 0.0.1
 
 servers:
@@ -9,716 +9,138 @@ servers:
     description: Default server
 
 paths:
-  /users/login:
+  /auth/login:
     post:
-      summary: User login
-      security: []
+      tags:
+        - Authentication
+      summary: Login a user and generate access and refresh tokens
+      description: >
+        Performs authentication for a user with the provided email and password.  
+        Upon success, generates and returns a pair of tokens: access token and refresh token.
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required:
-                - email
-                - password
               properties:
                 email:
                   type: string
                   format: email
+                  description: User's email address
+                  example: user@example.com
                 password:
                   type: string
                   format: password
+                  description: User's password
+                  example: "mypassword123"
       responses:
-        '200':
-          description: Successful login
+        "200":
+          description: Access and refresh tokens generated successfully
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  message:
+                  accessToken:
                     type: string
-                  userId:
+                    description: The JWT access token for authenticating further requests
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhbGciOiJIUzIx...
+                  refreshToken:
                     type: string
-                    format: uuid
-        '400':
-          description: Invalid request
+                    description: The JWT refresh token for generating new access tokens
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2OTM0...
+        "401":
+          description: Unauthorized - Invalid credentials (email or password)
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                type: string
+                example: Invalid email or password
 
-  /users/signup:
+  /auth/refresh:
     post:
-      summary: User registration
-      security: []
+      tags:
+        - Authentication
+      summary: Refresh access and refresh tokens
+      description: >
+        Exchanges a valid refresh token for a new set of access and refresh tokens.  
+        The refresh token must still be valid.
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required:
-                - name
-                - email
-                - password
               properties:
-                name:
+                refreshToken:
                   type: string
-                email:
-                  type: string
-                  format: email
-                password:
-                  type: string
-                  format: password
-                role:
-                  type: string
-                  enum: [ADMIN, LECTURER, STUDENT]
-                  default: STUDENT
+                  description: The JWT refresh token
+                  example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsdWlkIjoiMTIz...
       responses:
-        '200':
-          description: User registered successfully
+        "200":
+          description: New access and refresh tokens generated successfully
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  message:
+                  accessToken:
                     type: string
-                  userId:
+                    description: The new JWT access token
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhbGciOiJIUzIx...
+                  refreshToken:
                     type: string
-                    format: uuid
-        '400':
-          description: Invalid request
+                    description: The new JWT refresh token
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2OTM1...
+        "401":
+          description: Unauthorized - Invalid or expired refresh token
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                type: string
+                example: Invalid refresh token
 
-  /users:
-    get:
-      summary: Get all users
-      description: Retrieves a list of all users (Admin only)
-      parameters:
-        - name: admin_id
-          in: query
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: List of users
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/User'
-        '400':
-          description: Invalid request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-  /users/{id}:
-    get:
-      summary: Get user details
-      description: Retrieves details of a specific user (Admin or user themselves)
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: requester_id
-          in: query
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: User details
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-        '400':
-          description: Invalid request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-    put:
-      summary: Update user
-      description: Updates user details (Admin or user themselves)
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: requester_id
-          in: query
-          required: true
-          schema:
-            type: string
-            format: uuid
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - name
-                - email
-                - password
-                - role
-              properties:
-                name:
-                  type: string
-                email:
-                  type: string
-                  format: email
-                password:
-                  type: string
-                  format: password
-                role:
-                  type: string
-                  enum: [ADMIN, LECTURER, STUDENT]
-      responses:
-        '200':
-          description: User updated successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Success'
-        '400':
-          description: Invalid request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-    delete:
-      summary: Delete user
-      description: Deletes a user (Admin only)
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: admin_id
-          in: query
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: User deleted successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Success'
-        '400':
-          description: Invalid request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-  /courses:
-    post:
-      summary: Create a course
-      description: Creates a new course (Lecturer and Admin only)
-      parameters:
-        - name: requester_id
-          in: query
-          required: true
-          schema:
-            type: string
-            format: uuid
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - name
-              properties:
-                name:
-                  type: string
-                lecturer_id:
-                  type: string
-                  format: uuid
-      responses:
-        '200':
-          description: Course created successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                  courseId:
-                    type: string
-                    format: uuid
-        '400':
-          description: Invalid request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-    get:
-      summary: Get all courses
-      description: Retrieves a list of all courses
-      parameters:
-        - name: requester_id
-          in: query
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: List of courses
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Course'
-        '400':
-          description: Invalid request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-  /courses/{id}:
-    get:
-      summary: Get course details
-      description: Retrieves details of a specific course
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: requester_id
-          in: query
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: Course details
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Course'
-        '400':
-          description: Invalid request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-    put:
-      summary: Update course
-      description: Updates course details (Lecturer who owns the course and Admin only)
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: requester_id
-          in: query
-          required: true
-          schema:
-            type: string
-            format: uuid
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - name
-              properties:
-                name:
-                  type: string
-                lecturer_id:
-                  type: string
-                  format: uuid
-      responses:
-        '200':
-          description: Course updated successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Success'
-        '400':
-          description: Invalid request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-    delete:
-      summary: Delete course
-      description: Deletes a course (Admin only)
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: requester_id
-          in: query
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: Course deleted successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Success'
-        '400':
-          description: Invalid request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-  /assignments:
-    post:
-      summary: Create an assignment
-      description: Creates a new assignment (Lecturer only)
-      parameters:
-        - name: requester_id
-          in: query
-          required: true
-          schema:
-            type: string
-            format: uuid
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - course_id
-                - title
-                - description
-                - due_date
-              properties:
-                course_id:
-                  type: string
-                  format: uuid
-                title:
-                  type: string
-                description:
-                  type: string
-                due_date:
-                  type: string
-                  format: date-time
-      responses:
-        '200':
-          description: Assignment created successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                  assignmentId:
-                    type: string
-                    format: uuid
-        '400':
-          description: Invalid request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-    get:
-      summary: Get all assignments
-      description: Retrieves a list of all assignments
-      responses:
-        '200':
-          description: List of assignments
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Assignment'
-
-  /assignments/{id}:
-    get:
-      summary: Get assignment details
-      description: Retrieves details of a specific assignment
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: Assignment details
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Assignment'
-        '400':
-          description: Invalid request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-    put:
-      summary: Update assignment
-      description: Updates assignment details (Lecturer only)
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: requester_id
-          in: query
-          required: true
-          schema:
-            type: string
-            format: uuid
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                title:
-                  type: string
-                description:
-                  type: string
-                due_date:
-                  type: string
-                  format: date-time
-      responses:
-        '200':
-          description: Assignment updated successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Success'
-        '400':
-          description: Invalid request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-    delete:
-      summary: Delete assignment
-      description: Deletes an assignment (Lecturer only)
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: requester_id
-          in: query
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: Assignment deleted successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Success'
-        '400':
-          description: Invalid request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-  /attendance:
-    post:
-      summary: Mark attendance
-      description: Records attendance for students in a course (Lecturer only)
-      parameters:
-        - name: requester_id
-          in: query
-          required: true
-          schema:
-            type: string
-            format: uuid
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - course_id
-                - attendance
-              properties:
-                course_id:
-                  type: string
-                  format: uuid
-                attendance:
-                  type: array
-                  items:
-                    type: object
-                    required:
-                      - student_id
-                      - status
-                    properties:
-                      student_id:
-                        type: string
-                        format: uuid
-                      status:
-                        type: string
-                        enum: [PRESENT, ABSENT, EXCUSED]
-      responses:
-        '200':
-          description: Attendance recorded successfully
-          content:
-            application/json:
-              schema:
-                type
 
 components:
-  securitySchemes:
-    RequesterAuth:
-      type: apiKey
-      in: query
-      name: requester_id
-      description: UUID of the requesting user
-
+  
   schemas:
     User:
       type: object
       properties:
         id:
-          type: string
-          format: uuid
+          type: integer
+          format: int64
+          description: Unique identifier for the user
+          example: 1
         name:
           type: string
+          description: Full name of the user
+          example: John Doe
         email:
           type: string
           format: email
+          description: Email address of the user
+          example: user@example.com
         role:
           type: string
-          enum: [ADMIN, LECTURER, STUDENT]
+          description: Role of the user in the system (e.g., admin, student, teacher)
+          example: student
         createdAt:
           type: string
           format: date-time
-
-    Course:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        name:
-          type: string
-        lecturer_id:
-          type: string
-          format: uuid
-        lecturer_name:
-          type: string
-        created_at:
+          description: Timestamp when the user was created
+          example: "2023-10-05T14:48:00.000Z"
+        updatedAt:
           type: string
           format: date-time
-
-    Assignment:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        course_id:
-          type: string
-          format: uuid
-        title:
-          type: string
-        description:
-          type: string
-        due_date:
-          type: string
-          format: date-time
-
-    Attendance:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        student_id:
-          type: string
-          format: uuid
-        student_name:
-          type: string
-        course_id:
-          type: string
-          format: uuid
-        course_name:
-          type: string
-        date:
-          type: string
-          format: date-time
-        status:
-          type: string
-          enum: [PRESENT, ABSENT, EXCUSED]
-
-    Error:
-      type: object
-      properties:
-        error:
-          type: string
-
-    Success:
-      type: object
-      properties:
-        message:
-          type: string
+          description: Timestamp when the user was last updated
+          example: "2023-10-10T14:48:00.000Z"
 
 security:
-  - RequesterAuth: []
+
+
+externalDocs:
+tags:
+  -
+
