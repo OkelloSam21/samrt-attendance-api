@@ -1,14 +1,17 @@
 package routes
 
 import auth.authorize
-import io.ktor.server.routing.*
-import io.ktor.server.application.*
-import io.ktor.server.response.*
+import io.ktor.http.*
 import io.ktor.server.request.*
-import models.Users
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import models.UserRole
-import org.jetbrains.exposed.sql.*
+import models.Users
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.deleteWhere
+import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.mindrot.jbcrypt.BCrypt
 import java.util.*
@@ -16,171 +19,94 @@ import java.util.*
 fun Route.userRoutes() {
     route("/users") {
 
-        // LOGIN API
-        post("/login") {
-            val request = call.receive<Map<String, String>>()
-            val email = request["email"] ?: return@post call.respond(mapOf("error" to "Email is required"))
-            val password = request["password"] ?: return@post call.respond(mapOf("error" to "Password is required"))
-
-            val user = transaction {
-                Users.select { Users.email eq email }.singleOrNull()
-            }
-
-            if (user == null) {
-                call.respond(mapOf("error" to "User not found"))
-                return@post
-            }
-
-            val storedHashedPassword = user[Users.password]
-            if (!BCrypt.checkpw(password, storedHashedPassword)) {
-                call.respond(mapOf("error" to "Invalid credentials"))
-                return@post
-            }
-
-            call.respond(mapOf("message" to "Login successful", "userId" to user[Users.id].value.toString()))
-        }
-
-        // SIGNUP API
-        post("/signup") {
-            val request = call.receive<Map<String, String>>()
-            val name = request["name"] ?: return@post call.respond(mapOf("error" to "Name is required"))
-            val email = request["email"] ?: return@post call.respond(mapOf("error" to "Email is required"))
-            val password = request["password"] ?: return@post call.respond(mapOf("error" to "Password is required"))
-            val role = request["role"]?.let { UserRole.valueOf(it.uppercase()) } ?: UserRole.STUDENT
-
-            val existingUser = transaction {
-                Users.select { Users.email eq email }.singleOrNull()
-            }
-            if (existingUser != null) {
-                call.respond(mapOf("error" to "Email already in use"))
-                return@post
-            }
-
-            val hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt())
-            val userId = UUID.randomUUID()
-
-            transaction {
-                Users.insert {
-                    it[id] = userId
-                    it[this.name] = name
-                    it[this.email] = email
-                    it[this.password] = hashedPassword
-                    it[this.role] = role
-                    it[createdAt] = java.time.Instant.now()
-                }
-            }
-            call.respond(mapOf("message" to "User registered successfully", "userId" to userId.toString()))
-        }
-
-        // GET ALL USERS (Restricted to ADMIN)
+        // Get all users (Admin-only access)
         get {
-            val adminId = call.request.queryParameters["admin_id"]
-                ?: return@get call.respond(mapOf("error" to "Admin ID required"))
+            val userId = call.request.queryParameters["userId"]
+                ?: return@get call.respond(HttpStatusCode.BadRequest, "User ID is required")
 
-            if (!authorize(call, adminId, UserRole.ADMIN)) {
-                return@get // Return early if authorization failed
-            }
+            if (!authorize(call, userId, UserRole.ADMIN)) return@get
 
             val users = transaction {
-                Users.selectAll().map {
-                    mapOf(
-                        "id" to it[Users.id].value.toString(),
-                        "name" to it[Users.name],
-                        "email" to it[Users.email],
-                        "role" to it[Users.role].name
-                    )
-                }
+                Users.selectAll()
+                    .map { row ->
+                        mapOf(
+                            "id" to row[Users.id].value,
+                            "email" to row[Users.email],
+                            "role" to row[Users.role].toString()
+                        )
+                    }
             }
+
             call.respond(users)
         }
 
-        // GET USER PROFILE (Restricted to Owner & Admin)
+        // Get a specific user (Admin-only access)
         get("/{id}") {
-            val userId = call.parameters["id"] ?: return@get call.respond(mapOf("error" to "User ID is required"))
-            val requesterId = call.request.queryParameters["requester_id"]
-                ?: return@get call.respond(mapOf("error" to "Requester ID required"))
+            val userId = call.parameters["userId"]
+                ?: return@get call.respond(HttpStatusCode.BadRequest, "User ID is required")
 
-            // Call authorize as a regular function
-            if (!authorize(call, requesterId, UserRole.ADMIN, UserRole.LECTURER, UserRole.STUDENT)) {
-                return@get // Return early if authorization failed
-            }
+            if (!authorize(call, userId, UserRole.ADMIN)) return@get
+
+            // Ensure the "id" from parameters is converted to UUID
+            val id = call.parameters["id"]?.let { UUID.fromString(it) }
+                ?: return@get call.respond(HttpStatusCode.BadRequest, "Invalid user ID")
 
             val user = transaction {
-                Users.select { Users.id eq UUID.fromString(userId) }
-                    .map {
-                        mapOf(
-                            "id" to it[Users.id].value.toString(),
-                            "name" to it[Users.name],
-                            "email" to it[Users.email],
-                            "role" to it[Users.role].name
-                        )
-                    }
-                    .singleOrNull()
+                Users.select { Users.id eq id }.limit(1).singleOrNull()
             }
 
             if (user == null) {
-                call.respond(mapOf("error" to "User not found"))
+                call.respond(HttpStatusCode.NotFound, "User not found")
             } else {
-                call.respond(user)
+                call.respond(
+                    mapOf(
+                        "id" to user[Users.id].value,
+                        "email" to user[Users.email],
+                        "role" to user[Users.role].toString()
+                    )
+                )
             }
         }
 
-        // UPDATE USER PROFILE (Restricted to Admin & Owner)
-        put("/{id}") {
-            val userId = call.parameters["id"] ?: return@put call.respond(mapOf("error" to "User ID is required"))
-            val requesterId = call.request.queryParameters["requester_id"]
-                ?: return@put call.respond(mapOf("error" to "Requester ID required"))
+        // Create a new user (Admin-only access)
+        post {
+            val userId = call.request.queryParameters["userId"]
+                ?: return@post call.respond(HttpStatusCode.BadRequest, "User ID is required")
 
-            // Call authorize as a regular function
-            if (!authorize(call, requesterId, UserRole.ADMIN, UserRole.LECTURER)) {
-                return@put // Return early if authorization failed
-            }
+            if (!authorize(call, userId, UserRole.ADMIN)) return@post
 
-            val request = call.receive<Map<String, String>>()
-            val name = request["name"] ?: return@put call.respond(mapOf("error" to "Name is required"))
-            val email = request["email"] ?: return@put call.respond(mapOf("error" to "Email is required"))
-            val password = request["password"] ?: return@put call.respond(mapOf("error" to "Password is required"))
-            val role = request["role"]?.let { UserRole.valueOf(it.uppercase()) }
-                ?: return@put call.respond(mapOf("error" to "Role is required"))
+            val request = call.receive<CreateUserRequest>()
 
-            val hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt())
-
-            val updatedRows = transaction {
-                Users.update({ Users.id eq UUID.fromString(userId) }) {
-                    it[this.name] = name
-                    it[this.email] = email
-                    it[this.password] = hashedPassword
-                    it[this.role] = role
+            transaction {
+                Users.insert {
+                    it[email] = request.email
+                    it[password] = BCrypt.hashpw(request.password, BCrypt.gensalt())
+                    it[role] = request.role
                 }
             }
 
-            if (updatedRows == 0) {
-                call.respond(mapOf("error" to "User not found"))
-            } else {
-                call.respond(mapOf("message" to "User updated successfully"))
-            }
+            call.respond(HttpStatusCode.Created, "User created successfully")
         }
 
-        // DELETE USER (Restricted to ADMIN)
+        // Delete a specific user (Admin-only access)
         delete("/{id}") {
-            val userId = call.parameters["id"] ?: return@delete call.respond(mapOf("error" to "User ID is required"))
-            val adminId = call.request.queryParameters["admin_id"]
-                ?: return@delete call.respond(mapOf("error" to "Admin ID required"))
+            val userId = call.request.queryParameters["userId"]
+                ?: return@delete call.respond(HttpStatusCode.BadRequest, "User ID is required")
 
-            // Call authorize as a regular function
-            if (!authorize(call, adminId, UserRole.ADMIN)) {
-                return@delete // Return early if authorization failed
+            if (!authorize(call, userId, UserRole.ADMIN)) return@delete
+
+            // Ensure the "id" from parameters is converted to UUID
+            val id = call.parameters["id"]?.let { UUID.fromString(it) }
+                ?: return@delete call.respond(HttpStatusCode.BadRequest, "Invalid user ID")
+
+            // Delete the record with a matching UUID
+            transaction {
+                Users.deleteWhere { Users.id eq id }
             }
 
-            val deletedRows = transaction {
-                Users.deleteWhere { Users.id eq UUID.fromString(userId) }
-            }
-
-            if (deletedRows == 0) {
-                call.respond(mapOf("error" to "User not found"))
-            } else {
-                call.respond(mapOf("message" to "User deleted successfully"))
-            }
+            call.respond(HttpStatusCode.OK, "User deleted successfully")
         }
     }
 }
+
+data class CreateUserRequest(val email: String, val password: String, val role: UserRole)
