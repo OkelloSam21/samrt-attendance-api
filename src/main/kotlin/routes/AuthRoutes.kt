@@ -22,6 +22,40 @@ import util.ISSUER
 import util.SECRET
 
 fun Route.authRoutes() {
+    post("/auth/signup/admin") {
+        val signUpRequest = call.receive<AdminSignUpRequest>()
+
+        // Validate the role
+        if (signUpRequest.role != UserRole.ADMIN) {
+            call.respond(HttpStatusCode.BadRequest, "Invalid role: Role must be ADMIN for this endpoint")
+            return@post
+        }
+
+        // Validate fields
+        validateSignUp(
+            name = signUpRequest.name,
+            email = signUpRequest.email,
+            password = signUpRequest.password
+        ) {
+            // Add any admin-specific validations here if necessary
+            validateAdminFields()
+        }
+
+        // Perform Database Insertion
+        newSuspendedTransaction {
+            Users.insert {
+                it[name] = signUpRequest.name
+                it[email] = signUpRequest.email
+                it[password] = BCrypt.hashpw(signUpRequest.password, BCrypt.gensalt()) // Hash password
+                it[role] = signUpRequest.role
+                it[regNo] = null   // Admins don’t have "registration number"
+                it[employeeRoleNo] = null // Admins don’t have "employee role number"
+            }
+        }
+
+        call.respond(HttpStatusCode.Created, "Admin signed up successfully")
+    }
+
     post("/auth/signup/student") {
         val signUpRequest = call.receive<StudentSignUpRequest>()
 
@@ -100,7 +134,8 @@ fun Route.authRoutes() {
         }
 
         val userId = user[Users.id].value.toString()
-        val accessToken = generateAccessToken(userId)
+        val role = user[Users.role]
+        val accessToken = generateAccessToken(userId,role)
         val refreshToken = generateRefreshToken(userId)
 
         call.respond(mapOf("accessToken" to accessToken, "refreshToken" to refreshToken))
@@ -115,7 +150,8 @@ fun Route.authRoutes() {
             .verify(request.refreshToken)
 
         val userId = decoded.getClaim("userId").asString()
-        val newAccessToken = generateAccessToken(userId)
+        val role = decoded.getClaim("role").asString()?.let { UserRole.valueOf(it) } ?: throw IllegalArgumentException("role is missing")
+        val newAccessToken = generateAccessToken(userId,role)
         val newRefreshToken = generateRefreshToken(userId)
 
         call.respond(mapOf("accessToken" to newAccessToken, "refreshToken" to newRefreshToken))
@@ -165,6 +201,10 @@ suspend fun validateLecturerFields(employeeRoleNo: String) {
         throw ConflictException("A lecturer with this employee role number already exists")
     }
 }
+suspend fun validateAdminFields() {
+    // Example: Add any constraints here, like ensuring only other admins can create admins.
+
+}
 
 class BadRequestException(message: String) : RuntimeException(message)
 class ConflictException(message: String) : RuntimeException(message)
@@ -174,6 +214,14 @@ suspend fun isFieldExists(field: Column<String?>, value: String): Boolean {
         Users.select { field eq value }.singleOrNull() != null
     }
 }
+
+@Serializable
+data class AdminSignUpRequest(
+    override val name: String,
+    override val email: String,
+    override val password: String,
+    override val role: UserRole = UserRole.ADMIN
+) : SignUpRequest()
 
 @Serializable
 data class LoginRequest(val email: String, val password: String)
