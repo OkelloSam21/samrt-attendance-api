@@ -5,6 +5,7 @@ import io.ktor.http.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import kotlinx.serialization.Serializable
 import models.UserRole
 import models.Users
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
@@ -14,23 +15,23 @@ import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.mindrot.jbcrypt.BCrypt
+import util.SECRET
 import java.util.*
+
 
 fun Route.userRoutes() {
     route("/users") {
+        val secret = SECRET
 
         // Get all users (Admin-only access)
         get {
-            val userId = call.request.queryParameters["userId"]
-                ?: return@get call.respond(HttpStatusCode.BadRequest, "User ID is required")
-
-            if (!authorize(call, userId, UserRole.ADMIN)) return@get
+            if (!authorize(call, secret, UserRole.ADMIN)) return@get
 
             val users = transaction {
                 Users.selectAll()
                     .map { row ->
                         mapOf(
-                            "id" to row[Users.id].value,
+                            "id" to row[Users.id].value.toString(),
                             "email" to row[Users.email],
                             "role" to row[Users.role].toString()
                         )
@@ -42,12 +43,8 @@ fun Route.userRoutes() {
 
         // Get a specific user (Admin-only access)
         get("/{id}") {
-            val userId = call.parameters["userId"]
-                ?: return@get call.respond(HttpStatusCode.BadRequest, "User ID is required")
+//            if (!authorize(call, secret, UserRole.ADMIN)) return@get
 
-            if (!authorize(call, userId, UserRole.ADMIN)) return@get
-
-            // Ensure the "id" from parameters is converted to UUID
             val id = call.parameters["id"]?.let { UUID.fromString(it) }
                 ?: return@get call.respond(HttpStatusCode.BadRequest, "Invalid user ID")
 
@@ -60,9 +57,12 @@ fun Route.userRoutes() {
             } else {
                 call.respond(
                     mapOf(
-                        "id" to user[Users.id].value,
+                        "id" to user[Users.id].value.toString(),
+                        "name" to user[Users.name],
                         "email" to user[Users.email],
-                        "role" to user[Users.role].toString()
+                        "role" to user[Users.role].toString(),
+                        "regNo" to user[Users.regNo],
+                        "employeeRoleNo" to user[Users.employeeRoleNo]
                     )
                 )
             }
@@ -70,10 +70,7 @@ fun Route.userRoutes() {
 
         // Create a new user (Admin-only access)
         post {
-            val userId = call.request.queryParameters["userId"]
-                ?: return@post call.respond(HttpStatusCode.BadRequest, "User ID is required")
-
-            if (!authorize(call, userId, UserRole.ADMIN)) return@post
+            if (!authorize(call, secret, UserRole.ADMIN)) return@post
 
             val request = call.receive<CreateUserRequest>()
 
@@ -90,16 +87,11 @@ fun Route.userRoutes() {
 
         // Delete a specific user (Admin-only access)
         delete("/{id}") {
-            val userId = call.request.queryParameters["userId"]
-                ?: return@delete call.respond(HttpStatusCode.BadRequest, "User ID is required")
+            if (!authorize(call, secret, UserRole.ADMIN)) return@delete
 
-            if (!authorize(call, userId, UserRole.ADMIN)) return@delete
-
-            // Ensure the "id" from parameters is converted to UUID
             val id = call.parameters["id"]?.let { UUID.fromString(it) }
                 ?: return@delete call.respond(HttpStatusCode.BadRequest, "Invalid user ID")
 
-            // Delete the record with a matching UUID
             transaction {
                 Users.deleteWhere { Users.id eq id }
             }
@@ -109,4 +101,5 @@ fun Route.userRoutes() {
     }
 }
 
+@Serializable
 data class CreateUserRequest(val email: String, val password: String, val role: UserRole)
