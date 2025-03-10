@@ -9,6 +9,7 @@ import io.ktor.server.auth.jwt.*
 import io.ktor.server.response.*
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
+import models.UserRole
 import util.*
 import java.util.*
 
@@ -52,11 +53,12 @@ fun Application.configureAuthentication() {
     }
 }
 
-fun generateAccessToken(userId: String): String {
+fun generateAccessToken(userId: String,role:UserRole): String {
     return JWT.create()
         .withIssuer(ISSUER)
         .withAudience(AUDIENCE)
         .withClaim("userId", userId)
+        .withClaim("role", role.name)
         .withExpiresAt(Date(System.currentTimeMillis() + ACCESS_TOKEN_EXPIRATION))
         .sign(Algorithm.HMAC256(SECRET))
 }
