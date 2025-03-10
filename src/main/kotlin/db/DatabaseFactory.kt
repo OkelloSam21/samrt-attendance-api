@@ -56,7 +56,7 @@ object DatabaseFactory {
 
         val config = HikariConfig().apply {
             driverClassName = "com.mysql.cj.jdbc.Driver"
-            jdbcUrl = "jdbc:mysql://smart-attendance.mysql.database.azure.com:3306/smart-attendance?useSSL=true&serverTimezone=UTC"
+            jdbcUrl = "jdbc:mysql://smart-attendance.mysql.database.azure.com:3306/smart_attendance?useSSL=true&serverTimezone=UTC"
             username = "admin01"
             password = "admin@root1"
             maximumPoolSize = 10
