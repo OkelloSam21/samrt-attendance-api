@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
   title: Smart attendance api
-  description: APi for managing educational resources inclucding users, course-assignments and attendance
+  description: API for managing educational resources including users, course-assignments and attendance
   version: 0.0.1
 
 servers:
@@ -55,8 +55,11 @@ paths:
           content:
             application/json:
               schema:
-                type: string
-                example: Invalid email or password
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Invalid email or password
 
   /auth/refresh:
     post:
@@ -98,21 +101,402 @@ paths:
           content:
             application/json:
               schema:
-                type: string
-                example: Invalid refresh token
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Invalid refresh token
 
+  /auth/signup/admin:
+    post:
+      tags:
+        - Authentication
+      summary: Register a new admin user
+      description: Creates a new user with admin role in the system
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminSignUpRequest'
+      responses:
+        "201":
+          description: Admin signed up successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Admin signed up successfully
+        "400":
+          description: Bad Request - Invalid data provided
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Invalid role Role must be ADMIN for this endpoint
+        "409":
+          description: Conflict - Email already exists
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Email already exists
+
+  /auth/signup/student:
+    post:
+      tags:
+        - Authentication
+      summary: Register a new student user
+      description: Creates a new user with student role in the system
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StudentSignUpRequest'
+      responses:
+        "201":
+          description: Student signed up successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Student signed up successfully
+        "400":
+          description: Bad Request - Invalid data provided
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Invalid role Role must be STUDENT for this endpoint
+        "409":
+          description: Conflict - Email or registration number already exists
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Email already exists
+
+  /auth/signup/lecturer:
+    post:
+      tags:
+        - Authentication
+      summary: Register a new lecturer user
+      description: Creates a new user with lecturer role in the system
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LecturerSignUpRequest'
+      responses:
+        "201":
+          description: Lecturer signed up successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Lecturer signed up successfully
+        "400":
+          description: Bad Request - Invalid data provided
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Invalid role Role must be LECTURER for this endpoint
+        "409":
+          description: Conflict - Email or employee role number already exists
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Email already exists
+
+  /users:
+    get:
+      tags:
+        - Users
+      summary: Get all users
+      description: Retrieves a list of all users in the system. Admin access only.
+      security:
+        - bearerAuth: [ ]
+      responses:
+        "200":
+          description: List of users retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      format: uuid
+                      description: The unique identifier of the user
+                      example: "123e4567-e89b-12d3-a456-426614174000"
+                    email:
+                      type: string
+                      format: email
+                      description: Email address of the user
+                      example: user@example.com
+                    role:
+                      type: string
+                      enum: [ ADMIN, STUDENT, LECTURER ]
+                      description: Role of the user
+                      example: ADMIN
+        "401":
+          description: Unauthorized - Invalid or missing token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Authorization token is required
+        "403":
+          description: Forbidden - Insufficient permissions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Insufficient permissions
+
+    post:
+      tags:
+        - Users
+      summary: Create a new user
+      description: Creates a new user in the system. Admin access only.
+      security:
+        - bearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+      responses:
+        "201":
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: User created successfully
+        "400":
+          description: Bad Request - Invalid data provided
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Invalid user data
+        "401":
+          description: Unauthorized - Invalid or missing token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Authorization token is required
+        "403":
+          description: Forbidden - Insufficient permissions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Insufficient permissions
+
+  /users/{id}:
+    get:
+      tags:
+        - Users
+      summary: Get a specific user
+      description: Retrieves a specific user by their ID.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: UUID of the user to retrieve
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: User retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                    description: The unique identifier of the user
+                    example: "123e4567-e89b-12d3-a456-426614174000"
+                  name:
+                    type: string
+                    description: Full name of the user
+                    example: John Doe
+                  email:
+                    type: string
+                    format: email
+                    description: Email address of the user
+                    example: user@example.com
+                  role:
+                    type: string
+                    enum: [ ADMIN, STUDENT, LECTURER ]
+                    description: Role of the user
+                    example: STUDENT
+                  regNo:
+                    type: string
+                    description: Registration number (for students)
+                    example: "S123456"
+                    nullable: true
+                  employeeRoleNo:
+                    type: string
+                    description: Employee role number (for lecturers)
+                    example: "L789012"
+                    nullable: true
+        "400":
+          description: Bad Request - Invalid user ID format
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Invalid user ID
+        "404":
+          description: Not Found - User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: User not found
+
+    delete:
+      tags:
+        - Users
+      summary: Delete a user
+      description: Deletes a specific user by their ID. Admin access only.
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: UUID of the user to delete
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: User deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: User deleted successfully
+        "400":
+          description: Bad Request - Invalid user ID format
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Invalid user ID
+        "401":
+          description: Unauthorized - Invalid or missing token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Authorization token is required
+        "403":
+          description: Forbidden - Insufficient permissions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Insufficient permissions
+        "404":
+          description: Not Found - User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: User not found
 
 components:
-  
   schemas:
     User:
       type: object
       properties:
         id:
-          type: integer
-          format: int64
+          type: string
+          format: uuid
           description: Unique identifier for the user
-          example: 1
+          example: "123e4567-e89b-12d3-a456-426614174000"
         name:
           type: string
           description: Full name of the user
@@ -124,8 +508,19 @@ components:
           example: user@example.com
         role:
           type: string
-          description: Role of the user in the system (e.g., admin, student, teacher)
-          example: student
+          enum: [ ADMIN, STUDENT, LECTURER ]
+          description: Role of the user in the system
+          example: STUDENT
+        regNo:
+          type: string
+          description: Registration number for students (null for other roles)
+          example: "S123456"
+          nullable: true
+        employeeRoleNo:
+          type: string
+          description: Employee role number for lecturers (null for other roles)
+          example: "L789012"
+          nullable: true
         createdAt:
           type: string
           format: date-time
@@ -137,10 +532,136 @@ components:
           description: Timestamp when the user was last updated
           example: "2023-10-10T14:48:00.000Z"
 
+    AdminSignUpRequest:
+      type: object
+      required:
+        - name
+        - email
+        - password
+        - role
+      properties:
+        name:
+          type: string
+          description: Full name of the admin
+          example: Admin User
+        email:
+          type: string
+          format: email
+          description: Email address of the admin
+          example: admin@example.com
+        password:
+          type: string
+          format: password
+          description: Password for the admin account
+          example: "SecurePassword123"
+        role:
+          type: string
+          enum: [ ADMIN ]
+          description: Role must be ADMIN for this endpoint
+          example: ADMIN
+
+    StudentSignUpRequest:
+      type: object
+      required:
+        - name
+        - email
+        - password
+        - role
+        - regNo
+      properties:
+        name:
+          type: string
+          description: Full name of the student
+          example: Student User
+        email:
+          type: string
+          format: email
+          description: Email address of the student
+          example: student@example.com
+        password:
+          type: string
+          format: password
+          description: Password for the student account
+          example: "SecurePassword123"
+        role:
+          type: string
+          enum: [ STUDENT ]
+          description: Role must be STUDENT for this endpoint
+          example: STUDENT
+        regNo:
+          type: string
+          description: Registration number for the student
+          example: "S123456"
+
+    LecturerSignUpRequest:
+      type: object
+      required:
+        - name
+        - email
+        - password
+        - role
+        - employeeRoleNo
+      properties:
+        name:
+          type: string
+          description: Full name of the lecturer
+          example: Lecturer User
+        email:
+          type: string
+          format: email
+          description: Email address of the lecturer
+          example: lecturer@example.com
+        password:
+          type: string
+          format: password
+          description: Password for the lecturer account
+          example: "SecurePassword123"
+        role:
+          type: string
+          enum: [ LECTURER ]
+          description: Role must be LECTURER for this endpoint
+          example: LECTURER
+        employeeRoleNo:
+          type: string
+          description: Employee role number for the lecturer
+          example: "L789012"
+
+    CreateUserRequest:
+      type: object
+      required:
+        - email
+        - password
+        - role
+      properties:
+        email:
+          type: string
+          format: email
+          description: Email address for the new user
+          example: newuser@example.com
+        password:
+          type: string
+          format: password
+          description: Password for the new user
+          example: "SecurePassword123"
+        role:
+          type: string
+          enum: [ ADMIN, STUDENT, LECTURER ]
+          description: Role for the new user
+          example: STUDENT
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token authentication
+
 security:
+  - bearerAuth: [ ]
 
 
-externalDocs:
 tags:
-  -
-
+  - name: Authentication
+    description: Endpoints for user authentication and registration
+  - name: Users
+    description: Endpoints for managing users
