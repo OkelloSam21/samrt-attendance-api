@@ -15,9 +15,9 @@ import java.util.*
 
 data class JwtConfig(
     val secret: String,
-    val issuer: String = "ktor-app",
-    val audience: String = "ktor-app-auth",
-    val realm: String = "ktor-app"
+    val issuer: String = "",
+    val audience: String = "",
+    val realm: String = ""
 )
 
 fun Application.configureAuthentication() {

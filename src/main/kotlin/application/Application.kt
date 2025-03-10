@@ -13,6 +13,7 @@ import io.ktor.server.plugins.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.response.*
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
@@ -30,6 +31,7 @@ fun main() {
 
 fun Application.module() {
 
+    util.initializeJwtConfig(this)
     // Install content negotiation
     install(ContentNegotiation) {
         json(Json {
@@ -51,6 +53,9 @@ fun Application.module() {
     }
 
     install(StatusPages) {
+        exception<SerializationException> { call, cause ->
+            call.respondText(text = cause.message ?: "Invalid request body", status = HttpStatusCode.BadRequest)
+        }
         exception<BadRequestException> { call, cause ->
             call.respondText(cause.message ?: "Bad Request", ContentType.Text.Plain, HttpStatusCode.BadRequest)
         }
