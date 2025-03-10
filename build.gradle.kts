@@ -48,7 +48,7 @@ dependencies {
 
     implementation("com.zaxxer:HikariCP:5.0.1")
 
-    implementation("mysql:mysql-connector-java:8.2.0") // MySQL driver
+    implementation("com.mysql:mysql-connector-j:9.2.0")
 
     implementation("org.mindrot:jbcrypt:0.4")
 
