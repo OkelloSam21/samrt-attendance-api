@@ -81,7 +81,7 @@ fun Application.module() {
 
     configureAuthentication()
     configureCors()
-//    configureSwagger()
+    configureSwagger()
     configureRouting()
     configureRouting()
 }
