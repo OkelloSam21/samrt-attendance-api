@@ -1,187 +1,233 @@
 package routes
 
-import auth.authorize
-import io.ktor.server.application.*
+import com.google.zxing.BarcodeFormat
+import com.google.zxing.MultiFormatWriter
+import com.google.zxing.client.j2se.MatrixToImageWriter
+import com.google.zxing.common.BitMatrix
+import io.ktor.http.*
+import io.ktor.http.content.*
+import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import models.*
-import org.jetbrains.exposed.sql.*
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
+import util.SECRET
+import util.authorizeToken
+import java.io.ByteArrayOutputStream
 import java.time.Instant
-import java.time.LocalDate
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 import java.util.*
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.sin
+import kotlin.math.sqrt
 
 fun Route.attendanceRoutes() {
-    route("/attendance") {
-        // MARK ATTENDANCE (Lecturer only)
-        post {
-            val requesterId = call.request.queryParameters["requester_id"]
-                ?: return@post call.respond(mapOf("error" to "Requester ID required"))
+    authenticate("auth-jwt") {
+        route("/attendance") {
+            // Create an attendance session (Lecturer only)
+            post("/sessions") {
+                val requester = authorizeToken(call,SECRET, setOf(UserRole.LECTURER))
+                    ?: return@post
+                val (requesterId, _) = requester // Only need the userId here
 
-            if (!authorize(call, requesterId, UserRole.ADMIN, UserRole.LECTURER)) {
-                return@post
+                // Parse the request body
+                val request = try {
+                    call.receive<AttendanceSessionRequest>()
+                } catch (e: Exception) {
+                    return@post call.respond(
+                        HttpStatusCode.BadRequest,
+                        mapOf("error" to "Invalid request body format")
+                    )
+                }
+
+                // Parse the session type safely
+                val sessionType = try {
+                    SessionType.valueOf(request.sessionType.uppercase())
+                } catch (e: IllegalArgumentException) {
+                    return@post call.respond(
+                        HttpStatusCode.BadRequest,
+                        mapOf("error" to "Invalid session type")
+                    )
+                }
+
+                // Extract fields from the request
+                val courseId = request.courseId
+                val durationMinutes = request.durationMinutes
+                val latitude = request.geoFence.latitude
+                val longitude = request.geoFence.longitude
+                val radiusMeters = request.geoFence.radiusMeters
+
+                // Generate session details
+                val sessionCode = generateSessionCode()
+                val sessionId = UUID.randomUUID()
+                val now = Instant.now()
+                val expiresAt = now.plus(durationMinutes.toLong(), ChronoUnit.MINUTES)
+
+                // Insert session into the database
+                transaction {
+                    AttendanceSessions.insert {
+                        it[id] = sessionId
+                        it[AttendanceSessions.courseId] = UUID.fromString(courseId)
+                        it[lecturerId] = UUID.fromString(requesterId)
+                        it[AttendanceSessions.sessionCode] = sessionCode
+                        it[AttendanceSessions.sessionType] = sessionType
+                        it[createdAt] = now
+                        it[AttendanceSessions.expiresAt] = expiresAt
+                        it[AttendanceSessions.latitude] = latitude
+                        it[AttendanceSessions.longitude] = longitude
+                        it[AttendanceSessions.radiusMeters] = radiusMeters
+                    }
+                }
+
+                // Respond with session details
+                call.respond(
+                    HttpStatusCode.Created, mapOf(
+                        "message" to "Session created successfully",
+                        "session_id" to sessionId.toString(),
+                        "session_code" to sessionCode,
+                        "expires_at" to expiresAt.toString()
+                    )
+                )
             }
 
-            val request = call.receive<Map<String, Any>>()
-            val courseId = request["course_id"] as? String
-                ?: return@post call.respond(mapOf("error" to "Course ID is required"))
-            
-            // Check if attendance records are provided as a list
-            @Suppress("UNCHECKED_CAST")
-            val attendanceRecords = request["attendance"] as? List<Map<String, Any>>
-                ?: return@post call.respond(mapOf("error" to "Attendance records are required"))
+            // Generate QR Code for an attendance session
+            get("/sessions/{sessionId}/qr") {
+                val sessionId = call.parameters["sessionId"]
+                    ?: return@get call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Session ID is required"))
 
-            val date = Instant.now()
-            val createdRecords = mutableListOf<UUID>()
+                val session = transaction {
+                    AttendanceSessions.select { AttendanceSessions.id eq UUID.fromString(sessionId) }
+                        .singleOrNull()
+                } ?: return@get call.respond(HttpStatusCode.NotFound, mapOf("error" to "Session not found"))
 
-            transaction {
-                for (record in attendanceRecords) {
-                    val studentId = record["student_id"] as String
-                    val status = AttendanceStatus.valueOf((record["status"] as String).uppercase())
-                    
-                    val recordId = UUID.randomUUID()
+                val qrCodeImage = generateQRCode(session[AttendanceSessions.sessionCode])
+
+                call.respond(ByteArrayContent(qrCodeImage, ContentType.Image.PNG))
+            }
+
+            // Mark attendance (Students)
+            post("/mark") {
+                val requester = authorizeToken(call,SECRET, setOf(UserRole.STUDENT))
+                    ?: return@post
+                val (studentId, _) = requester // Only need the userId here
+
+                // Extract the session code and location (optional) from the request body
+                val request = call.receive<Map<String, Any>>()
+                val sessionCode = request["session_code"]?.toString()
+                    ?: return@post call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Session code is required"))
+                val location = request["location"] as? Map<*, *>
+                val studentLatitude = location?.get("latitude")?.toString()?.toDouble()
+                val studentLongitude = location?.get("longitude")?.toString()?.toDouble()
+
+                val session = transaction {
+                    AttendanceSessions
+                        .select { AttendanceSessions.sessionCode eq sessionCode }
+                        .singleOrNull()
+                } ?: return@post call.respond(HttpStatusCode.NotFound, mapOf("error" to "Session not found"))
+
+                val now = Instant.now()
+                if (now.isAfter(session[AttendanceSessions.expiresAt])) {
+                    return@post call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Session has expired"))
+                }
+
+                if (session[AttendanceSessions.sessionType] == SessionType.PHYSICAL) {
+                    val radius = session[AttendanceSessions.radiusMeters]
+                    val lecturerLatitude = session[AttendanceSessions.latitude]
+                    val lecturerLongitude = session[AttendanceSessions.longitude]
+
+                    if (radius != null && lecturerLatitude != null && lecturerLongitude != null) {
+                        val withinRadius = checkIfWithinRadius(
+                            studentLatitude,
+                            studentLongitude,
+                            lecturerLatitude,
+                            lecturerLongitude,
+                            radius
+                        )
+                        if (!withinRadius) {
+                            return@post call.respond(
+                                HttpStatusCode.BadRequest,
+                                mapOf("error" to "Outside allowed radius")
+                            )
+                        }
+                    }
+                }
+
+                // Mark attendance
+                transaction {
                     Attendance.insert {
-                        it[id] = recordId
                         it[Attendance.studentId] = UUID.fromString(studentId)
-                        it[Attendance.courseId] = UUID.fromString(courseId)
-                        it[Attendance.date] = date
-                        it[Attendance.status] = status
-                    }
-                    
-                    createdRecords.add(recordId)
-                    
-                    // Create notification for absent students
-                    if (status == AttendanceStatus.ABSENT) {
-                        val notificationId = UUID.randomUUID()
-                        Notifications.insert {
-                            it[id] = notificationId
-                            it[userId] = UUID.fromString(studentId)
-                            it[message] = "You were marked absent for a class"
-                            it[type] = NotificationType.ATTENDANCE
-                            it[createdAt] = Instant.now()
-                        }
+                        it[courseId] = session[AttendanceSessions.courseId]
+                        it[sessionId] = session[AttendanceSessions.id]
+                        it[date] = now
+                        it[status] = AttendanceStatus.PRESENT
+                        it[verificationMethod] = VerificationMethod.QR_CODE // Or other methods based on implementation
+                        it[locationLatitude] = studentLatitude
+                        it[locationLongitude] = studentLongitude
                     }
                 }
+
+                call.respond(HttpStatusCode.OK, mapOf("message" to "Attendance marked successfully"))
             }
-
-            call.respond(mapOf(
-                "message" to "Attendance recorded successfully",
-                "records" to createdRecords.map { it.toString() }
-            ))
-        }
-
-        // GET ATTENDANCE BY COURSE
-        get("/course/{courseId}") {
-            val courseId = call.parameters["courseId"]
-                ?: return@get call.respond(mapOf("error" to "Course ID is required"))
-            val requesterId = call.request.queryParameters["requester_id"]
-                ?: return@get call.respond(mapOf("error" to "Requester ID required"))
-
-            if (!authorize(call, requesterId, UserRole.ADMIN, UserRole.LECTURER)) {
-                return@get
-            }
-
-            // Optional date filter
-            val dateStr = call.request.queryParameters["date"]
-            val date = dateStr?.let {
-                LocalDate.parse(it, DateTimeFormatter.ISO_DATE)
-                    .atStartOfDay(ZoneId.systemDefault())
-                    .toInstant()
-            }
-
-            val attendanceRecords = transaction {
-                val query = if (date != null) {
-                    (Attendance innerJoin Users)
-                        .select {
-                            (Attendance.courseId eq UUID.fromString(courseId)) and
-                            (Attendance.date.greaterEq(date)) and
-                            (Attendance.date.less(date.plusSeconds(86400)))
-                        }
-                } else {
-                    (Attendance innerJoin Users)
-                        .select { Attendance.courseId eq UUID.fromString(courseId) }
-                }
-
-                query.map {
-                    mapOf(
-                        "id" to it[Attendance.id].value.toString(),
-                        "student_id" to it[Attendance.studentId].value.toString(),
-                        "student_name" to it[Users.name],
-                        "date" to it[Attendance.date].toString(),
-                        "status" to it[Attendance.status].name
-                    )
-                }
-            }
-
-            call.respond(attendanceRecords)
-        }
-
-        // GET ATTENDANCE BY STUDENT
-        get("/student/{studentId}") {
-            val studentId = call.parameters["studentId"]
-                ?: return@get call.respond(mapOf("error" to "Student ID is required"))
-            val requesterId = call.request.queryParameters["requester_id"]
-                ?: return@get call.respond(mapOf("error" to "Requester ID required"))
-
-            // Students can only view their own attendance
-            if (requesterId != studentId && !authorize(call, requesterId, UserRole.ADMIN, UserRole.LECTURER)) {
-                return@get call.respond(mapOf("error" to "Not authorized to view this student's attendance"))
-            }
-
-            val courseId = call.request.queryParameters["course_id"]
-
-            val attendanceRecords = transaction {
-                val baseQuery = if (courseId != null) {
-                    (Attendance innerJoin Courses)
-                        .select {
-                            (Attendance.studentId eq UUID.fromString(studentId)) and
-                            (Attendance.courseId eq UUID.fromString(courseId))
-                        }
-                } else {
-                    (Attendance innerJoin Courses)
-                        .select { Attendance.studentId eq UUID.fromString(studentId) }
-                }
-
-                baseQuery.map {
-                    mapOf(
-                        "id" to it[Attendance.id].value.toString(),
-                        "course_id" to it[Attendance.courseId].value.toString(),
-                        "course_name" to it[Courses.name],
-                        "date" to it[Attendance.date].toString(),
-                        "status" to it[Attendance.status].name
-                    )
-                }
-            }
-
-            call.respond(attendanceRecords)
-        }
-
-        // UPDATE ATTENDANCE RECORD (Lecturer only)
-        put("/{id}") {
-            val attendanceId = call.parameters["id"]
-                ?: return@put call.respond(mapOf("error" to "Attendance ID is required"))
-            val requesterId = call.request.queryParameters["requester_id"]
-                ?: return@put call.respond(mapOf("error" to "Requester ID required"))
-
-            if (!authorize(call, requesterId, UserRole.ADMIN, UserRole.LECTURER)) {
-                return@put
-            }
-
-            val request = call.receive<Map<String, String>>()
-            val status = request["status"]?.let { AttendanceStatus.valueOf(it.uppercase()) }
-                ?: return@put call.respond(mapOf("error" to "Status is required"))
-
-            transaction {
-                Attendance.update({ Attendance.id eq UUID.fromString(attendanceId) }) {
-                    it[Attendance.status] = status
-                }
-            }
-
-            call.respond(mapOf("message" to "Attendance record updated successfully"))
         }
     }
 }
+
+// Function to check if coordinates are within a radius
+fun checkIfWithinRadius(
+    studentLat: Double?,
+    studentLong: Double?,
+    lecturerLat: Double,
+    lecturerLong: Double,
+    radius: Double
+): Boolean {
+    if (studentLat == null || studentLong == null) {
+        return false
+    }
+    val earthRadius = 6371000.0 // In meters
+    val dLat = Math.toRadians(lecturerLat - studentLat)
+    val dLong = Math.toRadians(lecturerLong - studentLong)
+
+    val a = sin(dLat / 2) * sin(dLat / 2) +
+            cos(Math.toRadians(studentLat)) * cos(Math.toRadians(lecturerLat)) *
+            sin(dLong / 2) * sin(dLong / 2)
+    val c = 2 * atan2(sqrt(a), sqrt(1 - a))
+
+    val distance = earthRadius * c
+    return distance <= radius
+}
+
+fun generateSessionCode(): String {
+    val characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+    return (1..6)
+        .map { characters.random() }
+        .joinToString("")
+}
+
+fun generateQRCode(sessionCode: String, width: Int = 250, height: Int = 250): ByteArray {
+    val bitMatrix: BitMatrix = MultiFormatWriter().encode(sessionCode, BarcodeFormat.QR_CODE, width, height)
+    val outputStream = ByteArrayOutputStream()
+    MatrixToImageWriter.writeToStream(bitMatrix, "PNG", outputStream)
+    return outputStream.toByteArray()
+}
+
+
+@Serializable
+data class GeoFence(
+    val latitude: Double,
+    val longitude: Double,
+    val radiusMeters: Double
+)
+
+@Serializable
+data class AttendanceSessionRequest(
+    @SerialName("course_id") val courseId: String,
+    @SerialName("duration_minutes") val durationMinutes: Int,
+    @SerialName("session_type") val sessionType: String,
+    @SerialName("geo_fence") val geoFence: GeoFence
+)
