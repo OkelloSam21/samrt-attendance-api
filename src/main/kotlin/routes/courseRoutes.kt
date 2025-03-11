@@ -1,151 +1,185 @@
 package routes
 
 import auth.authorize
-import io.ktor.server.request.*
+import io.ktor.http.*
+import io.ktor.server.auth.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import kotlinx.serialization.Serializable
 import models.Courses
 import models.UserRole
 import models.Users
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
+import util.SECRET
+import util.authorizeToken
+import util.authorizeUser
+import util.parseAndValidateRequest
 import java.time.Instant
 import java.util.*
 
+@Serializable
+data class CourseRequest(
+    val name: String,
+    val lecturerId: String? = null
+)
+
+@Serializable
+data class CourseResponse(
+    val id: String,
+    val name: String,
+    val lecturerId: String,
+    val lecturerName: String,
+    val createdAt: String
+)
+
 fun Route.courseRoutes() {
     route("/courses") {
-        // CREATE COURSE (Lecturer and Admin only)
-        post {
-            val requesterId = call.request.queryParameters["requester_id"]
-                ?: return@post call.respond(mapOf("error" to "Requester ID required"))
+        authenticate("auth-jwt") {
+            // CREATE COURSE (Lecturer and Admin only)
+            post {
+                val requesterId = call.authorizeUser(SECRET, UserRole.LECTURER) ?: return@post
 
-            if (!authorize(call, requesterId, UserRole.ADMIN, UserRole.LECTURER)) {
-                return@post
+                val createCourseRequest = call.parseAndValidateRequest<CourseRequest>(
+                    validate = { name.isNotBlank() },
+                    errorMessage = "Course name is required"
+                ) ?: return@post
+
+                val lecturerId = createCourseRequest.lecturerId ?: requesterId
+                val courseId = UUID.randomUUID()
+
+                transaction {
+                    Courses.insert {
+                        it[id] = courseId
+                        it[name] = createCourseRequest.name
+                        it[this.lecturerId] = UUID.fromString(lecturerId)
+                        it[createdAt] = Instant.now()
+                    }
+                }
+
+                call.respond(
+                    HttpStatusCode.Created,
+                    mapOf("message" to "Course created successfully", "courseId" to courseId.toString())
+                )
             }
 
-            val request = call.receive<Map<String, String>>()
-            val name = request["name"] ?: return@post call.respond(mapOf("error" to "Course name is required"))
-            val lecturerId = request["lecturer_id"] ?: requesterId
+            // GET ALL COURSES
+            get {
+                // Check authorization for Admin, Lecturer, or Student
+                if (!authorize(call, SECRET, UserRole.ADMIN, UserRole.LECTURER, UserRole.STUDENT)) {
+                    return@get
+                }
 
-            val courseId = UUID.randomUUID()
+                val courses = transaction {
+                    (Courses innerJoin Users)
+                        .select { Users.id eq Courses.lecturerId }
+                        .map {
+                            CourseResponse(
+                                id = it[Courses.id].value.toString(),
+                                name = it[Courses.name],
+                                lecturerId = it[Courses.lecturerId].value.toString(),
+                                lecturerName = it[Users.name],
+                                createdAt = it[Courses.createdAt].toString()
+                            )
+                        }
+                }
 
-            transaction {
-                Courses.insert {
-                    it[id] = courseId
-                    it[this.name] = name
-                    it[this.lecturerId] = UUID.fromString(lecturerId)
-                    it[createdAt] = Instant.now()
+                call.respond(HttpStatusCode.OK, courses)
+            }
+
+            // GET COURSE BY ID
+            get("/{id}") {
+                if (!authorize(call, SECRET, UserRole.ADMIN, UserRole.LECTURER, UserRole.STUDENT)) {
+                    return@get
+                }
+
+                val courseId = call.parameters["id"]
+                    ?: return@get call.respond(
+                        HttpStatusCode.BadRequest,
+                        mapOf("error" to "Course ID is required")
+                    )
+
+                val course = transaction {
+                    (Courses innerJoin Users)
+                        .select { (Courses.id eq UUID.fromString(courseId)) and (Users.id eq Courses.lecturerId) }
+                        .map {
+                            CourseResponse(
+                                id = it[Courses.id].value.toString(),
+                                name = it[Courses.name],
+                                lecturerId = it[Courses.lecturerId].value.toString(),
+                                lecturerName = it[Users.name],
+                                createdAt = it[Courses.createdAt].toString()
+                            )
+                        }.singleOrNull()
+                }
+
+                if (course == null) {
+                    call.respond(HttpStatusCode.NotFound, mapOf("error" to "Course not found"))
+                } else {
+                    call.respond(HttpStatusCode.OK, course)
                 }
             }
 
-            call.respond(mapOf("message" to "Course created successfully", "courseId" to courseId.toString()))
-        }
+            // UPDATE COURSE (Lecturer who owns the course and Admin only)
+            put("/{id}") {
+                val requester = authorizeToken(call,SECRET, setOf(UserRole.ADMIN, UserRole.LECTURER))
+                    ?: return@put
+                val (requesterId, requesterRole) = requester // Destructure the pair
 
-        // GET ALL COURSES
-        get {
-            val requesterId = call.request.queryParameters["requester_id"]
-                ?: return@get call.respond(mapOf("error" to "Requester ID required"))
+                val courseId = call.parameters["id"]
+                    ?: return@put call.respond(
+                        HttpStatusCode.BadRequest,
+                        mapOf("error" to "Course ID is required")
+                    )
 
-            if (!authorize(call, requesterId, UserRole.ADMIN, UserRole.LECTURER, UserRole.STUDENT)) {
-                return@get
-            }
+                val course = transaction {
+                    Courses.select { Courses.id eq UUID.fromString(courseId) }.singleOrNull()
+                } ?: return@put call.respond(HttpStatusCode.NotFound, mapOf("error" to "Course not found"))
 
-            val courses = transaction {
-                (Courses innerJoin Users)
-                    .select { Users.id eq Courses.lecturerId }
-                    .map {
-                        mapOf(
-                            "id" to it[Courses.id].value.toString(),
-                            "name" to it[Courses.name],
-                            "lecturer_id" to it[Courses.lecturerId].value.toString(),
-                            "lecturer_name" to it[Users.name],
-                            "created_at" to it[Courses.createdAt].toString()
-                        )
+                val lecturerId = course[Courses.lecturerId].value.toString()
+
+                if (requesterRole != UserRole.ADMIN && requesterId != lecturerId) {
+                    return@put call.respond(HttpStatusCode.Forbidden, mapOf("error" to "Not authorized to update this course"))
+                }
+
+                val updateCourseRequest = call.parseAndValidateRequest<CourseRequest>(
+                    validate = { name.isNotBlank() },
+                    errorMessage = "Course name is required"
+                ) ?: return@put
+
+                val newLecturerId = updateCourseRequest.lecturerId ?: lecturerId
+
+                transaction {
+                    Courses.update({ Courses.id eq UUID.fromString(courseId) }) {
+                        it[name] = updateCourseRequest.name
+                        it[this.lecturerId] = UUID.fromString(newLecturerId)
                     }
+                }
+
+                call.respond(HttpStatusCode.OK, mapOf("message" to "Course updated successfully"))
             }
 
-            call.respond(courses)
-        }
+            // DELETE COURSE (Admin only)
+            delete("/{id}") {
+                call.authorizeUser(SECRET, UserRole.ADMIN) ?: return@delete
 
-        // GET COURSE BY ID
-        get("/{id}") {
-            val courseId = call.parameters["id"] ?: return@get call.respond(mapOf("error" to "Course ID is required"))
-            val requesterId = call.request.queryParameters["requester_id"]
-                ?: return@get call.respond(mapOf("error" to "Requester ID required"))
+                val courseId = call.parameters["id"]
+                    ?: return@delete call.respond(
+                        HttpStatusCode.BadRequest,
+                        mapOf("error" to "Course ID is required")
+                    )
 
-            if (!authorize(call, requesterId, UserRole.ADMIN, UserRole.LECTURER, UserRole.STUDENT)) {
-                return@get
-            }
-
-            val course = transaction {
-                (Courses innerJoin Users)
-                    .select { (Courses.id eq UUID.fromString(courseId)) and (Users.id eq Courses.lecturerId) }
-                    .map {
-                        mapOf(
-                            "id" to it[Courses.id].value.toString(),
-                            "name" to it[Courses.name],
-                            "lecturer_id" to it[Courses.lecturerId].value.toString(),
-                            "lecturer_name" to it[Users.name],
-                            "created_at" to it[Courses.createdAt].toString()
-                        )
+                newSuspendedTransaction {
+                    val deletedRows = Courses.deleteWhere { id eq UUID.fromString(courseId) }
+                    if (deletedRows > 0) {
+                        call.respond(HttpStatusCode.OK, mapOf("message" to "Course deleted successfully"))
+                    } else {
+                        call.respond(HttpStatusCode.NotFound, mapOf("error" to "Course not found"))
                     }
-                    .singleOrNull()
-            }
-
-            if (course == null) {
-                call.respond(mapOf("error" to "Course not found"))
-            } else {
-                call.respond(course)
-            }
-        }
-
-        // UPDATE COURSE (Lecturer who owns the course and Admin only)
-        put("/{id}") {
-            val courseId = call.parameters["id"] ?: return@put call.respond(mapOf("error" to "Course ID is required"))
-            val requesterId = call.request.queryParameters["requester_id"]
-                ?: return@put call.respond(mapOf("error" to "Requester ID required"))
-
-            // Get the course and check if requester is the lecturer or an admin
-            val course = transaction {
-                Courses.select { Courses.id eq UUID.fromString(courseId) }.singleOrNull()
-            } ?: return@put call.respond(mapOf("error" to "Course not found"))
-
-            val lecturerId = course[Courses.lecturerId].value.toString()
-            
-            if (!authorize(call, requesterId, UserRole.ADMIN) && requesterId != lecturerId) {
-                return@put call.respond(mapOf("error" to "Not authorized to update this course"))
-            }
-
-            val request = call.receive<Map<String, String>>()
-            val name = request["name"] ?: return@put call.respond(mapOf("error" to "Course name is required"))
-            val newLecturerId = request["lecturer_id"] ?: lecturerId
-
-            transaction {
-                Courses.update({ Courses.id eq UUID.fromString(courseId) }) {
-                    it[this.name] = name
-                    it[this.lecturerId] = UUID.fromString(newLecturerId)
                 }
             }
-
-            call.respond(mapOf("message" to "Course updated successfully"))
-        }
-
-        // DELETE COURSE (Admin only)
-        delete("/{id}") {
-            val courseId = call.parameters["id"] ?: return@delete call.respond(mapOf("error" to "Course ID is required"))
-            val requesterId = call.request.queryParameters["requester_id"]
-                ?: return@delete call.respond(mapOf("error" to "Requester ID required"))
-
-            if (!authorize(call, requesterId, UserRole.ADMIN)) {
-                return@delete
-            }
-
-            transaction {
-                Courses.deleteWhere { id eq UUID.fromString(courseId) }
-            }
-
-            call.respond(mapOf("message" to "Course deleted successfully"))
         }
     }
 }
