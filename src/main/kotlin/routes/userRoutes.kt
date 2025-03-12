@@ -69,7 +69,7 @@ fun Route.userRoutes() {
         }
 
         // Create a new user (Admin-only access)
-        post {
+        post ("/create"){
             if (!authorize(call, secret, UserRole.ADMIN)) return@post
 
             val request = call.receive<CreateUserRequest>()
@@ -86,7 +86,7 @@ fun Route.userRoutes() {
         }
 
         // Delete a specific user (Admin-only access)
-        delete("/{id}") {
+        delete("/delete/{id}") {
             if (!authorize(call, secret, UserRole.ADMIN)) return@delete
 
             val id = call.parameters["id"]?.let { UUID.fromString(it) }

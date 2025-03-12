@@ -39,7 +39,7 @@ fun Route.courseRoutes() {
     route("/courses") {
         authenticate("auth-jwt") {
             // CREATE COURSE (Lecturer and Admin only)
-            post {
+            post("/create") {
                 val requesterId = call.authorizeUser(SECRET, UserRole.LECTURER) ?: return@post
 
                 val createCourseRequest = call.parseAndValidateRequest<CourseRequest>(
@@ -128,7 +128,7 @@ fun Route.courseRoutes() {
             }
 
             // UPDATE COURSE (Lecturer who owns the course and Admin only)
-            put("/{id}") {
+            put("/update/{id}") {
                 val requester = authorizeToken(call,SECRET, setOf(UserRole.ADMIN, UserRole.LECTURER))
                     ?: return@put
                 val (requesterId, requesterRole) = requester // Destructure the pair
@@ -164,7 +164,7 @@ fun Route.courseRoutes() {
             }
 
             // DELETE COURSE (Admin only)
-            delete("/{id}") {
+            delete("/delete/{id}") {
                 call.authorizeUser(SECRET, UserRole.ADMIN) ?: return@delete
 
                 val courseId = call.parameters["id"]

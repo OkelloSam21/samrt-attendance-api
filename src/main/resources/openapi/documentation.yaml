@@ -293,6 +293,7 @@ paths:
                     type: string
                     example: Insufficient permissions
 
+  /users/create:
     post:
       tags:
         - Users
@@ -420,6 +421,7 @@ paths:
                     type: string
                     example: User not found
 
+  /users/delete/{id}:
     delete:
       tags:
         - Users
@@ -487,7 +489,7 @@ paths:
                     type: string
                     example: User not found
 
-  /courses:
+  /courses/create:
     post:
       tags:
         - Courses
@@ -547,6 +549,7 @@ paths:
                     type: string
                     example: Only lecturers and admins can create courses
 
+  /courses:
     get:
       tags:
         - Courses
@@ -638,6 +641,7 @@ paths:
                     type: string
                     example: Course not found
 
+  /courses/update/{id}:
     put:
       tags:
         - Courses
