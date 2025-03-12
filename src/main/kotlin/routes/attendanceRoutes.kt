@@ -13,12 +13,11 @@ import io.ktor.server.routing.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import models.*
+import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
-import util.SECRET
-import util.authorizeToken
-import util.parseAndValidateRequest
+import util.*
 import java.io.ByteArrayOutputStream
 import java.time.Instant
 import java.time.temporal.ChronoUnit
@@ -101,17 +100,23 @@ fun Route.attendanceRoutes() {
             }
 
             // Generate QR Code for an attendance session
-            get("/sessions/{sessionId}/qr") {
-                val sessionId = call.parameters["sessionId"]
-                    ?: return@get call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Session ID is required"))
+            get("/sessions/qr") {
+                // Authenticate the user and ensure they are authorized
+                val userId = call.authorizeUser(SECRET, UserRole.LECTURER)
+                    ?: return@get call.respond(HttpStatusCode.Unauthorized, mapOf("error" to "Unauthorized access"))
 
+                // Fetch the session associated with the lecturer
                 val session = transaction {
-                    AttendanceSessions.select { AttendanceSessions.id eq UUID.fromString(sessionId) }
+                    AttendanceSessions.select { AttendanceSessions.lecturerId eq UUID.fromString(userId) }
+                        .orderBy(AttendanceSessions.createdAt, SortOrder.DESC) // Fetch the latest session
+                        .limit(1)
                         .singleOrNull()
-                } ?: return@get call.respond(HttpStatusCode.NotFound, mapOf("error" to "Session not found"))
+                } ?: return@get call.respond(HttpStatusCode.NotFound, mapOf("error" to "No active session found"))
 
+                // Generate the QR code using the session code (without exposing session ID to the user)
                 val qrCodeImage = generateQRCode(session[AttendanceSessions.sessionCode])
 
+                // Respond with the generated QR code image
                 call.respond(ByteArrayContent(qrCodeImage, ContentType.Image.PNG))
             }
 
@@ -206,12 +211,6 @@ fun checkIfWithinRadius(
     return distance <= radius
 }
 
-fun generateSessionCode(): String {
-    val characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-    return (1..6)
-        .map { characters.random() }
-        .joinToString("")
-}
 
 fun generateQRCode(sessionCode: String, width: Int = 250, height: Int = 250): ByteArray {
     val bitMatrix: BitMatrix = MultiFormatWriter().encode(sessionCode, BarcodeFormat.QR_CODE, width, height)
@@ -222,16 +221,16 @@ fun generateQRCode(sessionCode: String, width: Int = 250, height: Int = 250): By
 
 
 @Serializable
-data class GeoFence(
-    val latitude: Double,
-    val longitude: Double,
-    val radiusMeters: Double
-)
-
-@Serializable
 data class AttendanceSessionRequest(
     @SerialName("course_id") val courseId: String,
     @SerialName("duration_minutes") val durationMinutes: Int,
     @SerialName("session_type") val sessionType: String,
     @SerialName("geo_fence") val geoFence: GeoFence
+)
+
+@Serializable
+data class GeoFence(
+    val latitude: Double,
+    val longitude: Double,
+    @SerialName("radius_meters") val radiusMeters: Double // Fix applied here
 )
