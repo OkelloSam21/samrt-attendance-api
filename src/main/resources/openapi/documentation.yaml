@@ -778,6 +778,185 @@ paths:
                     type: string
                     example: Course not found
 
+  /attendance/sessions:
+    post:
+      tags:
+        - Attendance
+      summary: Create a new attendance session
+      description: Creates a new attendance session with geofencing. Requires lecturer role.
+      security:
+        - bearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AttendanceSessionRequest'
+      responses:
+        "201":
+          description: Session created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Session created successfully
+                  session_id:
+                    type: string
+                    format: uuid
+                    example: "123e4567-e89b-12d3-a456-426614174000"
+                  session_code:
+                    type: string
+                    example: "ABC123"
+                  expires_at:
+                    type: string
+                    format: date-time
+                    example: "2025-03-12T15:30:00.000Z"
+        "400":
+          description: Bad Request - Invalid session data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid request body format"
+        "401":
+          description: Unauthorized - Invalid or missing token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Authorization token is required"
+        "403":
+          description: Forbidden - Insufficient permissions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Insufficient permissions. Lecturer role required."
+
+  /attendance/sessions/qr:
+    get:
+      tags:
+        - Attendance
+      summary: Generate QR code for the lecturer's latest session
+      description: Generates a QR code image for the lecturer's most recently created attendance session.
+      security:
+        - bearerAuth: [ ]
+      responses:
+        "200":
+          description: QR code image generated successfully
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+        "401":
+          description: Unauthorized - Invalid or missing token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized access"
+        "403":
+          description: Forbidden - Insufficient permissions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Insufficient permissions. Lecturer role required."
+        "404":
+          description: Not Found - No active session found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "No active session found"
+
+  /attendance/mark:
+    post:
+      tags:
+        - Attendance
+      summary: Mark attendance for a student
+      description: Marks attendance for a student using session code and location data. Requires student role.
+      security:
+        - bearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarkAttendanceRequest'
+      responses:
+        "200":
+          description: Attendance marked successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Attendance marked successfully"
+        "400":
+          description: Bad Request - Invalid request, out of range, or expired session
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Outside allowed radius"
+        "401":
+          description: Unauthorized - Invalid or missing token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Authorization token is required"
+        "403":
+          description: Forbidden - Insufficient permissions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Insufficient permissions. Student role required."
+        "404":
+          description: Not Found - Session not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Session not found"
 
 components:
   schemas:
@@ -978,6 +1157,88 @@ components:
           description: Timestamp when the course was created
           example: "2023-10-05T14:48:00.000Z"
 
+    AttendanceSessionRequest:
+      type: object
+      required:
+        - course_id
+        - duration_minutes
+        - session_type
+        - geo_fence
+      properties:
+        course_id:
+          type: string
+          format: uuid
+          description: UUID of the course
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        duration_minutes:
+          type: integer
+          description: Duration of the session in minutes
+          example: 60
+          minimum: 1
+        session_type:
+          type: string
+          enum: [ PHYSICAL, ONLINE ]
+          description: Type of attendance session
+          example: "PHYSICAL"
+        geo_fence:
+          $ref: '#/components/schemas/GeoFence'
+
+    GeoFence:
+      type: object
+      required:
+        - latitude
+        - longitude
+        - radius_meters
+      properties:
+        latitude:
+          type: number
+          format: double
+          description: Latitude of the session location
+          example: 40.7128
+          minimum: -90
+          maximum: 90
+        longitude:
+          type: number
+          format: double
+          description: Longitude of the session location
+          example: -74.0060
+          minimum: -180
+          maximum: 180
+        radius_meters:
+          type: number
+          format: double
+          description: Radius of the geofence in meters
+          example: 100
+          minimum: 1
+
+    MarkAttendanceRequest:
+      type: object
+      required:
+        - session_code
+      properties:
+        session_code:
+          type: string
+          description: Unique code for the attendance session
+          example: "ABC123"
+        location:
+          type: object
+          properties:
+            latitude:
+              type: number
+              format: double
+              description: Latitude of the student's location
+              example: 40.7128
+            longitude:
+              type: number
+              format: double
+              description: Longitude of the student's location
+              example: -74.0060
+
+    SessionType:
+      type: string
+      enum: [PHYSICAL, ONLINE]
+      description: Type of attendance session
+      example: "PHYSICAL"
 
 
 
@@ -999,3 +1260,5 @@ tags:
     description: Endpoints for managing users
   - name: Courses
     description: Endpoint for managing courses
+  - name: Attendance
+    description: Endpoint for managing attendance sessions and marking attendance
