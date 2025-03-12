@@ -1244,8 +1244,6 @@ components:
       description: Type of attendance session
       example: "PHYSICAL"
 
-
-
   securitySchemes:
     bearerAuth:
       type: http
