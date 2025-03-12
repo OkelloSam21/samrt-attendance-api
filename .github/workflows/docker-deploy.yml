@@ -26,7 +26,7 @@ jobs:
       - name: Deploy to Azure App Service
         uses: azure/webapps-deploy@v2
         with:
-          app-name: "smartattendance-backend" # Replace with your App Service name
-          images: "smartattendance.azurecr.io/ktor-backend:latest"
+          app-name: "smartattendance-backend"  # Your App Service name
+          images: "smartattendanceapiregistry.azurecr.io/ktor-backend:latest"
         env:
           AZURE_WEBAPP_PUBLISH_PROFILE: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
