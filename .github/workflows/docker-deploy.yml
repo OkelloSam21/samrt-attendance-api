@@ -15,13 +15,13 @@ jobs:
 
       - name: Log in to Azure Container Registry
         run: |
-          echo "${{ secrets.AZURE_ACR_PASSWORD }}" | docker login smartattendance.azurecr.io -u ${{ secrets.AZURE_ACR_USERNAME }} --password-stdin
+          echo "${{ secrets.AZURE_ACR_PASSWORD }}" | docker login smartattendanceapiregistry.azurecr.io -u ${{ secrets.AZURE_ACR_USERNAME }} --password-stdin
 
       - name: Build Docker image
-        run: docker build -t smartattendance.azurecr.io/ktor-backend:latest .
+        run: docker build -t smartattendanceapiregistry.azurecr.io/ktor-backend:latest .
 
       - name: Push Docker image to ACR
-        run: docker push smartattendance.azurecr.io/ktor-backend:latest
+        run: docker push smartattendanceapiregistry.azurecr.io/ktor-backend:latest
 
       - name: Deploy to Azure App Service
         uses: azure/webapps-deploy@v2
