@@ -23,7 +23,7 @@ import java.util.*
 @Serializable
 data class CourseRequest(
     val name: String,
-    val lecturerId: String? = null
+//    val lecturerId: String
 )
 
 @Serializable
@@ -47,14 +47,19 @@ fun Route.courseRoutes() {
                     errorMessage = "Course name is required"
                 ) ?: return@post
 
-                val lecturerId = createCourseRequest.lecturerId ?: requesterId
                 val courseId = UUID.randomUUID()
 
-                transaction {
+                newSuspendedTransaction {
+                    val lecturerExists = Users.select { Users.id eq UUID.fromString(requesterId) }.count() > 0
+                    if (!lecturerExists) {
+                        call.respond(HttpStatusCode.BadRequest, "Invalid lecturer ID")
+                        return@newSuspendedTransaction
+                    }
+
                     Courses.insert {
                         it[id] = courseId
                         it[name] = createCourseRequest.name
-                        it[this.lecturerId] = UUID.fromString(lecturerId)
+                        it[this.lecturerId] = UUID.fromString(requesterId)
                         it[createdAt] = Instant.now()
                     }
                 }
@@ -149,12 +154,9 @@ fun Route.courseRoutes() {
                     errorMessage = "Course name is required"
                 ) ?: return@put
 
-                val newLecturerId = updateCourseRequest.lecturerId ?: lecturerId
-
                 transaction {
                     Courses.update({ Courses.id eq UUID.fromString(courseId) }) {
                         it[name] = updateCourseRequest.name
-                        it[this.lecturerId] = UUID.fromString(newLecturerId)
                     }
                 }
 
