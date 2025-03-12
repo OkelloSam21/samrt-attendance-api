@@ -47,6 +47,7 @@ fun Application.module() {
                     )
                 }
             }
+            ignoreUnknownKeys = true
             prettyPrint = true
             isLenient = true
         })
