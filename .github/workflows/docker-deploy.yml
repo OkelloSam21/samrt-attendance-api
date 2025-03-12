@@ -18,7 +18,7 @@ jobs:
           echo "${{ secrets.AZURE_ACR_PASSWORD }}" | docker login <smartattendanceapiregistry>.azurecr.io -u <registry-name> --password-stdin
 
       - name: Build Docker image
-        run: docker build -t <smartattendanceapiregistry>.azurecr.io/ktor-backend:latest .
+        run: docker build -t smartattendanceapiregistry.azurecr.io/ktor-backend:latest .
 
       - name: Push Docker image
-        run: docker push <smartattendanceapiregistry>.azurecr.io/ktor-backend:latest
+        run: docker push smartattendanceapiregistry.azurecr.io/ktor-backend:latest
