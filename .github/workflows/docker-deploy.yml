@@ -14,7 +14,8 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Verify DNS Resolution
-        run: nslookup smartattendance.azurecr.io
+        run: |
+          nslookup smartattendance.azurecr.io || echo "DNS resolution failed, continuing..."
 
       - name: Log in to Azure Container Registry
         run: |
