@@ -13,13 +13,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Verify DNS Resolution
-        run: |
-          nslookup smartattendanceapiregistry.azurecr.io.azurecr.io || echo "DNS resolution failed, continuing..."
-
       - name: Log in to Azure Container Registry
         run: |
           echo "${{ secrets.AZURE_ACR_PASSWORD }}" | docker login smartattendanceapiregistry.azurecr.io -u ${{ secrets.AZURE_ACR_USERNAME }} --password-stdin
+
+      - name: Build with Gradle
+        run: ./gradlew build
 
       - name: Build Docker image
         run: docker build -t smartattendanceapiregistry.azurecr.io/ktor-backend:latest .
