@@ -31,6 +31,6 @@ jobs:
         uses: azure/webapps-deploy@v2
         with:
           app-name: "smartattendance-backend"
-          images: "smartattendance.azurecr.io/ktor-backend:latest"
+          images: "smartattendanceapiregistry.azurecr.io/ktor-backend:latest"
         env:
           AZURE_WEBAPP_PUBLISH_PROFILE: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
