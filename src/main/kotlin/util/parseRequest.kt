@@ -7,8 +7,13 @@ import io.ktor.server.response.*
 
 suspend inline fun <reified T : Any> ApplicationCall.parseRequest(): T? {
     return try {
-        this.receive<T>()
+        println("Attempting to parse request to ${T::class.simpleName}")
+        val result = this.receive<T>()
+        println("Successfully parsed request")
+        result
     } catch (e: Exception) {
+        println("Failed to parse request: ${e.message}")
+        e.printStackTrace()
         this.respond(
             HttpStatusCode.BadRequest,
             mapOf("error" to "Invalid request body format")
@@ -16,7 +21,6 @@ suspend inline fun <reified T : Any> ApplicationCall.parseRequest(): T? {
         null
     }
 }
-
 
 suspend inline fun <reified T : Any> ApplicationCall.parseAndValidateRequest(
     validate: T.() -> Boolean,
