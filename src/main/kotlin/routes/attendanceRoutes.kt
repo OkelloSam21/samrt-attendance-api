@@ -18,6 +18,7 @@ import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
 import util.SECRET
 import util.authorizeToken
+import util.parseAndValidateRequest
 import java.io.ByteArrayOutputStream
 import java.time.Instant
 import java.time.temporal.ChronoUnit
@@ -37,14 +38,17 @@ fun Route.attendanceRoutes() {
                 val (requesterId, _) = requester // Only need the userId here
 
                 // Parse the request body
-                val request = try {
-                    call.receive<AttendanceSessionRequest>()
-                } catch (e: Exception) {
-                    return@post call.respond(
-                        HttpStatusCode.BadRequest,
-                        mapOf("error" to "Invalid request body format")
-                    )
-                }
+                val request = call.parseAndValidateRequest<AttendanceSessionRequest>(
+                    validate = {
+                        val errors = mutableListOf<String>()
+                        if (courseId.isBlank()) errors.add("Course ID cannot be empty.")
+                        if (durationMinutes <= 0) errors.add("Duration must be greater than 0.")
+                        if (geoFence.latitude !in -90.0..90.0) errors.add("Latitude must be between -90 and 90.")
+                        if (geoFence.longitude !in -180.0..180.0) errors.add("Longitude must be between -180 and 180.")
+                        if (geoFence.radiusMeters <= 0) errors.add("GeoFence radius must be greater than 0.")
+                        errors.isEmpty()
+                    }, errorMessage = "Invalid request body format"
+                ) ?: return@post
 
                 // Parse the session type safely
                 val sessionType = try {
