@@ -5,8 +5,8 @@ info:
   version: 0.0.1
 
 servers:
-  - url: http://localhost:8080
-    description: Default server
+  - url: https://smartattendance-backend-bug4bxgybhbwecey.canadacentral-01.azurewebsites.net
+    description: Deployed server
 
 paths:
   /auth/login:
