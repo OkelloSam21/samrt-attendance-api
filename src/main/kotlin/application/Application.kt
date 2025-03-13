@@ -24,7 +24,8 @@ import routes.StudentSignUpRequest
 
 fun main() {
 
-    embeddedServer(Netty, port = 8080, host = "0.0.0.0") {
+    val serverPort = System.getenv("PORT")?.toInt() ?: 8080
+    embeddedServer(Netty, port = serverPort, host = "0.0.0.0") {
         module()
     }.start(wait = true)
 }

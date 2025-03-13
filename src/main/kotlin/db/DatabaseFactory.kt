@@ -56,9 +56,9 @@ object DatabaseFactory {
 
         val config = HikariConfig().apply {
             driverClassName = "com.mysql.cj.jdbc.Driver"
-            jdbcUrl = "jdbc:mysql://smart-attendance.mysql.database.azure.com:3306/smart_attendance?useSSL=true&serverTimezone=UTC"
-            username = "admin01"
-            password = "admin@root1"
+            jdbcUrl = System.getenv("DB_URL") ?: throw IllegalStateException("DB_URL is not set")
+            username = System.getenv("DB_USERNAME") ?: throw IllegalStateException("DB_USERNAME is not set")
+            password = System.getenv("DB_PASSWORD") ?: throw IllegalStateException("DB_PASSWORD is not set")
             maximumPoolSize = 10
             minimumIdle = 5
             idleTimeout = 30000
@@ -66,13 +66,8 @@ object DatabaseFactory {
             maxLifetime = 1800000
             isAutoCommit = false
             transactionIsolation = "TRANSACTION_REPEATABLE_READ"
-
-            // Connection testing
             connectionTestQuery = "SELECT 1"
             validationTimeout = 5000
-
-            // Try to validate early to catch issues sooner
-            validate()
         }
         println("HikariCP configuration complete")
         return HikariDataSource(config)
