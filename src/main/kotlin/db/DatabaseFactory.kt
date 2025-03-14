@@ -56,9 +56,9 @@ object DatabaseFactory {
 
         val config = HikariConfig().apply {
             driverClassName = "com.mysql.cj.jdbc.Driver"
-            jdbcUrl = System.getenv("DB_URL") ?: throw IllegalStateException("DB_URL is not set")
-            username = System.getenv("DB_USERNAME") ?: throw IllegalStateException("DB_USERNAME is not set")
-            password = System.getenv("DB_PASSWORD") ?: throw IllegalStateException("DB_PASSWORD is not set")
+            jdbcUrl = System.getenv("DB_URL") ?: "jdbc:mysql://localhost:3306/smart_attendance?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
+            username = System.getenv("DB_USERNAME") ?: "root"
+            password = System.getenv("DB_PASSWORD") ?: "rootpassword"
             maximumPoolSize = 10
             minimumIdle = 5
             idleTimeout = 30000
@@ -66,6 +66,7 @@ object DatabaseFactory {
             maxLifetime = 1800000
             isAutoCommit = false
             transactionIsolation = "TRANSACTION_REPEATABLE_READ"
+
             connectionTestQuery = "SELECT 1"
             validationTimeout = 5000
         }
