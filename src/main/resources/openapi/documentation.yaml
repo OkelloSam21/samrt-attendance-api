@@ -715,6 +715,7 @@ paths:
                     type: string
                     example: Course not found
 
+  /courses/delete/{id}:
     delete:
       tags:
         - Courses
