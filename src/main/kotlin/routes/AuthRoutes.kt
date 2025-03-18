@@ -147,7 +147,7 @@ fun Route.authRoutes() {
         val userId = user[Users.id].value.toString()
         val role = user[Users.role]
         val accessToken = generateAccessToken(userId, role)
-        val refreshToken = generateRefreshToken(userId)
+        val refreshToken = generateRefreshToken(userId, role)
 
         call.respond(mapOf("accessToken" to accessToken, "refreshToken" to refreshToken))
     }
@@ -163,11 +163,13 @@ fun Route.authRoutes() {
         val userId = decoded.getClaim("userId").asString()
         val role = decoded.getClaim("role").asString()?.let { UserRole.valueOf(it) }
             ?: throw IllegalArgumentException("role is missing")
+
         val newAccessToken = generateAccessToken(userId, role)
-        val newRefreshToken = generateRefreshToken(userId)
+        val newRefreshToken = generateRefreshToken(userId, role)
 
         call.respond(mapOf("accessToken" to newAccessToken, "refreshToken" to newRefreshToken))
     }
+
 }
 
 suspend fun validateSignUp(

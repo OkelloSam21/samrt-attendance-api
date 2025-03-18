@@ -62,11 +62,13 @@ fun generateAccessToken(userId: String,role:UserRole): String {
         .sign(Algorithm.HMAC256(SECRET))
 }
 
-fun generateRefreshToken(userId: String): String {
+fun generateRefreshToken(userId: String, role: UserRole): String {
     return JWT.create()
         .withIssuer(ISSUER)
         .withAudience(AUDIENCE)
         .withClaim("userId", userId)
+        .withClaim("role", role.name)
         .withExpiresAt(Date(System.currentTimeMillis() + REFRESH_TOKEN_EXPIRATION))
         .sign(Algorithm.HMAC256(SECRET))
 }
+
