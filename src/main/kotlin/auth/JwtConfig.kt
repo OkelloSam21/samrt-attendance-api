@@ -22,16 +22,15 @@ data class JwtConfig(
 )
 
 fun Application.configureAuthentication() {
-    val jwtConfig =loadJwtConfig()
     install(Authentication) {
         jwt("auth-jwt") {
-            realm = jwtConfig.realm
+            realm = AppConfig.jwtRealm
             verifier(
 //                for the secrete use the one specified inside the .env file
 
-                JWT.require(Algorithm.HMAC256(jwtConfig.secret))
-                    .withIssuer(jwtConfig.issuer)
-                    .withAudience(jwtConfig.audience)
+                JWT.require(Algorithm.HMAC256(AppConfig.jwtSecret))
+                    .withIssuer(AppConfig.jwtIssuer)
+                    .withAudience(AppConfig.jwtAudience)
                     .build()
             )
             validate { credential ->
