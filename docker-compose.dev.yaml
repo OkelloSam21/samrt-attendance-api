@@ -6,24 +6,13 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "8080:8080" # Map local port 8080 to the container port 8080
-    environment:
-      - DB_URL=jdbc:sqlserver://localhost:1433;databaseName=dev-db
-      - DB_USER=dev_user
-      - DB_PASSWORD=dev_password
-    depends_on:
-      - db
-
-  db:
-    image: mcr.microsoft.com/mssql/server:2019-latest
-    ports:
-      - "1433:1433" # SQL Server port
-    environment:
-      - MSSQL_PID=Express
-      - ACCEPT_EULA=Y
-      - SA_PASSWORD=StrongP@ssw0rd
+      - "8080:8080"
+    env_file:
+      - .env
+    command: >
+      sh -c "while ! nc -z db 3306; do sleep 1; done; java -jar app.jar" # Wait for MySQL to be ready
     volumes:
-      - sqlserver-data:/var/opt/mssql
+      - ./logs:/usr/src/app/logs # Optional: Easily access backend logs locally
 
 volumes:
-  sqlserver-data:
+  mysql-data:
