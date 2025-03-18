@@ -4,7 +4,6 @@ import auth.configureAuthentication
 import configureCors
 import db.DatabaseFactory
 import io.ktor.http.*
-import plugins.configureRouting
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
@@ -15,12 +14,8 @@ import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.response.*
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.modules.SerializersModule
-import kotlinx.serialization.modules.polymorphic
+import plugins.configureRouting
 import routes.ConflictException
-import routes.LecturerSignUpRequest
-import routes.SignUpRequest
-import routes.StudentSignUpRequest
 import util.AppConfig
 
 fun main() {
@@ -35,18 +30,6 @@ fun Application.module() {
     // Install content negotiation
     install(ContentNegotiation) {
         json(Json {
-            serializersModule = SerializersModule {
-                polymorphic(SignUpRequest::class) {
-                    subclass(
-                        StudentSignUpRequest::class,
-                        StudentSignUpRequest.serializer()
-                    )
-                    subclass(
-                        LecturerSignUpRequest::class,
-                        LecturerSignUpRequest.serializer()
-                    )
-                }
-            }
             ignoreUnknownKeys = true
             prettyPrint = true
             isLenient = true
