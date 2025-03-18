@@ -7,6 +7,8 @@ info:
 servers:
   - url: https://smartattendance-backend-bug4bxgybhbwecey.canadacentral-01.azurewebsites.net
     description: Deployed server
+  - url: http://localhost:8080
+    description: development server
 
 paths:
   /auth/login:
@@ -107,100 +109,12 @@ paths:
                     type: string
                     example: Invalid refresh token
 
-  /auth/signup/admin:
+  /auth/signup:
     post:
       tags:
         - Authentication
-      summary: Register a new admin user
-      description: Creates a new user with admin role in the system
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AdminSignUpRequest'
-      responses:
-        "201":
-          description: Admin signed up successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Admin signed up successfully
-        "400":
-          description: Bad Request - Invalid data provided
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: Invalid role Role must be ADMIN for this endpoint
-        "409":
-          description: Conflict - Email already exists
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: Email already exists
-
-  /auth/signup/student:
-    post:
-      tags:
-        - Authentication
-      summary: Register a new student user
-      description: Creates a new user with student role in the system
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/StudentSignUpRequest'
-      responses:
-        "201":
-          description: Student signed up successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Student signed up successfully
-        "400":
-          description: Bad Request - Invalid data provided
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: Invalid role Role must be STUDENT for this endpoint
-        "409":
-          description: Conflict - Email or registration number already exists
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: Email already exists
-
-  /auth/signup/lecturer:
-    post:
-      tags:
-        - Authentication
-      summary: Register a new lecturer user
-      description: Creates a new user with lecturer role in the system
+      summary: Register a new user
+      description: Creates a new user with lecturer/student role in the system
       requestBody:
         required: true
         content:
@@ -209,7 +123,7 @@ paths:
               $ref: '#/components/schemas/LecturerSignUpRequest'
       responses:
         "201":
-          description: Lecturer signed up successfully
+          description: User signed up successfully
           content:
             application/json:
               schema:
@@ -217,7 +131,7 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: Lecturer signed up successfully
+                    example: User signed up successfully
         "400":
           description: Bad Request - Invalid data provided
           content:
@@ -1254,7 +1168,6 @@ components:
 
 security:
   - bearerAuth: [ ]
-
 
 tags:
   - name: Authentication
