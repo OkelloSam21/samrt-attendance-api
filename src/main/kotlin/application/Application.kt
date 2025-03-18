@@ -21,18 +21,17 @@ import routes.ConflictException
 import routes.LecturerSignUpRequest
 import routes.SignUpRequest
 import routes.StudentSignUpRequest
+import util.AppConfig
 
 fun main() {
 
-    val serverPort = System.getenv("PORT")?.toInt() ?: 8080
+    val serverPort = AppConfig.port ?: 8080
     embeddedServer(Netty, port = serverPort, host = "0.0.0.0") {
         module()
     }.start(wait = true)
 }
 
 fun Application.module() {
-
-    util.initializeJwtConfig(this)
     // Install content negotiation
     install(ContentNegotiation) {
         json(Json {
@@ -69,7 +68,6 @@ fun Application.module() {
             call.respondText("An unexpected error occurred", ContentType.Text.Plain, HttpStatusCode.InternalServerError)
         }
     }
-
 
     // Initialize database connection BEFORE configuring routes
     try {
