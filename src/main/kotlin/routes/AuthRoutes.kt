@@ -8,7 +8,10 @@ import io.ktor.http.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import kotlinx.serialization.Serializable
+import kotlinx.serialization.*
+import kotlinx.serialization.json.*
+import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.modules.polymorphic
 import models.Staff
 import models.Students
 import models.UserRole
@@ -23,126 +26,33 @@ import org.mindrot.jbcrypt.BCrypt
 import util.AUDIENCE
 import util.ISSUER
 import util.SECRET
-import java.time.LocalDateTime
 import java.util.*
 
+val json = Json {
+    serializersModule = SerializersModule {
+        serializersModule = SerializersModule {
+            polymorphic(SignUpRequest::class) {
+                subclass(StudentSignUpRequest::class, StudentSignUpRequest.serializer())
+                subclass(LecturerSignUpRequest::class, LecturerSignUpRequest.serializer())
+                subclass(AdminSignUpRequest::class, AdminSignUpRequest.serializer())
+            }
+        }
+        classDiscriminator = "role"
+    }
+}
+
 fun Route.authRoutes() {
-//    post("/auth/signup/admin") {
-//        val signUpRequest = call.receive<AdminSignUpRequest>()
-//
-//        // Validate the role
-//        if (signUpRequest.role != UserRole.ADMIN) {
-//            call.respond(HttpStatusCode.BadRequest, "Invalid role: Role must be ADMIN for this endpoint")
-//            return@post
-//        }
-//
-//        // Validate fields
-//        validateSignUp(
-//            name = signUpRequest.name,
-//            email = signUpRequest.email,
-//            password = signUpRequest.password
-//        ) {
-//            // Add any admin-specific validations here if necessary
-//            validateAdminFields()
-//        }
-//
-//        // Perform Database Insertion
-//        newSuspendedTransaction {
-//            Users.insert {
-//                it[name] = signUpRequest.name
-//                it[email] = signUpRequest.email
-//                it[password] = BCrypt.hashpw(signUpRequest.password, BCrypt.gensalt()) // Hash password
-//                it[role] = signUpRequest.role
-//                it[regNo] = null   // Admins don’t have "registration number"
-//                it[employeeRoleNo] = null // Admins don’t have "employee role number"
-//            }
-//        }
-//
-//        call.respond(HttpStatusCode.Created, "Admin signed up successfully")
-//    }
-//
-//    post("/auth/signup/student") {
-//        val signUpRequest = call.receive<StudentSignUpRequest>()
-//
-//        // Validate the role
-//        if (signUpRequest.role != UserRole.STUDENT) {
-//            call.respond(HttpStatusCode.BadRequest, "Invalid role: Role must be STUDENT for this endpoint")
-//            return@post
-//        }
-//
-//        // Validate fields
-//        validateSignUp(
-//            name = signUpRequest.name,
-//            email = signUpRequest.email,
-//            password = signUpRequest.password
-//        ) {
-//            validateStudentFields(signUpRequest.regNo)
-//        }
-//
-//        // Perform Database Insertion
-//        newSuspendedTransaction {
-//            Users.insert {
-//                it[name] = signUpRequest.name
-//                it[email] = signUpRequest.email
-//                it[password] = BCrypt.hashpw(signUpRequest.password, BCrypt.gensalt())
-//                it[role] = signUpRequest.role
-//                it[regNo] = signUpRequest.regNo
-//                it[employeeRoleNo] = null
-//            }
-//        }
-//
-//        call.respond(HttpStatusCode.Created, "Student signed up successfully")
-//    }
-//
-//    post("/auth/signup/lecturer") {
-//        val signUpRequest = call.receive<LecturerSignUpRequest>()
-//
-//        // Validate the role
-//        if (signUpRequest.role != UserRole.LECTURER) {
-//            call.respond(HttpStatusCode.BadRequest, "Invalid role: Role must be LECTURER for this endpoint")
-//            return@post
-//        }
-//
-//        // Validate fields
-//        validateSignUp(
-//            name = signUpRequest.name,
-//            email = signUpRequest.email,
-//            password = signUpRequest.password
-//        ) {
-//            validateLecturerFields(signUpRequest.employeeRoleNo)
-//        }
-//
-//        // Perform Database Insertion
-//        newSuspendedTransaction {
-//            Users.insert {
-//                it[name] = signUpRequest.name
-//                it[email] = signUpRequest.email
-//                it[password] = BCrypt.hashpw(signUpRequest.password, BCrypt.gensalt())
-//                it[role] = signUpRequest.role
-//                it[regNo] = null
-//                it[employeeRoleNo] = signUpRequest.employeeRoleNo
-//            }
-//        }
-//
-//        call.respond(HttpStatusCode.Created, "Lecturer signed up successfully")
-//    }
-
     post("/auth/signup") {
-        val signUpRequest = call.receive<SignUpRequest>()
+        val signUpRequest = json.decodeFromString<SignUpRequest>(call.receiveText())
 
-        // Validate common fields
-        if (signUpRequest.name.isBlank() || signUpRequest.email.isBlank() || signUpRequest.password.isBlank()) {
-            call.respond(HttpStatusCode.BadRequest, "Name, email, and password cannot be blank")
-            return@post
-        }
+        validateSignUp(
+            name = signUpRequest.name,
+            email = signUpRequest.email,
+            password = signUpRequest.password,
+            additionalValidation = {}
+        )
 
-        // Check if email exists
-        if (isEmailExists(signUpRequest.email)) {
-            call.respond(HttpStatusCode.Conflict, "A user with this email already exists")
-            return@post
-        }
 
-        // Role-specific validation
         when (signUpRequest.role) {
             UserRole.STUDENT -> {
                 if (signUpRequest !is StudentSignUpRequest || signUpRequest.regNo.isBlank()) {
@@ -174,7 +84,6 @@ fun Route.authRoutes() {
             }
         }
 
-        // Perform Database Insertion with transaction
         try {
             val userId = newSuspendedTransaction {
                 val userId = Users.insertAndGetId {
@@ -281,37 +190,11 @@ suspend fun validateSignUp(
     additionalValidation()
 }
 
-suspend fun validateStudentFields(regNo: String) {
-    if (regNo.isBlank()) {
-        throw BadRequestException("Registration number cannot be blank")
-    }
-    if (isFieldExists(Students.regNo, regNo)) {
-        throw ConflictException("A student with this registration number already exists")
-    }
-}
 
-suspend fun validateLecturerFields(employeeRoleNo: String) {
-    if (employeeRoleNo.isBlank()) {
-        throw BadRequestException("Employee role number cannot be blank")
-    }
-    if (isFieldExists(Staff.employeeId, employeeRoleNo)) {
-        throw ConflictException("A lecturer with this employee role number already exists")
-    }
-}
-
-suspend fun validateAdminFields() {
-    // Example: Add any constraints here, like ensuring only other admins can create admins.
-
-}
 
 class BadRequestException(message: String) : RuntimeException(message)
 class ConflictException(message: String) : RuntimeException(message)
 
-suspend fun isFieldExists(field: Column<String?>, value: String): Boolean {
-    return newSuspendedTransaction {
-        Users.select { field eq value }.singleOrNull() != null
-    }
-}
 
 @Serializable
 data class LoginRequest(val email: String, val password: String)
@@ -321,6 +204,7 @@ data class RefreshTokenRequest(val refreshToken: String)
 
 // Updated request classes
 @Serializable
+@Polymorphic
 sealed class SignUpRequest {
     abstract val name: String
     abstract val email: String
@@ -329,6 +213,7 @@ sealed class SignUpRequest {
 }
 
 @Serializable
+@SerialName("STUDENT")
 data class StudentSignUpRequest(
     override val name: String,
     override val email: String,
@@ -338,6 +223,7 @@ data class StudentSignUpRequest(
 ) : SignUpRequest()
 
 @Serializable
+@SerialName("LECTURER")
 data class LecturerSignUpRequest(
     override val name: String,
     override val email: String,
@@ -347,6 +233,7 @@ data class LecturerSignUpRequest(
 ) : SignUpRequest()
 
 @Serializable
+@SerialName("ADMIN")
 data class AdminSignUpRequest(
     override val name: String,
     override val email: String,
