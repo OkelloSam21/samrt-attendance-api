@@ -25,7 +25,7 @@ object DatabaseFactory {
             transaction {
                 println("Creating database schema...")
                 SchemaUtils.create(
-                    Users, Courses, Attendance, Assignments,
+                    Users,Students, Staff, Courses, Attendance, Assignments,
                     Submissions, Lectures, Notifications, Grades
                 )
                 println("Schema created successfully")
