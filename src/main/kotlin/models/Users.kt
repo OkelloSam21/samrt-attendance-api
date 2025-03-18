@@ -19,3 +19,12 @@ object Users : UUIDTable("users") {
 enum class UserRole {
     STUDENT, LECTURER, ADMIN
 }
+
+object Staff : Table("staff") {
+    val userId = reference("user_id", Users.id)
+    val employeeId = varchar("employee_id", 255).uniqueIndex()
+    val department = varchar("department", 100).nullable()
+    val position = varchar("position", 100).nullable()
+
+    override val primaryKey = PrimaryKey(userId)
+}

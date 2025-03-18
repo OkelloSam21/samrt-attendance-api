@@ -6,6 +6,8 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.serialization.Serializable
+import models.Staff
+import models.Students
 import models.UserRole
 import models.Users
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
@@ -41,9 +43,7 @@ fun Route.userRoutes() {
             call.respond(users)
         }
 
-        // Get a specific user (Admin-only access)
         get("/{id}") {
-//            if (!authorize(call, secret, UserRole.ADMIN)) return@get
 
             val id = call.parameters["id"]?.let { UUID.fromString(it) }
                 ?: return@get call.respond(HttpStatusCode.BadRequest, "Invalid user ID")
@@ -61,8 +61,8 @@ fun Route.userRoutes() {
                         "name" to user[Users.name],
                         "email" to user[Users.email],
                         "role" to user[Users.role].toString(),
-                        "regNo" to user[Users.regNo],
-                        "employeeRoleNo" to user[Users.employeeRoleNo]
+                        "regNo" to user[Students.regNo],
+                        "employeeRoleNo" to user[Staff.employeeId]
                     )
                 )
             }
