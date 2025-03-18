@@ -127,12 +127,11 @@ fun Route.attendanceRoutes() {
                 val (studentId, _) = requester // Only need the userId here
 
                 // Extract the session code and location (optional) from the request body
-                val request = call.receive<Map<String, Any>>()
-                val sessionCode = request["session_code"]?.toString()
-                    ?: return@post call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Session code is required"))
-                val location = request["location"] as? Map<*, *>
-                val studentLatitude = location?.get("latitude")?.toString()?.toDouble()
-                val studentLongitude = location?.get("longitude")?.toString()?.toDouble()
+                val request = call.receive<MarkAttendanceRequest>()
+
+                val sessionCode = request.sessionCode
+                val studentLatitude = request.location?.latitude
+                val studentLongitude = request.location?.longitude
 
                 val session = transaction {
                     AttendanceSessions
@@ -233,4 +232,16 @@ data class GeoFence(
     val latitude: Double,
     val longitude: Double,
     @SerialName("radius_meters") val radiusMeters: Double // Fix applied here
+)
+
+@Serializable
+data class MarkAttendanceRequest(
+    @SerialName("session_code") val sessionCode: String,
+    val location: Location? = null
+)
+
+@Serializable
+data class Location(
+    val latitude: Double,
+    val longitude: Double
 )
