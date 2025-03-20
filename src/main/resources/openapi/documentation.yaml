@@ -143,7 +143,7 @@ paths:
                     type: string
                     example: Invalid role Role must be LECTURER for this endpoint
         "409":
-          description: Conflict - Email or employee role number already exists
+          description: Conflict - Email or employee Id number already exists
           content:
             application/json:
               schema:
@@ -990,7 +990,7 @@ components:
         - email
         - password
         - role
-        - employeeRoleNo
+        - employeeId
       properties:
         name:
           type: string
