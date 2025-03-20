@@ -13,8 +13,6 @@ object DatabaseFactory {
         println("Initializing database...")
 
         try {
-            createDatabaseIfNotExists()
-
             val dataSource = hikari()
             println("HikariCP datasource created")
 
@@ -33,45 +31,6 @@ object DatabaseFactory {
         } catch (e: Exception) {
             println("Database initialization failed: ${e.message}")
             e.printStackTrace()
-            throw e
-        }
-    }
-
-    private fun createDatabaseIfNotExists() {
-        // Extract database name from URL
-        val dbName = "smart_attendance"
-        val jdbcUrlBase = "jdbc:mysql://localhost:3306/?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
-
-        // Create a temporary connection to MySQL server (without specifying a database)
-        val tempConfig = HikariConfig().apply {
-            jdbcUrl = jdbcUrlBase
-            username = AppConfig.dbUsername
-            password = AppConfig.dbPassword
-            maximumPoolSize = 1
-            minimumIdle = 1
-            connectionTimeout = 5000
-        }
-
-        try {
-            HikariDataSource(tempConfig).use { ds ->
-                ds.connection.use { conn ->
-                    println("Connected to MySQL server to check database existence")
-
-                    val stmt = conn.createStatement()
-
-                    // Check if database exists
-                    val rs = stmt.executeQuery("SHOW DATABASES LIKE '$dbName'")
-                    if (!rs.next()) {
-                        println("Database '$dbName' not found, creating...")
-                        stmt.executeUpdate("CREATE DATABASE $dbName")
-                        println("Database '$dbName' created successfully")
-                    } else {
-                        println("Database '$dbName' already exists")
-                    }
-                }
-            }
-        } catch (e: Exception) {
-            println("Error checking/creating database: ${e.message}")
             throw e
         }
     }
