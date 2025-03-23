@@ -1,15 +1,13 @@
 import com.android.build.gradle.LibraryExtension
 import extensions.androidTestImplementation
-import extensions.getLibrary
 import extensions.implementation
 import extensions.testImplementation
 import helpers.configureKotlinAndroid
+import helpers.libs
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.artifacts.VersionCatalogsExtension
 import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.dependencies
-import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.kotlin
 
 class LibraryConventionPlugin : Plugin<Project> {
@@ -23,9 +21,8 @@ class LibraryConventionPlugin : Plugin<Project> {
             extensions.configure<LibraryExtension> {
                 configureKotlinAndroid(this)
                 defaultConfig.targetSdk = AndroidSdk.targetSdk
-                buildTypes.create("beta")
+//                buildTypes.create("beta")
             }
-            val libs = extensions.getByType<VersionCatalogsExtension>().named("libs")
             configurations.configureEach {
                 resolutionStrategy {
 //                    force(libs.findLibrary("junit").get())
@@ -37,14 +34,11 @@ class LibraryConventionPlugin : Plugin<Project> {
                 androidTestImplementation(kotlin("test"))
                 testImplementation(kotlin("test"))
                 // androidx
-                implementation(libs.getLibrary("androidx-core-ktx"))
-                implementation(libs.getLibrary("androidx-appcompat"))
-                androidTestImplementation(libs.getLibrary("androidx-test-ext-junit"))
-                androidTestImplementation(libs.getLibrary("androidx-espresso-core"))
-                // timber
-                implementation(libs.getLibrary("timber"))
-                // kotlinx-datetime
-                implementation(libs.getLibrary("kotlinx-datetime"))
+                implementation(libs.findLibrary("androidx-core-ktx").get())
+                implementation(libs.findLibrary("androidx-appcompat").get())
+                androidTestImplementation(libs.findLibrary("androidx-test-ext-junit").get())
+                androidTestImplementation(libs.findLibrary("androidx-espresso-core").get())
+
             }
         }
     }
