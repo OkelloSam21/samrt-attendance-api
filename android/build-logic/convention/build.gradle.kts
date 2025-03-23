@@ -16,6 +16,7 @@ kotlin {
 dependencies {
     compileOnly(libs.android.gradlePlugin)
     compileOnly(libs.kotlin.gradlePlugin)
+    implementation(libs.com.google.devtools.ksp.gradle.plugin)
 }
 
 gradlePlugin {
@@ -35,6 +36,18 @@ gradlePlugin {
         register("composeLibrary") {
             id = "com.samuelokello.convention.compose.library"
             implementationClass = "ComposeLibraryConventionPlugin"
+        }
+        register("coreModule") {
+            id = "com.samuelokello.convention.core"
+            implementationClass = "CoreModuleConventionPlugin"
+        }
+        register("featureModule") {
+            id = "com.samuelokello.convention.feature"
+            implementationClass = "FeatureModuleConventionPlugin"
+        }
+        register("uiModule") {
+            id = "com.samuelokello.convention.ui"
+            implementationClass = "UiModuleConventionPlugin"
         }
     }
 }
