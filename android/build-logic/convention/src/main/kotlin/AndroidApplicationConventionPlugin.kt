@@ -3,11 +3,15 @@ import helpers.configureKotlinAndroid
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.configure
+import org.gradle.kotlin.dsl.dependencies
+import helpers.libs
 
 class AndroidApplicationConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) = with(target) {
         pluginManager.apply("com.android.application")
         pluginManager.apply("org.jetbrains.kotlin.android")
+        pluginManager.apply("com.google.dagger.hilt.android")
+        pluginManager.apply("com.google.devtools.ksp")
 
         extensions.configure<ApplicationExtension> {
             configureKotlinAndroid(this)
@@ -20,9 +24,10 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
                     "proguard-rules.pro"
                 )
             }
-
-            buildFeatures.compose = true
-            composeOptions.kotlinCompilerExtensionVersion = "1.5.11"
+        }
+        dependencies {
+            "implementation" (libs.findLibrary("hilt-android").get())
+            "ksp"(libs.findLibrary("hilt-android-compiler").get())
         }
     }
 }
