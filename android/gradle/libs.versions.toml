@@ -1,5 +1,5 @@
 [versions]
-agp = "8.8.0"
+agp = "8.8.2"
 
 comGoogleDevtoolsKspGradlePlugin = "2.1.10-1.0.31"
 coreKtx = "1.15.0"
@@ -10,11 +10,6 @@ lifecycleRuntimeKtx = "2.8.7"
 
 # gradle plugins
 buildkonfig-gradle-plugin = "0.17.0"
-gradle-plugin-android = "8.2.2"
-gradle-plugin-firebase-crashlytics = "3.0.2"
-gradle-plugin-firebase-performance = "1.4.2"
-gradle-plugin-firebase-app-distribution = "4.0.0"
-gradle-plugin-google-services = "4.4.2"
 
 # kotlin libraries
 kotlin = "2.1.10"
@@ -24,25 +19,26 @@ kotlinx-serialization = "1.8.0"
 kotlinx-datetime = "0.6.1"
 ktor = "3.1.1"
 
+#hilt
+hiltVersion = "2.55"
+
 # android libraries
 androidx-splash-screen = "1.0.1"
 androidx-core-ktx = "1.15.0"
-androidx-compose-material = "1.7.6"
+androidx-compose-material = "1.7.8"
 androidx-work-manager = "2.10.0"
 androidx-room = "2.7.0-rc01"
 androidx-datastore = "1.1.3"
 androidx-lifecycle-runtime-ktx = "2.8.7"
 androidx-appcompat = "1.7.0"
-androidx-palette = "1.0.0"
-androidx-security-crypto = "1.0.0"
-androidx-paging = "3.3.2"
 androidx-activity = "1.9.2"
 
 # compose
-compose-bom = "2024.11.00"
+compose-bom = "2025.03.00"
 androidx-activity-compose = "1.10.1"
-
+composeNavigationVersion = "2.8.9"
 compose-qr = "1.0.1"
+compose-compiler = "1.5.1"
 
 
 [libraries]
@@ -76,6 +72,7 @@ androidx-test-ext-junit = { group = "androidx.test.ext", name = "junit", version
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
+androidx-navigation = { module = "androidx.navigation:navigation-compose", version.ref = "composeNavigationVersion" }
 androidx-ui = { group = "androidx.compose.ui", name = "ui" }
 androidx-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
 androidx-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
@@ -83,6 +80,10 @@ androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-toolin
 androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
 androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
+
+#Hilt
+hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hiltVersion" }
+hilt-android-compiler = { group = "com.google.dagger", name = "hilt-android-compiler", version.ref = "hiltVersion" }
 
 
 [bundles]
@@ -93,7 +94,10 @@ compose = [
     "androidx-material3",
     "androidx-ui-tooling",
     "androidx-ui-test-manifest",
-    "androidx-ui-test-junit4"
+    "androidx-ui-test-junit4",
+    "compose-ui", "compose-material3",
+    "compose-ui-tooling-preview",
+    "compose-ui-tooling",
 ]
 
 [plugins]
@@ -101,4 +105,5 @@ compose = [
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 
