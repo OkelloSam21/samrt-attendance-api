@@ -1,7 +1,7 @@
 plugins {
     id("com.samuelokello.convention.android.application")
     id("com.samuelokello.convention.compose.application")
-    alias(libs.plugins.kotlin.compose)
+    id("com.google.dagger.hilt.android")
 }
 
 android {
@@ -9,4 +9,5 @@ android {
 }
 
 dependencies {
+    implementation(project(":modules-ui:presentation"))
 }
