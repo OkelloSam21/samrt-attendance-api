@@ -1,5 +1,6 @@
 plugins {
     `kotlin-dsl`
+    id("com.google.devtools.ksp") version "2.1.10-1.0.31"
 }
 
 group = "com.samuelokello.convention"
