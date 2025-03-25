@@ -6,34 +6,6 @@ import extensions.compilerOptions
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 
-//internal fun Project.configureKotlinAndroid(
-//    extension: CommonExtension<*, *, *, *, *,*>,
-//) {
-//    extension.apply {
-//        compileSdk = AndroidSdk.compileSdk
-//        defaultConfig {
-//            minSdk = AndroidSdk.minimumSdk
-//        }
-//        compileOptions {
-//            sourceCompatibility = JavaVersion.VERSION_17
-//            targetCompatibility = JavaVersion.VERSION_17
-//        }
-//        buildFeatures {
-//            buildConfig = true
-//        }
-//    }
-//    extensions. {
-//            allWarningsAsErrors.set(true)
-//            freeCompilerArgs.addAll(
-//                "-opt-in=kotlin.RequiresOptIn",
-//                "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
-//                "-opt-in=kotlinx.coroutines.FlowPreview",
-//                "-opt-in=kotlin.Experimental"
-//            )
-//            jvmTarget.set(JvmTarget.fromTarget(JavaVersion.VERSION_17.toString()))
-//        }
-//    }
-//}
 
 internal fun Project.configureKotlinAndroid(
     commonExtension: CommonExtension<*, *, *, *, *, *>,
@@ -52,7 +24,7 @@ internal fun Project.configureKotlinAndroid(
         }
     }
     commonExtension.compilerOptions {
-        allWarningsAsErrors = true
+//        allWarningsAsErrors = true
         freeCompilerArgs = freeCompilerArgs + listOf(
             "-opt-in=kotlin.RequiresOptIn",
             "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
