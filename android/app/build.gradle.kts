@@ -5,9 +5,10 @@ plugins {
 }
 
 android {
-    namespace = "com.samuelokello.smartattendance"
+    namespace = "com.samuelokello.smartattendance.android"
 }
 
 dependencies {
-    implementation(project(":modules-ui:presentation"))
+    // splash screen
+    implementation(libs.androidx.core.splashscreen)
 }
