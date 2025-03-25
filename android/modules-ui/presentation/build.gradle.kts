@@ -5,3 +5,7 @@ plugins {
 android {
     namespace = "com.samuelokello.smartattendance"
 }
+
+dependencies {
+
+}
