@@ -10,7 +10,6 @@ import org.gradle.kotlin.dsl.dependencies
 class FeatureModuleConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) = with(target) {
         pluginManager.apply("com.android.library")
-//        pluginManager.apply("androidx.navigation.safeargs.kotlin")
         pluginManager.apply("com.google.devtools.ksp")
         pluginManager.apply("com.google.dagger.hilt.android")
 
@@ -24,10 +23,13 @@ class FeatureModuleConventionPlugin : Plugin<Project> {
 
         dependencies {
             "implementation"(project(":modules-ui:common"))
+            "implementation"(project(":modules-ui:design"))
+            "implementation"(project(":modules-ui:resources"))
             "implementation"(libs.findLibrary("androidx-navigation").get())
 
             "implementation"(libs.findLibrary("hilt-android").get())
             "ksp"(libs.findLibrary("hilt-android-compiler").get())
+            "implementation"(libs.findLibrary("kotlinx-serialization").get())
         }
     }
 }
