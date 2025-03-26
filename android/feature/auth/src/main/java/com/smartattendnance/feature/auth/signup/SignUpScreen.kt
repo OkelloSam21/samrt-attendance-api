@@ -1,16 +1,37 @@
 package com.smartattendnance.feature.auth.signup
 
-import androidx.compose.foundation.layout.*
+import SignUpScreenEvents
+import SignUpUiState
+import SignUpViewModel
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -19,13 +40,27 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.smartattendance.modulesui.design.ui.theme.SmartAttendanceTheme
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SignUpScreen(
-//    userType: UserType = UserType.STUDENT,
+    viewModel: SignUpViewModel = hiltViewModel()
+) {
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
+    SignUpScreenContent(
+        state = state,
+        event = viewModel::onEvent
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SignUpScreenContent(
+    state: SignUpUiState,
+    event: (SignUpScreenEvents) -> Unit,
     onSignUpClicked: (userData: Map<String, String>) -> Unit = { },
     onBackClicked: () -> Unit = {},
     onLoginClicked: () -> Unit = {}
@@ -37,14 +72,6 @@ fun SignUpScreen(
     var password by remember { mutableStateOf("") }
     var showPassword by remember { mutableStateOf(false) }
     var fullName by remember { mutableStateOf("") }
-    var gender by remember { mutableStateOf("") }
-    var dateOfBirth by remember { mutableStateOf("") }
-    var nationality by remember { mutableStateOf("") }
-    var timezone by remember { mutableStateOf("") }
-    var jobTitle by remember { mutableStateOf("") }
-    var yearsOfExperience by remember { mutableStateOf("") }
-    var linkedInUrl by remember { mutableStateOf("") }
-    var fieldsOfInterest by remember { mutableStateOf("") }
     var acceptTerms by remember { mutableStateOf(false) }
 
     Column(
@@ -92,8 +119,8 @@ fun SignUpScreen(
         )
 
         OutlinedTextField(
-            value = name,
-            onValueChange = { name = it },
+            value = state.name,
+            onValueChange = { event(SignUpScreenEvents.NameChanged(it)) },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 16.dp),
@@ -116,8 +143,8 @@ fun SignUpScreen(
         )
 
         OutlinedTextField(
-            value = email,
-            onValueChange = { email = it },
+            value = state.email,
+            onValueChange = { event(SignUpScreenEvents.EmailChanged(it)) },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 16.dp),
@@ -140,8 +167,8 @@ fun SignUpScreen(
         )
 
         OutlinedTextField(
-            value = password,
-            onValueChange = { password = it },
+            value = state.password,
+            onValueChange = { event(SignUpScreenEvents.PasswordChanged(it))},
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 8.dp),
@@ -194,22 +221,7 @@ fun SignUpScreen(
         // Sign up button
         Button(
             onClick = {
-                val userData = mapOf(
-                    "phone" to name,
-                    "email" to email,
-                    "password" to password,
-                    "fullName" to fullName,
-                    "gender" to gender,
-                    "dateOfBirth" to dateOfBirth,
-                    "nationality" to nationality,
-                    "timezone" to timezone,
-                    "jobTitle" to jobTitle,
-                    "yearsOfExperience" to yearsOfExperience,
-                    "linkedInUrl" to linkedInUrl,
-                    "fieldsOfInterest" to fieldsOfInterest
-                )
-                onSignUpClicked(userData)
-            },
+                event(SignUpScreenEvents.SignUp(state.name, state.email, state.password))    },
             enabled = email.isNotEmpty() && password.isNotEmpty() && name.isNotEmpty() && acceptTerms,
             modifier = Modifier
                 .fillMaxWidth()
@@ -232,20 +244,6 @@ fun SignUpScreen(
             color = Color.Gray,
             modifier = Modifier.padding(vertical = 8.dp)
         )
-
-        // Social login icons
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-//            SocialButton(icon = R.drawable.ic_twitter)
-//            SocialButton(icon = R.drawable.ic_google)
-//            SocialButton(icon = R.drawable.ic_apple)
-//            SocialButton(icon = R.drawable.ic_linkedin)
-        }
 
         // Already have an account
         Row(
@@ -276,10 +274,6 @@ fun SignUpScreen(
 @Composable
 private fun SignUpPreview(){
     SmartAttendanceTheme {
-        SignUpScreen(
-            onLoginClicked = {},
-            onSignUpClicked = {},
-            onBackClicked = {}
-        )
+        SignUpScreen()
     }
 }
