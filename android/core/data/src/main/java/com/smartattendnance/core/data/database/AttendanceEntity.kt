@@ -3,6 +3,7 @@ package com.smartattendnance.core.data.database
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import com.smartattendnance.core.data.network.model.SessionType
 import java.util.Date
 
 @Entity(
@@ -38,7 +39,7 @@ data class AttendanceSessionEntity(
     val courseId: String,
     val lecturerId: String,
     val durationMinutes: Int,
-    val sessionType: String,
+    val sessionType: SessionType,
     val sessionCode: String,
     val latitude: Double? = null,
     val longitude: Double? = null,
