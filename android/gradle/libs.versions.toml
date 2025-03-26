@@ -20,11 +20,12 @@ ktor = "3.1.1"
 
 #hilt
 hiltVersion = "2.55"
+androidx-hilt-navigation = "1.2.0"
 
 # android libraries
 androidx-splash-screen = "1.0.1"
 androidx-core-ktx = "1.15.0"
-androidx-compose-material = "1.7.6"
+androidx-compose-material = "1.7.8"
 androidx-work-manager = "2.10.0"
 androidx-room = "2.7.0-rc01"
 androidx-datastore = "1.1.3"
@@ -46,8 +47,6 @@ material = "1.12.0"
 testing-junit = "4.13.2"
 androidx-test-ext-junit = "1.2.1"
 androidx-test-espresso = "3.6.1"
-test-resource = "0.4.1"
-kover = "0.9.1"
 
 # other libraries
 coil = "2.7.0"
@@ -109,13 +108,14 @@ compose-qr-code = { module = "com.lightspark:compose-qr-code", version.ref = "co
 androidx-navigation = { module = "androidx.navigation:navigation-compose", version.ref = "composeNavigationVersion" }
 
 
-
-
+#serialization
+kotlinx-serialization = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version = "kotlinx-serialization" }
 
 
 #Hilt
 hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hiltVersion" }
 hilt-android-compiler = { group = "com.google.dagger", name = "hilt-android-compiler", version.ref = "hiltVersion" }
+androidx-hilt-navigation = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "androidx-hilt-navigation" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 
 
@@ -133,4 +133,3 @@ kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 android-library = { id = "com.android.library", version.ref = "agp" }
-
