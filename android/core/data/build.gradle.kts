@@ -4,5 +4,13 @@ plugins {
 }
 
 android {
-    namespace = "com.samuelokello.smartattendance"
+    namespace = "com.samuelokello.smartattendance.data"
+
+    defaultConfig{
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        ksp {
+            arg("room.schemaLocation", "$projectDir/schemas")
+        }
+    }
 }
