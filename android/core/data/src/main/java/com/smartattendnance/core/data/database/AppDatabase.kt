@@ -6,6 +6,9 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.smartattendnance.core.data.database.converters.DateConverter
+import com.smartattendnance.core.data.database.dao.AttendanceDao
+import com.smartattendnance.core.data.database.dao.CourseDao
+import com.smartattendnance.core.data.database.dao.UserDao
 
 
 @Database(
