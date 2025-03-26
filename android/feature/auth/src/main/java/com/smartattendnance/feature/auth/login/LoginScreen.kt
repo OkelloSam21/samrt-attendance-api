@@ -1,0 +1,240 @@
+package com.smartattendnance.feature.auth.login
+
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.smartattendance.modulesui.design.ui.theme.SmartAttendanceTheme
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun LoginScreen(
+    onLoginClicked: (email: String, password: String) -> Unit = { _, _ -> },
+    onForgotPasswordClicked: () -> Unit = {},
+    onSignUpClicked: () -> Unit = {}
+) {
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var showPassword by remember { mutableStateOf(false) }
+    var rememberMe by remember { mutableStateOf(false) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 24.dp, vertical = 16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // Logo
+        Text(
+            text = "Smart Attendance",
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
+//            color = Purple40,
+            modifier = Modifier.padding(top = 24.dp, bottom = 16.dp)
+        )
+
+        // Welcome text
+        Text(
+            text = "Welcome back",
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Medium,
+            modifier = Modifier
+                .align(Alignment.Start)
+                .padding(bottom = 4.dp)
+        )
+
+        Text(
+            text = "Log in to your account to continue",
+            fontSize = 14.sp,
+            color = Color.Gray,
+            modifier = Modifier
+                .align(Alignment.Start)
+                .padding(bottom = 24.dp)
+        )
+
+        // Email field
+        Text(
+            text = "Email address",
+            fontSize = 14.sp,
+            modifier = Modifier
+                .align(Alignment.Start)
+                .padding(bottom = 8.dp)
+        )
+
+        OutlinedTextField(
+            value = email,
+            onValueChange = { email = it },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp),
+            placeholder = { Text("Enter email") },
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Email,
+                imeAction = ImeAction.Next
+            ),
+            singleLine = true,
+            shape = RoundedCornerShape(8.dp)
+        )
+
+        // Password field
+        Text(
+            text = "Password",
+            fontSize = 14.sp,
+            modifier = Modifier
+                .align(Alignment.Start)
+                .padding(bottom = 8.dp)
+        )
+
+        OutlinedTextField(
+            value = password,
+            onValueChange = { password = it },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 8.dp),
+            placeholder = { Text("Password") },
+            visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Password,
+                imeAction = ImeAction.Done
+            ),
+            singleLine = true,
+            shape = RoundedCornerShape(8.dp),
+            trailingIcon = {
+//                IconButton(onClick = { showPassword = !showPassword }) {
+//                    Icon(
+//                        painter = painterResource(
+//                            id = if (showPassword) R.drawable.ic_visibility_on
+//                            else R.drawable.ic_visibility_off
+//                        ),
+//                        contentDescription = if (showPassword) "Hide password" else "Show password"
+//                    )
+//                }
+            }
+        )
+
+        // Remember me & Forgot password row
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 24.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Checkbox(
+                    checked = rememberMe,
+                    onCheckedChange = { rememberMe = it },
+                    colors = CheckboxDefaults.colors(
+//                        checkedColor = Purple40
+                    ),
+                    modifier = Modifier.size(20.dp)
+                )
+
+                Spacer(modifier = Modifier.width(4.dp))
+
+                Text(
+                    text = "Remember me",
+                    fontSize = 12.sp,
+                    color = Color.DarkGray
+                )
+            }
+
+            TextButton(
+                onClick = onForgotPasswordClicked
+            ) {
+                Text(
+                    text = "FORGOT PASSWORD?",
+                    fontSize = 12.sp,
+//                    color = Purple40
+                )
+            }
+        }
+
+        // Login button
+        Button(
+            onClick = { onLoginClicked(email, password) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp),
+            colors = ButtonDefaults.buttonColors(
+//                containerColor = Purple40
+            ),
+            shape = RoundedCornerShape(8.dp)
+        ) {
+            Text("LOGIN")
+        }
+
+        Spacer(modifier = Modifier.weight(1f))
+
+
+
+        // Don't have an account
+        Row(
+            modifier = Modifier.padding(bottom = 16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Don't have an account?",
+                fontSize = 14.sp,
+                color = Color.Gray
+            )
+
+            TextButton(
+                onClick = onSignUpClicked
+            ) {
+                Text(
+                    text = "SIGN UP",
+                    fontSize = 14.sp,
+//                    color = Purple40,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun SocialButton(
+    icon: Int,
+    onClick: () -> Unit = {}
+) {
+    IconButton(
+        onClick = onClick,
+        modifier = Modifier
+            .padding(horizontal = 8.dp)
+            .size(40.dp)
+    ) {
+        Icon(
+            painter = painterResource(id = icon),
+            contentDescription = "Social login",
+            tint = Color.Gray
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun LoginScreenPreview() {
+    SmartAttendanceTheme {
+        LoginScreen(
+            onLoginClicked = { _, _ -> },
+            onForgotPasswordClicked = {},
+            onSignUpClicked = {}
+        )
+    }
+}
