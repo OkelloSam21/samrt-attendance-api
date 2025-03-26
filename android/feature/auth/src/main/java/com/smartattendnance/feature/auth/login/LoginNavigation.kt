@@ -11,16 +11,8 @@ import kotlinx.serialization.Serializable
 @Serializable
 data object LoginDestination
 
-fun NavGraphBuilder.loginScreen(
-    onLoginClicked: (email: String, password: String) -> Unit,
-    onForgotPasswordClicked: () -> Unit,
-    onSignUpClicked: () -> Unit
-) {
+fun NavGraphBuilder.loginScreen() {
     composable<LoginDestination> {
-        LoginScreen(
-            onLoginClicked = onLoginClicked,
-            onForgotPasswordClicked = onForgotPasswordClicked,
-            onSignUpClicked = onSignUpClicked
-        )
+        LoginScreen()
     }
 }
