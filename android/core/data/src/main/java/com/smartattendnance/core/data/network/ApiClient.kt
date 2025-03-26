@@ -1,5 +1,21 @@
-package com.smartattendnance.core.data.network.model
+package com.smartattendnance.core.data.network
 
+import com.smartattendnance.core.data.network.model.AdminSignUpRequest
+import com.smartattendnance.core.data.network.model.AttendanceResponse
+import com.smartattendnance.core.data.network.model.AttendanceSession
+import com.smartattendnance.core.data.network.model.AttendanceSessionRequest
+import com.smartattendnance.core.data.network.model.AuthResponse
+import com.smartattendnance.core.data.network.model.CourseRequest
+import com.smartattendnance.core.data.network.model.CourseResponse
+import com.smartattendnance.core.data.network.model.CourseUpdateRequest
+import com.smartattendnance.core.data.network.model.CreateUserRequest
+import com.smartattendnance.core.data.network.model.LecturerSignUpRequest
+import com.smartattendnance.core.data.network.model.LoginRequest
+import com.smartattendnance.core.data.network.model.MarkAttendanceRequest
+import com.smartattendnance.core.data.network.model.QrCodeResponse
+import com.smartattendnance.core.data.network.model.RefreshTokenRequest
+import com.smartattendnance.core.data.network.model.StudentSignUpRequest
+import com.smartattendnance.core.data.network.model.UserProfileResponse
 import com.smartattendnance.core.data.network.util.ApiResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -15,7 +31,7 @@ import javax.inject.Singleton
 
 
 @Singleton
-class KtorApiClient @Inject constructor(
+class ApiClient @Inject constructor(
     private val httpClient: HttpClient
 ) {
     // Authentication endpoints
