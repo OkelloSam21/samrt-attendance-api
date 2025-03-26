@@ -30,6 +30,7 @@ class FeatureModuleConventionPlugin : Plugin<Project> {
             "implementation"(libs.findLibrary("hilt-android").get())
             "ksp"(libs.findLibrary("hilt-android-compiler").get())
             "implementation"(libs.findLibrary("kotlinx-serialization").get())
+            "implementation"(libs.findLibrary("androidx-hilt-navigation").get())
         }
     }
 }
