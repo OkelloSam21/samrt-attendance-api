@@ -78,6 +78,8 @@ class SignUpViewModel @Inject constructor() : ViewModel() {
                     )
                 }
             }
+
+            else -> {}
         }
     }
 }
