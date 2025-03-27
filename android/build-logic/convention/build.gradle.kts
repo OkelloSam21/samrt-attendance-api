@@ -44,7 +44,7 @@ gradlePlugin {
         }
         register("featureModule") {
             id = "com.samuelokello.convention.feature"
-            implementationClass = "FeatureModuleConventionPlugin"
+            implementationClass = "FeatureConventionPlugin"
         }
         register("uiModule") {
             id = "com.samuelokello.convention.ui"
