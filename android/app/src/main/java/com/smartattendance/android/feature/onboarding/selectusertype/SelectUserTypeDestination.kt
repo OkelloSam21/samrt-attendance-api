@@ -27,21 +27,21 @@ fun NavGraphBuilder.selectUserTypeScreen(
         val viewModel: SelectUserTypeViewModel = hiltViewModel()
         val state = viewModel.uiState.collectAsStateWithLifecycle().value
 
-        // Collect navigation events from the ViewModel
-        LaunchedEffect(key1 = viewModel.navigationEvents) {
-            viewModel.navigationEvents.collect { event ->
-                when (event) {
-                    is SelectUserTypeNavigationEvent.NavigateToLogin -> {
-                        navController.navigateToLogin(userType = event.userType.name.lowercase())
-                    }
-                    is SelectUserTypeNavigationEvent.NavigateToSignUp -> {
-                        navController.navigateToSignUp(userType = event.userType)
-                    }
-
-                    else -> {}
-                }
-            }
-        }
+//        // Collect navigation events from the ViewModel
+//        LaunchedEffect(key1 = viewModel.navigationEvents) {
+//            viewModel.navigationEvents.collect { event ->
+//                when (event) {
+//                    is SelectUserTypeNavigationEvent.NavigateToLogin -> {
+//                        navController.navigateToLogin(userType = event.userType.name.lowercase())
+//                    }
+//                    is SelectUserTypeNavigationEvent.NavigateToSignUp -> {
+//                        navController.navigateToSignUp(userType = event.userType)
+//                    }
+//
+//                    else -> {}
+//                }
+//            }
+//        }
 //        SelectUserTypeScreen(viewModel = viewModel)
     }
 }
