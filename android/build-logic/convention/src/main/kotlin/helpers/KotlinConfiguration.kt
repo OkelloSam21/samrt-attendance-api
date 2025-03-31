@@ -24,7 +24,7 @@ internal fun Project.configureKotlinAndroid(
         }
     }
     commonExtension.compilerOptions {
-//        allWarningsAsErrors = true
+        allWarningsAsErrors = true
         freeCompilerArgs = freeCompilerArgs + listOf(
             "-opt-in=kotlin.RequiresOptIn",
             "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
