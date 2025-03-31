@@ -3,8 +3,9 @@ package com.smartattendance.android.feature.auth.login
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.smartattendance.android.data.repository.AuthRepository
 import com.smartattendance.android.domain.model.AuthResult
+import com.smartattendance.android.domain.repository.AuthRepository
+import com.smartattendance.android.feature.onboarding.selectusertype.UserType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,16 +16,13 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    savedStateHandle: SavedStateHandle,
+    private val savedStateHandle: SavedStateHandle,
     private val repository: AuthRepository
 ): ViewModel() {
-    private val args = LoginArgs(savedStateHandle)
+//    private val args = LoginArgs(savedStateHandle)
 
-    private val _uiState = MutableStateFlow(LoginUiState(userType = args.toString()))
+    private val _uiState = MutableStateFlow(LoginUiState())
     val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
-
-    private val _navigationEvents = MutableStateFlow<LoginNavigationEvents>(LoginNavigationEvents.NavigateToDashBoard(args.toString()))
-    val navigationEvents: StateFlow<LoginNavigationEvents> = _navigationEvents.asStateFlow()
 
     fun onEvent(event: LoginUiEvents) {
         when (event) {
@@ -44,12 +42,17 @@ class LoginViewModel @Inject constructor(
                 )
             }
 
-            is LoginUiEvents.OnSignUpClicked -> {
-                _navigationEvents.update { LoginNavigationEvents.NavigateToSignUp(uiState.value.userType) }
-            }
             is LoginUiEvents.OnForgotPasswordClicked -> {
-                _navigationEvents.update { LoginNavigationEvents.NavigateToForgotPassword }
+                _uiState.update {
+                    it.copy(
+                        errorMessage = "",
+                        isLoginSuccessful = true
+                    )
+                }
             }
+
+            is LoginUiEvents.OnLoginSuccess -> TODO()
+            LoginUiEvents.OnSignUpClicked -> TODO()
         }
     }
 
@@ -57,11 +60,10 @@ class LoginViewModel @Inject constructor(
         viewModelScope.launch{
             when ( val result = repository.login(email  = email, password = password ) ){
                 is AuthResult.Success -> {
-                    _navigationEvents.emit(LoginNavigationEvents.NavigateToDashBoard(uiState.value.userType))
                     _uiState.update { it.copy(isLoading = false) }
                 }
                 is AuthResult.Error -> {
-                    _uiState.update { it.copy(errorMessage = result.message, isLoading = false) }
+                    _uiState.update { it.copy(errorMessage = result.message, isLoginSuccessful = true, isLoading = false) }
                 }
             }
         }
@@ -74,19 +76,16 @@ data class LoginUiState (
     val email: String = "",
     val password: String = "",
     val errorMessage: String = "",
-    val userType: String = ""
+    val userType: UserType = UserType.STUDENT,
+    val isLoginSuccessful: Boolean = false
 )
 
-sealed class LoginNavigationEvents {
-    data class NavigateToDashBoard(val userType: String) : LoginNavigationEvents()
-    data class NavigateToSignUp(val userType: String) : LoginNavigationEvents()
-    data object NavigateToForgotPassword : LoginNavigationEvents()
-}
 
 sealed class LoginUiEvents {
     data class OnEmailChanged(val email: String) : LoginUiEvents()
     data class OnPasswordChanged(val password: String) : LoginUiEvents()
     data object OnLoginClicked : LoginUiEvents()
     data object OnSignUpClicked : LoginUiEvents()
+    data class OnLoginSuccess(val userType: UserType): LoginUiEvents()
     data object OnForgotPasswordClicked : LoginUiEvents()
 }

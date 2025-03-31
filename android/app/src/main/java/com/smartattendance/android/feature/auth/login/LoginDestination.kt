@@ -5,37 +5,35 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.smartattendance.android.feature.admin.dashboard.navigateToAdminDashboard
+import com.smartattendance.android.feature.onboarding.selectusertype.UserType
+import com.smartattendance.android.feature.lecturer.dashboard.navigateToLecturerDashboard
+import com.smartattendance.android.feature.student.dashboard.navigateToStudentDashboard
 import kotlinx.serialization.Serializable
 
 @Serializable
 data object LoginDestination  {
     const val route = "login?userType={userType}"
-    const val userTypeParam = "userType"
-    const val defaultUserType = "student"
-
-    fun createRoute(userType: String) = "login?userType=$userType"
 }
 
-class LoginArgs(userType: String) {
-    constructor(savedStateHandle: SavedStateHandle) : this(
-        userType = savedStateHandle[LoginDestination.userTypeParam] ?: LoginDestination.defaultUserType
-    )
-}
 
-fun NavController.navigateToLogin(userType: String) {
-    this.navigate(LoginDestination.createRoute(userType)) {
+fun NavController.navigateToLogin() {
+    this.navigate(LoginDestination.route) {
         launchSingleTop = true
     }
 }
 
-fun NavGraphBuilder.loginScreen() {
-    composable(
-        route = LoginDestination.route,
-        arguments = listOf(navArgument(LoginDestination.userTypeParam) {
-            defaultValue = LoginDestination.defaultUserType
-        })
-    ) {
-        LoginScreen()
-
+fun NavController.navigateToDashBoard(userType: UserType) {
+    when(userType) {
+        UserType.STUDENT -> {
+            navigateToStudentDashboard()
+        }
+        UserType.ADMIN -> {
+            navigateToAdminDashboard()
+        }
+        UserType.LECTURER -> {
+            navigateToLecturerDashboard()
+        }
     }
 }
+

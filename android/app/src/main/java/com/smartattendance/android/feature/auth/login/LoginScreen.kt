@@ -12,15 +12,22 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -38,13 +45,41 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.smartattendance.android.feature.onboarding.selectusertype.UserType
 import com.smartattendance.modulesui.design.ui.theme.SmartAttendanceTheme
 
+
+@Composable
+fun LoginScreen(
+    viewModel: LoginViewModel = hiltViewModel(),
+    onNavigateToSignUp: () -> Unit,
+    onNavigateToDashboard: (UserType) -> Unit,
+    onNavigateToForgotPassword: () -> Unit,
+) {
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(state.isLoginSuccessful) {
+        if (state.isLoginSuccessful) {
+            onNavigateToDashboard(state.userType)
+        }
+    }
+
+    SmartAttendanceTheme {
+        LoginScreenContent(
+            state = state,
+            event = viewModel::onEvent,
+            onSignUpClicked = onNavigateToSignUp,
+            onForgotPasswordClicked = onNavigateToForgotPassword
+        )
+    }
+}
 
 @Composable
 fun LoginScreenContent(
     state: LoginUiState,
     event: (LoginUiEvents) -> Unit,
+    onSignUpClicked: () -> Unit,
+    onForgotPasswordClicked:() -> Unit
 ) {
     var showPassword by remember { mutableStateOf(false) }
     var rememberMe by remember { mutableStateOf(false) }
@@ -131,15 +166,12 @@ fun LoginScreenContent(
             singleLine = true,
             shape = RoundedCornerShape(8.dp),
             trailingIcon = {
-//                IconButton(onClick = { showPassword = !showPassword }) {
-//                    Icon(
-//                        painter = painterResource(
-//                            id = if (showPassword) R.drawable.ic_visibility_on
-//                            else R.drawable.ic_visibility_off
-//                        ),
-//                        contentDescription = if (showPassword) "Hide password" else "Show password"
-//                    )
-//                }
+                IconButton(onClick = { showPassword = !showPassword }) {
+                    Icon(
+                        if (showPassword) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                        contentDescription = if (showPassword) "Hide password" else "Show password"
+                    )
+                }
             }
         )
 
@@ -173,12 +205,12 @@ fun LoginScreenContent(
             }
 
             TextButton(
-                onClick = { event(LoginUiEvents.OnForgotPasswordClicked) }
+                onClick = onForgotPasswordClicked
             ) {
                 Text(
                     text = "FORGOT PASSWORD?",
                     fontSize = 12.sp,
-//                    color = Purple40
+                    color = MaterialTheme.colorScheme.primary
                 )
             }
         }
@@ -190,7 +222,7 @@ fun LoginScreenContent(
                 .fillMaxWidth()
                 .height(50.dp),
             colors = ButtonDefaults.buttonColors(
-//                containerColor = Purple40
+                containerColor = MaterialTheme.colorScheme.primary
             ),
             shape = RoundedCornerShape(8.dp)
         ) {
@@ -213,7 +245,7 @@ fun LoginScreenContent(
             )
 
             TextButton(
-                onClick = {event(LoginUiEvents.OnSignUpClicked)}
+                onClick = onSignUpClicked
             ) {
                 Text(
                     text = "SIGN UP",
@@ -228,23 +260,16 @@ fun LoginScreenContent(
 
 
 
-@Preview(showBackground = true)
-@Composable
-fun LoginScreenPreview() {
-    SmartAttendanceTheme {
-        LoginScreen()
-    }
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun LoginScreenPreview() {
+//    SmartAttendanceTheme {
+//        LoginScreen(
+////            viewModel = ,
+//            navigateToSignUp = {},
+//            navigateToDashboard = {}
+//        )
+//    }
+//}
 
-@Composable
-fun LoginScreen(
-    viewModel: LoginViewModel = hiltViewModel()
-) {
-    val state by viewModel.uiState.collectAsStateWithLifecycle()
-    SmartAttendanceTheme {
-        LoginScreenContent(
-            state = state,
-            event = viewModel::onEvent
-        )
-    }
-}
+
