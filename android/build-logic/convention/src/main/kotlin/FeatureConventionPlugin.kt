@@ -16,7 +16,6 @@ class FeatureConventionPlugin : Plugin<Project> {
         extensions.configure<LibraryExtension> {
             configureKotlinAndroid(this)
             defaultConfig.targetSdk = AndroidSdk.targetSdk
-
         }
 
         configureAndroidCompose(extensions.getByType(LibraryExtension::class.java))
