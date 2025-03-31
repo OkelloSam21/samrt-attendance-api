@@ -16,6 +16,10 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
+import okhttp3.OkHttp
+import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
+import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 
 @Module
@@ -30,6 +34,29 @@ object NetworkModule {
         ignoreUnknownKeys = true
         isLenient = true
         encodeDefaults = true
+    }
+
+    @Provides
+    @Singleton
+    fun providesLogger(): HttpLoggingInterceptor {
+        return HttpLoggingInterceptor().apply {
+            level = HttpLoggingInterceptor.Level.BODY
+        }
+    }
+
+    @Provides
+    @Singleton
+    fun providesOkHttpClient(
+        logger: HttpLoggingInterceptor,
+        //authInterceptor: AuthInterceptor // Assuming you have an AuthInterceptor
+    ): OkHttpClient {
+        return OkHttpClient.Builder()
+            .addInterceptor(logger)
+            //.addInterceptor(authInterceptor)  // Add your AuthInterceptor if you have one
+            .connectTimeout(10, TimeUnit.SECONDS)
+            .readTimeout(10, TimeUnit.SECONDS)
+            .writeTimeout(10, TimeUnit.SECONDS)
+            .build()
     }
 
     @Provides

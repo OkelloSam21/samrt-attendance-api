@@ -1,15 +1,14 @@
 package com.smartattendance.android.data.di
 
-import com.smartattendance.android.data.repository.AttendanceRepository
-import com.smartattendance.android.data.repository.AuthRepository
-import com.smartattendance.android.data.repository.CourseRepository
-import com.smartattendance.android.data.repository.UserPreferencesRepository
-import com.smartattendance.android.domain.repository.IAttendanceRepository
-import com.smartattendance.android.domain.repository.IAuthRepository
-import com.smartattendance.android.domain.repository.ICourseRepository
-import com.smartattendance.android.domain.repository.IUserPreferencesRepository
 
-
+import com.smartattendance.android.data.repository.AttendanceRepositoryImpl
+import com.smartattendance.android.data.repository.AuthRepositoryImpl
+import com.smartattendance.android.data.repository.CourseRepositoryImpl
+import com.smartattendance.android.data.repository.UserPreferencesRepositoryImpl
+import com.smartattendance.android.domain.repository.AttendanceRepository
+import com.smartattendance.android.domain.repository.AuthRepository
+import com.smartattendance.android.domain.repository.CourseRepository
+import com.smartattendance.android.domain.repository.UserPreferencesRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -23,24 +22,24 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindAuthRepository(
-        authRepository: AuthRepository
-    ): IAuthRepository
+        authRepositoryImpl: AuthRepositoryImpl
+    ): AuthRepository
 
     @Binds
     @Singleton
     abstract fun bindUserPreferencesRepository(
-        userPreferencesRepository: UserPreferencesRepository
-    ): IUserPreferencesRepository
+        userPreferencesRepositoryImpl: UserPreferencesRepositoryImpl
+    ): UserPreferencesRepository
 
     @Binds
     @Singleton
     abstract fun bindCourseRepository(
-        courseRepository: CourseRepository
-    ): ICourseRepository
+        courseRepositoryImpl: CourseRepositoryImpl
+    ): CourseRepository
 
     @Binds
     @Singleton
     abstract fun bindAttendanceRepository(
-        attendanceRepository: AttendanceRepository
-    ): IAttendanceRepository
+        attendanceRepositoryImpl: AttendanceRepositoryImpl
+    ): AttendanceRepository
 }

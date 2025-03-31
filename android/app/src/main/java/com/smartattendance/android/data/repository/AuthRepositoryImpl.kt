@@ -12,6 +12,7 @@ import com.smartattendance.android.data.network.model.StudentSignUpRequest
 import com.smartattendance.android.data.network.util.ApiResponse
 import com.smartattendance.android.domain.model.AuthResult
 import com.smartattendance.android.domain.model.UserData
+import com.smartattendance.android.domain.repository.AuthRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
@@ -20,12 +21,12 @@ import java.util.Date
 import java.util.Locale
 import javax.inject.Inject
 
-class AuthRepository @Inject constructor(
+class AuthRepositoryImpl @Inject constructor(
     private val apiClient: ApiClient,
     private val userDao: UserDao,
-    private val userPreferencesRepository: UserPreferencesRepository
-) {
-    suspend fun login(email: String, password: String): AuthResult {
+    private val userPreferencesRepositoryImpl: UserPreferencesRepositoryImpl
+): AuthRepository {
+    override suspend fun login(email: String, password: String): AuthResult {
         return when (val response = apiClient.login(LoginRequest(email, password))) {
             is ApiResponse.Success -> {
                 saveAuthData(response.data)
@@ -37,7 +38,7 @@ class AuthRepository @Inject constructor(
         }
     }
 
-    suspend fun registerStudent(name: String, email: String, password: String, regNo: String): AuthResult {
+    override suspend fun registerStudent(name: String, email: String, password: String, regNo: String): AuthResult {
         val request = StudentSignUpRequest(
             name = name,
             email = email,
@@ -56,7 +57,7 @@ class AuthRepository @Inject constructor(
         }
     }
 
-    suspend fun registerLecturer(
+    override suspend fun registerLecturer(
         name: String,
         email: String,
         password: String,
@@ -80,7 +81,7 @@ class AuthRepository @Inject constructor(
         }
     }
 
-    suspend fun registerAdmin(name: String, email: String, password: String): AuthResult {
+    override suspend fun registerAdmin(name: String, email: String, password: String): AuthResult {
         val request = AdminSignUpRequest(
             name = name,
             email = email,
@@ -98,8 +99,8 @@ class AuthRepository @Inject constructor(
         }
     }
 
-    suspend fun refreshToken(): AuthResult {
-        val refreshToken = userPreferencesRepository.refreshToken.firstOrNull() ?: return AuthResult.Error("No refresh token found")
+    override suspend fun refreshToken(): AuthResult {
+        val refreshToken = userPreferencesRepositoryImpl.refreshToken.firstOrNull() ?: return AuthResult.Error("No refresh token found")
 
         return when (val response = apiClient.refreshToken(RefreshTokenRequest(refreshToken))) {
             is ApiResponse.Success -> {
@@ -112,21 +113,21 @@ class AuthRepository @Inject constructor(
         }
     }
 
-    suspend fun logout() {
-        userPreferencesRepository.clearUserData()
+    override suspend fun logout() {
+        userPreferencesRepositoryImpl.clearUserData()
     }
 
-    val isLoggedIn: Flow<Boolean> = userPreferencesRepository.accessToken.map { token ->
+    override val isLoggedIn: Flow<Boolean> = userPreferencesRepositoryImpl.accessToken.map { token ->
         !token.isNullOrEmpty()
     }
 
-    val currentUser: Flow<UserData?> = userPreferencesRepository.userId.map { userId ->
+    override val currentUser: Flow<UserData?> = userPreferencesRepositoryImpl.userId.map { userId ->
         if (userId != null) {
             UserData(
                 id = userId,
-                name = userPreferencesRepository.userName.firstOrNull() ?: "",
-                email = userPreferencesRepository.userEmail.firstOrNull() ?: "",
-                role = userPreferencesRepository.userRole.firstOrNull() ?: ""
+                name = userPreferencesRepositoryImpl.userName.firstOrNull() ?: "",
+                email = userPreferencesRepositoryImpl.userEmail.firstOrNull() ?: "",
+                role = userPreferencesRepositoryImpl.userRole.firstOrNull() ?: ""
             )
         } else {
             null
@@ -134,12 +135,12 @@ class AuthRepository @Inject constructor(
     }
 
     private suspend fun saveAuthData(authResponse: AuthResponse) {
-        userPreferencesRepository.saveAccessToken(authResponse.accessToken)
-        userPreferencesRepository.saveRefreshToken(authResponse.refreshToken)
-        userPreferencesRepository.saveUserId(authResponse.user.id)
-        userPreferencesRepository.saveUserRole(authResponse.user.role)
-        userPreferencesRepository.saveUserEmail(authResponse.user.email)
-        userPreferencesRepository.saveUserName(authResponse.user.name)
+        userPreferencesRepositoryImpl.saveAccessToken(authResponse.accessToken)
+        userPreferencesRepositoryImpl.saveRefreshToken(authResponse.refreshToken)
+        userPreferencesRepositoryImpl.saveUserId(authResponse.user.id)
+        userPreferencesRepositoryImpl.saveUserRole(authResponse.user.role)
+        userPreferencesRepositoryImpl.saveUserEmail(authResponse.user.email)
+        userPreferencesRepositoryImpl.saveUserName(authResponse.user.name)
 
         // Save user to local database
         val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
