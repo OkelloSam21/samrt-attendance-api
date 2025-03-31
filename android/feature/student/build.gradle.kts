@@ -6,5 +6,5 @@ plugins {
 }
 
 android {
-    namespace = "com.samuelokello.smartattendance"
+    namespace = "com.samuelokello.smartattendance.feature.student"
 }

@@ -1,5 +1,5 @@
 pluginManagement {
-    includeBuild("build-logic")
+//    includeBuild("build-logic")
     repositories {
         google {
             content {
@@ -22,15 +22,15 @@ dependencyResolutionManagement {
 
 rootProject.name = "Smart Attendance"
 include(":app")
-include(":core:common")
-include(":core:data")
-include(":core:domain")
-include(":feature:auth")
-include(":feature:admin")
-include(":feature:lecturer")
-include(":feature:student")
-include(":modules-ui:common")
-include(":modules-ui:design")
-include(":modules-ui:presentation")
-include(":modules-ui:resources")
-include(":feature:mylibrary")
+//include(":core:common")
+//include(":core:data")
+//include(":core:domain")
+//include(":feature:auth")
+//include(":feature:admin")
+//include(":feature:lecturer")
+//include(":feature:student")
+//include(":modules-ui:common")
+//include(":modules-ui:design")
+//include(":modules-ui:presentation")
+//include(":modules-ui:resources")
+//include(":feature:mylibrary")
