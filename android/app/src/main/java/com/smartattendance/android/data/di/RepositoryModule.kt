@@ -1,13 +1,13 @@
-package com.smartattendnance.core.data.di
+package com.smartattendance.android.data.di
 
-import com.smartattendnance.core.data.repository.AttendanceRepository
-import com.smartattendnance.core.data.repository.AuthRepository
-import com.smartattendnance.core.data.repository.CourseRepository
-import com.smartattendnance.core.data.repository.UserPreferencesRepository
-import com.smartattendnance.core.domain.repository.IAttendanceRepository
-import com.smartattendnance.core.domain.repository.IAuthRepository
-import com.smartattendnance.core.domain.repository.ICourseRepository
-import com.smartattendnance.core.domain.repository.IUserPreferencesRepository
+import com.smartattendance.android.data.repository.AttendanceRepository
+import com.smartattendance.android.data.repository.AuthRepository
+import com.smartattendance.android.data.repository.CourseRepository
+import com.smartattendance.android.data.repository.UserPreferencesRepository
+import com.smartattendance.android.domain.repository.IAttendanceRepository
+import com.smartattendance.android.domain.repository.IAuthRepository
+import com.smartattendance.android.domain.repository.ICourseRepository
+import com.smartattendance.android.domain.repository.IUserPreferencesRepository
 
 
 import dagger.Binds

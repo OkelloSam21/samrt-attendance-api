@@ -1,4 +1,4 @@
-package com.smartattendnance.core.domain.model
+package com.smartattendance.android.domain.model
 
 import java.util.Date
 
@@ -12,9 +12,9 @@ data class UserData(
     val employeeRoleNo: String? = null
 )
 
-enum class AuthResult {
-    Success,
-    Error(val message: String) {
+sealed class AuthResult {
+    data object Success : AuthResult()
+    data class Error(val message: String) : AuthResult() {
         override fun toString(): String = message
     }
 }

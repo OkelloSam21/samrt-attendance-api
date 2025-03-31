@@ -1,4 +1,4 @@
-package com.smartattendnance.core.data.database
+package com.smartattendance.android.data.database
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

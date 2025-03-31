@@ -1,4 +1,4 @@
-package com.smartattendnance.core.data.repository
+package com.smartattendance.android.data.repository
 
 import android.content.Context
 import androidx.datastore.core.DataStore

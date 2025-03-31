@@ -1,12 +1,13 @@
-package com.smartattendnance.core.data.repository
+package com.smartattendance.android.data.repository
 
-import com.smartattendnance.core.data.database.CourseEntity
-import com.smartattendnance.core.data.database.dao.CourseDao
-import com.smartattendnance.core.data.network.ApiClient
-import com.smartattendnance.core.data.network.model.CourseRequest
-import com.smartattendnance.core.data.network.model.CourseResponse
-import com.smartattendnance.core.data.network.model.CourseUpdateRequest
-import com.smartattendnance.core.data.network.util.ApiResponse
+import com.smartattendance.android.data.database.CourseEntity
+import com.smartattendance.android.data.database.dao.CourseDao
+import com.smartattendance.android.data.network.ApiClient
+import com.smartattendance.android.data.network.model.CourseRequest
+import com.smartattendance.android.data.network.model.CourseResponse
+import com.smartattendance.android.data.network.model.CourseUpdateRequest
+import com.smartattendance.android.data.network.util.ApiResponse
+import com.smartattendance.android.domain.model.Course
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.text.SimpleDateFormat
@@ -14,7 +15,6 @@ import java.util.Date
 import java.util.Locale
 import javax.inject.Inject
 import javax.inject.Singleton
-import com.smartattendnance.core.domain.model.Course
 
 
 @Singleton

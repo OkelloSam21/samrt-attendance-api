@@ -1,14 +1,14 @@
-package com.smartattendnance.core.data.database
+package com.smartattendance.android.data.database
 
 import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
-import com.smartattendnance.core.data.database.converters.DateConverter
-import com.smartattendnance.core.data.database.dao.AttendanceDao
-import com.smartattendnance.core.data.database.dao.CourseDao
-import com.smartattendnance.core.data.database.dao.UserDao
+import com.smartattendance.android.data.database.converters.DateConverter
+import com.smartattendance.android.data.database.dao.AttendanceDao
+import com.smartattendance.android.data.database.dao.CourseDao
+import com.smartattendance.android.data.database.dao.UserDao
 
 
 @Database(

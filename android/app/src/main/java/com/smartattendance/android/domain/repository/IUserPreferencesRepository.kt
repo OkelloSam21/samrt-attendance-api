@@ -1,10 +1,10 @@
-package com.smartattendnance.core.domain.repository
+package com.smartattendance.android.domain.repository
 
-import com.smartattendnance.core.domain.model.Attendance
-import com.smartattendnance.core.domain.model.AttendanceSession
-import com.smartattendnance.core.domain.model.AuthResult
-import com.smartattendnance.core.domain.model.Course
-import com.smartattendnance.core.domain.model.UserData
+import com.smartattendance.android.domain.model.Attendance
+import com.smartattendance.android.domain.model.AttendanceSession
+import com.smartattendance.android.domain.model.AuthResult
+import com.smartattendance.android.domain.model.Course
+import com.smartattendance.android.domain.model.UserData
 import kotlinx.coroutines.flow.Flow
 
 interface IUserPreferencesRepository {

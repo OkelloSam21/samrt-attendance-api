@@ -1,11 +1,11 @@
-package com.smartattendnance.core.data.di
+package com.smartattendance.android.data.di
 
 import android.content.Context
 import androidx.room.Room
-import com.smartattendnance.core.data.database.AppDatabase
-import com.smartattendnance.core.data.database.dao.AttendanceDao
-import com.smartattendnance.core.data.database.dao.CourseDao
-import com.smartattendnance.core.data.database.dao.UserDao
+import com.smartattendance.android.data.database.AppDatabase
+import com.smartattendance.android.data.database.dao.AttendanceDao
+import com.smartattendance.android.data.database.dao.CourseDao
+import com.smartattendance.android.data.database.dao.UserDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

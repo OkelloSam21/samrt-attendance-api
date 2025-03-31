@@ -1,6 +1,6 @@
-package com.smartattendnance.core.data.di
+package com.smartattendance.android.data.di
 
-import com.smartattendnance.core.data.network.ApiClient
+import com.smartattendance.android.data.network.ApiClient
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

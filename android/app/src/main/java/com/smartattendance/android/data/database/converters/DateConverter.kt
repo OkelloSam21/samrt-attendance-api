@@ -1,4 +1,4 @@
-package com.smartattendnance.core.data.database.converters
+package com.smartattendance.android.data.database.converters
 
 import androidx.room.TypeConverters
 import java.util.Date

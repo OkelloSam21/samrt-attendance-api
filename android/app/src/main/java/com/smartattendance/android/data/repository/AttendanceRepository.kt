@@ -1,22 +1,23 @@
-package com.smartattendnance.core.data.repository
+package com.smartattendance.android.data.repository
 
-import com.smartattendnance.core.data.database.AttendanceEntity
-import com.smartattendnance.core.data.database.AttendanceSessionEntity
-import com.smartattendnance.core.data.database.dao.AttendanceDao
-import com.smartattendnance.core.data.network.ApiClient
-import com.smartattendnance.core.data.network.model.AttendanceResponse
-import com.smartattendnance.core.data.network.model.AttendanceSession
-import com.smartattendnance.core.data.network.model.AttendanceSessionRequest
-import com.smartattendnance.core.data.network.model.GeoFence
-import com.smartattendnance.core.data.network.model.GeoLocation
-import com.smartattendnance.core.data.network.model.MarkAttendanceRequest
-import com.smartattendnance.core.data.network.model.SessionType
-import com.smartattendnance.core.data.network.util.ApiResponse
-import com.smartattendnance.core.domain.model.Attendance
-import com.smartattendnance.core.domain.model.Location
+import com.smartattendance.android.data.database.AttendanceEntity
+import com.smartattendance.android.data.database.AttendanceSessionEntity
+import com.smartattendance.android.data.database.dao.AttendanceDao
+import com.smartattendance.android.data.network.ApiClient
+import com.smartattendance.android.data.network.model.AttendanceResponse
+import com.smartattendance.android.data.network.model.AttendanceSession
+import com.smartattendance.android.data.network.model.AttendanceSessionRequest
+import com.smartattendance.android.data.network.model.GeoFence
+import com.smartattendance.android.data.network.model.GeoLocation
+import com.smartattendance.android.data.network.model.MarkAttendanceRequest
+import com.smartattendance.android.data.network.model.SessionType
+import com.smartattendance.android.data.network.util.ApiResponse
+import com.smartattendance.android.domain.model.Attendance
+import com.smartattendance.android.domain.model.Location
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import javax.inject.Inject
@@ -178,8 +179,8 @@ class AttendanceRepository @Inject constructor(
             expiresAt = try {
                 dateFormat.parse(expiresAt) ?: Date()
             } catch (e: Exception) {
-                val cal = java.util.Calendar.getInstance()
-                cal.add(java.util.Calendar.MINUTE, duration_minutes)
+                val cal = Calendar.getInstance()
+                cal.add(Calendar.MINUTE, duration_minutes)
                 cal.time
             }
         )

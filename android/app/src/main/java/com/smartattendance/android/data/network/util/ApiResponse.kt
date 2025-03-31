@@ -1,4 +1,4 @@
-package com.smartattendnance.core.data.network.util
+package com.smartattendance.android.data.network.util
 
 sealed class ApiResponse<out T> {
     data class Success<T>(val data: T) : ApiResponse<T>()

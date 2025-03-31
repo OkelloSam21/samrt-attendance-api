@@ -1,4 +1,4 @@
-package com.smartattendnance.core.data.network.model
+package com.smartattendance.android.data.network.model
 
 import kotlinx.serialization.Serializable
 
