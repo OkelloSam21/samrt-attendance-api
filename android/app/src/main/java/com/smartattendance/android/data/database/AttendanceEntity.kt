@@ -3,6 +3,8 @@ package com.smartattendance.android.data.database
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import androidx.room.TypeConverters
+import com.smartattendance.android.data.database.converters.DateConverter
 import com.smartattendance.android.data.network.model.SessionType
 import java.util.Date
 
@@ -20,6 +22,7 @@ data class AttendanceEntity(
     val sessionId: String,
     val studentId: String,
     val courseId: String,
+    @TypeConverters(DateConverter::class)
     val timestamp: Date,
     val status: String, // Present, Absent, Late
     val latitude: Double? = null,
@@ -44,6 +47,8 @@ data class AttendanceSessionEntity(
     val latitude: Double? = null,
     val longitude: Double? = null,
     val radiusMeters: Int? = null,
+    @TypeConverters(DateConverter::class)
     val createdAt: Date,
+    @TypeConverters(DateConverter::class)
     val expiresAt: Date
 )

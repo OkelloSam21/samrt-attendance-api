@@ -8,6 +8,7 @@ import com.smartattendance.android.data.network.model.CourseResponse
 import com.smartattendance.android.data.network.model.CourseUpdateRequest
 import com.smartattendance.android.data.network.util.ApiResponse
 import com.smartattendance.android.domain.model.Course
+import com.smartattendance.android.domain.repository.CourseRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.text.SimpleDateFormat
@@ -18,35 +19,35 @@ import javax.inject.Singleton
 
 
 @Singleton
-class CourseRepository @Inject constructor(
+class CourseRepositoryImpl @Inject constructor(
     private val apiClient: ApiClient,
     private val courseDao: CourseDao
-) {
-    // Get all courses (from local database, with network refresh)
-    suspend fun getAllCourses(): Flow<List<Course>> {
-        refreshCourses()
-        return courseDao.getAllCourses().map { entities ->
-            entities.map { it.toDomainModel() }
-        }
-    }
-
+): CourseRepository {
     // Get course by ID
-    suspend fun getCourseById(courseId: String): Flow<Course?> {
+    override suspend fun getCourseById(courseId: String): Flow<Course?> {
         refreshCourse(courseId)
         return courseDao.getCourseById(courseId).map { entity ->
             entity?.toDomainModel()
         }
     }
 
+    override suspend fun getAllCourses(): Flow<List<Course>> {
+        refreshCourses()
+        return courseDao.getAllCourses().map { entities ->
+            entities.map { it.toDomainModel() }
+        }
+    }
+
+
     // Get courses by lecturer ID
-    fun getCoursesByLecturerId(lecturerId: String): Flow<List<Course>> {
+    override fun getCoursesByLecturerId(lecturerId: String): Flow<List<Course>> {
         return courseDao.getCoursesByLecturerId(lecturerId).map { entities ->
             entities.map { it.toDomainModel() }
         }
     }
 
     // Create a new course
-    suspend fun createCourse(name: String): Result<Course> {
+    override suspend fun createCourse(name: String): Result<Course> {
         val request = CourseRequest(name)
 
         return when (val response = apiClient.createCourse(request)) {
@@ -63,7 +64,7 @@ class CourseRepository @Inject constructor(
     }
 
     // Update a course
-    suspend fun updateCourse(courseId: String, name: String): Result<Course> {
+    override suspend fun updateCourse(courseId: String, name: String): Result<Course> {
         val request = CourseUpdateRequest(name)
 
         return when (val response = apiClient.updateCourse(courseId, request)) {
@@ -80,7 +81,7 @@ class CourseRepository @Inject constructor(
     }
 
     // Delete a course
-    suspend fun deleteCourse(courseId: String): Result<Unit> {
+    override suspend fun deleteCourse(courseId: String): Result<Unit> {
         return when (val response = apiClient.deleteCourse(courseId)) {
             is ApiResponse.Success -> {
                 courseDao.deleteCourse(courseId)

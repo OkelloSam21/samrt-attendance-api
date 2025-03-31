@@ -1,5 +1,6 @@
 package com.smartattendance.android.feature.onboarding.selectusertype
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -13,14 +14,18 @@ import javax.inject.Inject
 @HiltViewModel
 class SelectUserTypeViewModel @Inject constructor(
     // If you need a repository for saving user type, inject it here
+    private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     
     private val _uiState = MutableStateFlow(SelectUserTypeUiState())
     val uiState = _uiState.asStateFlow()
 
-    // SharedFlow for navigation events
-    private val _navigationEvents = MutableSharedFlow<SelectUserTypeNavigationEvent>()
-    val navigationEvents = _navigationEvents.asSharedFlow()
+    private var selectedUserType: UserType?
+        get() = savedStateHandle["selectedUserType"]
+        set(value) {
+            savedStateHandle["selectedUserType"] = value
+        }
+
     
     fun onEvent(event: SelectUserTypeEvent) {
         when (event) {
@@ -29,6 +34,7 @@ class SelectUserTypeViewModel @Inject constructor(
                     it.copy(selectedUserType = event.userType)
                 }
                 // You could save the user type here if needed
+                selectedUserType = event.userType
             }
             
             SelectUserTypeEvent.NextClicked -> {

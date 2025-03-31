@@ -15,10 +15,13 @@ import com.smartattendance.android.data.database.dao.UserDao
     entities = [
         UserEntity::class,
         CourseEntity::class,
-        AttendanceEntity::class
+        AttendanceEntity::class,
+        AttendanceSessionEntity::class
+    ],
+    views = [
     ],
     version = 1,
-    exportSchema = true
+    exportSchema = false
 )
 @TypeConverters(DateConverter::class)
 abstract class AppDatabase : RoomDatabase() {

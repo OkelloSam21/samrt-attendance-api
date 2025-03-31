@@ -14,6 +14,7 @@ import com.smartattendance.android.data.network.model.SessionType
 import com.smartattendance.android.data.network.util.ApiResponse
 import com.smartattendance.android.domain.model.Attendance
 import com.smartattendance.android.domain.model.Location
+import com.smartattendance.android.domain.repository.AttendanceRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.text.SimpleDateFormat
@@ -24,18 +25,18 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class AttendanceRepository @Inject constructor(
+class AttendanceRepositoryImpl @Inject constructor(
     private val apiClient: ApiClient,
     private val attendanceDao: AttendanceDao
-) {
+): AttendanceRepository {
     // Create attendance session
-    suspend fun createAttendanceSession(
+    override suspend fun createAttendanceSession(
         courseId: String,
         durationMinutes: Int,
         sessionType: String,
-        latitude: Double? = null,
-        longitude: Double? = null,
-        radiusMeters: Int? = null
+        latitude: Double? ,
+        longitude: Double? ,
+        radiusMeters: Int?
     ): Result<AttendanceSession> {
         // Create geo fence if location is provided
         val geoFence = if (latitude != null && longitude != null && radiusMeters != null) {
@@ -74,7 +75,7 @@ class AttendanceRepository @Inject constructor(
     }
 
     // Get QR code for latest session
-    suspend fun getQrCodeForLatestSession(): Result<String> {
+    override suspend fun getQrCodeForLatestSession(): Result<String> {
         return when (val response = apiClient.getQrCodeForSession()) {
             is ApiResponse.Success -> {
                 Result.success(response.data.qrCodeData)
@@ -86,10 +87,10 @@ class AttendanceRepository @Inject constructor(
     }
 
     // Mark attendance
-    suspend fun markAttendance(
+    override suspend fun markAttendance(
         sessionCode: String,
-        latitude: Double? = null,
-        longitude: Double? = null
+        latitude: Double? ,
+        longitude: Double?
     ): Result<Attendance> {
         // Create location if coordinates are provided
         val location = if (latitude != null && longitude != null) {
@@ -119,42 +120,42 @@ class AttendanceRepository @Inject constructor(
     }
 
     // Get active attendance sessions
-    fun getActiveAttendanceSessions(): Flow<List<AttendanceSession>> {
+    override fun getActiveAttendanceSessions(): Flow<List<AttendanceSession>> {
         return attendanceDao.getActiveAttendanceSessions(Date()).map { sessions ->
             sessions.map { it.toDomainModel() }
         }
     }
 
     // Get attendance sessions by lecturer ID
-    fun getAttendanceSessionsByLecturerId(lecturerId: String): Flow<List<AttendanceSession>> {
+    override fun getAttendanceSessionsByLecturerId(lecturerId: String): Flow<List<AttendanceSession>> {
         return attendanceDao.getAttendanceSessionsByLecturerId(lecturerId).map { sessions ->
             sessions.map { it.toDomainModel() }
         }
     }
 
     // Get attendance sessions by course ID
-    fun getAttendanceSessionsByCourseId(courseId: String): Flow<List<AttendanceSession>> {
+    override fun getAttendanceSessionsByCourseId(courseId: String): Flow<List<AttendanceSession>> {
         return attendanceDao.getAttendanceSessionsByCourseId(courseId).map { sessions ->
             sessions.map { it.toDomainModel() }
         }
     }
 
     // Get attendances by student ID
-    fun getAttendancesByStudentId(studentId: String): Flow<List<Attendance>> {
+    override fun getAttendancesByStudentId(studentId: String): Flow<List<Attendance>> {
         return attendanceDao.getAttendancesByStudentId(studentId).map { attendances ->
             attendances.map { it.toDomainModel() }
         }
     }
 
     // Get attendances by session ID
-    fun getAttendancesBySessionId(sessionId: String): Flow<List<Attendance>> {
+    override fun getAttendancesBySessionId(sessionId: String): Flow<List<Attendance>> {
         return attendanceDao.getAttendancesBySessionId(sessionId).map { attendances ->
             attendances.map { it.toDomainModel() }
         }
     }
 
     // Get attendance count for student in course
-    fun getAttendanceCountForStudentInCourse(studentId: String, courseId: String): Flow<Int> {
+    override fun getAttendanceCountForStudentInCourse(studentId: String, courseId: String): Flow<Int> {
         return attendanceDao.getAttendanceCountForStudentInCourse(studentId, courseId)
     }
 
