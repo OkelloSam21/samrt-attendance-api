@@ -45,8 +45,8 @@ class CoreModuleConventionPlugin : Plugin<Project> {
                 add("implementation", libs.findLibrary("kotlinx-coroutines-android").get())
 
                 // Core dependencies
-                add("implementation", project(":core:common"))
-                add("implementation", project(":core:domain"))
+//                add("implementation", project(":core:common"))
+//                add("implementation", project(":core:domain"))
 
                 // DataStore
                 add("implementation", libs.findLibrary("androidx-datastore").get())

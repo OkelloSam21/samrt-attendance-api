@@ -1,4 +1,4 @@
-package com.smartattendnance.feature.auth.selectusertype
+package com.smartattendance.android.feature.auth.login.selectusertype
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -38,7 +40,6 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.smartattendance.modulesui.design.ui.theme.SmartAttendanceTheme
-import com.smartattendnance.modulesui.resources.R
 
 @Composable
 fun SelectUserTypeScreen(
@@ -96,43 +97,43 @@ fun SelectUserTypeScreenContent(
         )
         
         // User type options in a row
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            // Student option
-            UserTypeCard(
-                userType = UserType.STUDENT,
-                icon = com.smartattendnance.modulesui.resources.R.drawable.ic_student,
-                title = "Student",
-                description = "Mark your attendance",
-                isSelected = state.selectedUserType == UserType.STUDENT,
-                onClick = { event(SelectUserTypeEvent.UserTypeSelected(UserType.STUDENT)) }
-            )
-            
-            // Lecturer option
-            UserTypeCard(
-                userType = UserType.LECTURER,
-                icon = R.drawable.ic_lecturer,
-                title = "Lecturer",
-                description = "Track student attendance",
-                isSelected = state.selectedUserType == UserType.LECTURER,
-                onClick = { event(SelectUserTypeEvent.UserTypeSelected(UserType.LECTURER)) }
-            )
-        }
-        
-        Spacer(modifier = Modifier.height(16.dp))
-        
-        // Admin option - takes full width
-        UserTypeCard(
-            userType = UserType.ADMIN,
-            icon = R.drawable.ic_admin,
-            title = "Admin",
-            description = "Manage the system",
-            isSelected = state.selectedUserType == UserType.ADMIN,
-            onClick = { event(SelectUserTypeEvent.UserTypeSelected(UserType.ADMIN)) },
-            modifier = Modifier.fillMaxWidth(0.5f).align(Alignment.CenterHorizontally)
-        )
+//        Row(
+//            modifier = Modifier.fillMaxWidth(),
+//            horizontalArrangement = Arrangement.spacedBy(12.dp)
+//        ) {
+//            // Student option
+//            UserTypeCard(
+//                userType = UserType.STUDENT,
+//                icon = R.drawable.ic_student,
+//                title = "Student",
+//                description = "Mark your attendance",
+//                isSelected = state.selectedUserType == UserType.STUDENT,
+//                onClick = { event(SelectUserTypeEvent.UserTypeSelected(UserType.STUDENT)) }
+//            )
+//
+//            // Lecturer option
+//            UserTypeCard(
+//                userType = UserType.LECTURER,
+//                icon = R.drawable.ic_teacher,
+//                title = "Lecturer",
+//                description = "Track student attendance",
+//                isSelected = state.selectedUserType == UserType.LECTURER,
+//                onClick = { event(SelectUserTypeEvent.UserTypeSelected(UserType.LECTURER)) }
+//            )
+//        }
+//
+//        Spacer(modifier = Modifier.height(16.dp))
+//
+//        // Admin option - takes full width
+//        UserTypeCard(
+//            userType = UserType.ADMIN,
+//            icon = R.drawable.ic_admin,
+//            title = "Admin",
+//            description = "Manage the system",
+//            isSelected = state.selectedUserType == UserType.ADMIN,
+//            onClick = { event(SelectUserTypeEvent.UserTypeSelected(UserType.ADMIN)) },
+//            modifier = Modifier.fillMaxWidth(0.5f).align(Alignment.CenterHorizontally)
+//        )
         
         Spacer(modifier = Modifier.weight(1f))
         
@@ -151,14 +152,13 @@ fun SelectUserTypeScreenContent(
             Text("NEXT")
             Spacer(modifier = Modifier.width(4.dp))
             Icon(
-                painter = painterResource(id = R.drawable.ic_arrow_right),
+                Icons.AutoMirrored.Filled.KeyboardArrowRight,
                 contentDescription = "Next"
             )
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UserTypeCard(
     userType: UserType,
@@ -174,7 +174,7 @@ fun UserTypeCard(
         modifier = modifier
             .let {
                 if (userType != UserType.ADMIN) {
-                    it.weight(1f).aspectRatio(0.85f)
+                    it.aspectRatio(0.85f)
                 } else {
                     it
                 }

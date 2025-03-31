@@ -1,6 +1,5 @@
-package com.smartattendnance.feature.auth.signup
+package com.smartattendance.android.feature.auth.signup
 
-import SignUpViewModel
 import androidx.compose.runtime.LaunchedEffect
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -16,7 +15,7 @@ object SignUpDestination {
 fun NavGraphBuilder.signUpScreen(
     navController: NavController
 ) {
-    composable(SignUpDestination.route) {
+    composable(com.smartattendance.android.feature.auth.login.signup.SignUpDestination.route) {
         val viewModel: SignUpViewModel = hiltViewModel()
         val state = viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -24,15 +23,15 @@ fun NavGraphBuilder.signUpScreen(
         LaunchedEffect(key1 = viewModel.navigationEvents) {
             viewModel.navigationEvents.collect { event ->
                 when (event) {
-                    SignUpNavigationEvent.NavigateToDashboard -> {
-                        navController.navigate(SignUpNavigation.navigateToDashboard())
+                    com.smartattendance.android.feature.auth.login.signup.SignUpNavigationEvent.NavigateToDashboard -> {
+                        navController.navigate(com.smartattendance.android.feature.auth.login.signup.SignUpNavigation.navigateToDashboard())
                     }
 
-                    SignUpNavigationEvent.NavigateToLogin -> {
-                        navController.navigate(SignUpNavigation.navigateToLogin())
+                    com.smartattendance.android.feature.auth.login.signup.SignUpNavigationEvent.NavigateToLogin -> {
+                        navController.navigate(com.smartattendance.android.feature.auth.login.signup.SignUpNavigation.navigateToLogin())
                     }
 
-                    SignUpNavigationEvent.NavigateBack -> {
+                    com.smartattendance.android.feature.auth.login.signup.SignUpNavigationEvent.NavigateBack -> {
                         navController.popBackStack()
                     }
                 }

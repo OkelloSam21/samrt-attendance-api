@@ -1,8 +1,5 @@
-package com.smartattendnance.feature.auth.signup
+package com.smartattendance.android.feature.auth.login.signup
 
-import SignUpScreenEvents
-import SignUpUiState
-import SignUpViewModel
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer

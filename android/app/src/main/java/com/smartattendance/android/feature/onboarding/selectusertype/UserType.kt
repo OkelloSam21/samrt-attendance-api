@@ -1,4 +1,4 @@
-package com.smartattendnance.feature.auth.selectusertype
+package com.smartattendance.android.feature.auth.login.selectusertype
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

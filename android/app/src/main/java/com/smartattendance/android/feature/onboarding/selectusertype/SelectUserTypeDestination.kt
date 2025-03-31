@@ -1,4 +1,4 @@
-package com.smartattendnance.feature.auth.selectusertype
+package com.smartattendance.android.feature.auth.login.selectusertype
 
 import androidx.compose.runtime.LaunchedEffect
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -6,7 +6,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
-import com.smartattendnance.feature.auth.login.LoginDestination
+import com.smartattendance.android.feature.auth.login.LoginDestination
 import com.smartattendnance.feature.auth.signup.SignUpDestination
 
 object SelectUserTypeDestination {
@@ -16,7 +16,7 @@ object SelectUserTypeDestination {
 fun NavGraphBuilder.selectUserTypeScreen(
     navController: NavController
 ) {
-    composable(SelectUserTypeDestination.route) {
+    composable(com.smartattendance.android.feature.auth.login.selectusertype.SelectUserTypeDestination.route) {
         val viewModel: SelectUserTypeViewModel = hiltViewModel()
         val state = viewModel.uiState.collectAsStateWithLifecycle().value
 
@@ -27,12 +27,16 @@ fun NavGraphBuilder.selectUserTypeScreen(
                     is SelectUserTypeNavigationEvent.NavigateToLogin -> {
                         // Navigate to login with user type as parameter
                         navController.navigate(
-                            SelectUserTypeNavigation.navigateToLogin(event.userType)
+                            com.smartattendance.android.feature.auth.login.selectusertype.SelectUserTypeNavigation.navigateToLogin(
+                                event.userType
+                            )
                         )
                     }
                     is SelectUserTypeNavigationEvent.NavigateToSignUp -> {
                         navController.navigate(
-                            SelectUserTypeNavigation.navigateToSignUp(event.userType)
+                            com.smartattendance.android.feature.auth.login.selectusertype.SelectUserTypeNavigation.navigateToSignUp(
+                                event.userType
+                            )
                         )
                     }
                 }
@@ -47,7 +51,7 @@ object SelectUserTypeNavigation {
     fun navigateToLogin(userType: UserType): String {
         // Modify this to match your login destination route
         // This assumes LoginDestination has a route property
-        return "${LoginDestination.route}?userType=${userType.name}"
+        return "${com.smartattendance.android.feature.auth.login.LoginDestination.route}?userType=${userType.name}"
     }
 
     fun navigateToSignUp(userType: UserType): String {
