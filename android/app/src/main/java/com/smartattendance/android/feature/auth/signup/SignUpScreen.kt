@@ -1,4 +1,4 @@
-package com.smartattendance.android.feature.auth.login.signup
+package com.smartattendance.android.feature.auth.signup
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,15 +13,23 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -44,12 +52,20 @@ import com.smartattendance.modulesui.design.ui.theme.SmartAttendanceTheme
 
 @Composable
 fun SignUpScreen(
-    viewModel: SignUpViewModel = hiltViewModel()
+    viewModel: SignUpViewModel = hiltViewModel(),
+    onLoginClicked: () -> Unit,
+    onSignUpSuccess: () -> Unit
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(key1 = state.isSignUpSuccessful) {
+        if (state.isSignUpSuccessful) onSignUpSuccess()
+    }
+
     SignUpScreenContent(
         state = state,
-        event = viewModel::onEvent
+        event = viewModel::onEvent,
+        onLoginClicked = onLoginClicked
     )
 }
 
@@ -58,7 +74,6 @@ fun SignUpScreen(
 fun SignUpScreenContent(
     state: SignUpUiState,
     event: (SignUpScreenEvents) -> Unit,
-    onSignUpClicked: (userData: Map<String, String>) -> Unit = { },
     onBackClicked: () -> Unit = {},
     onLoginClicked: () -> Unit = {}
 ) {
@@ -68,7 +83,6 @@ fun SignUpScreenContent(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var showPassword by remember { mutableStateOf(false) }
-    var fullName by remember { mutableStateOf("") }
     var acceptTerms by remember { mutableStateOf(false) }
 
     Column(
@@ -106,7 +120,7 @@ fun SignUpScreenContent(
                 .padding(bottom = 24.dp)
         )
 
-        // Phone number field
+        // Name field
         Text(
             text = "Name",
             fontSize = 14.sp,
@@ -123,7 +137,7 @@ fun SignUpScreenContent(
                 .padding(bottom = 16.dp),
             placeholder = { Text("Enter your name") },
             keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Phone,
+                keyboardType = KeyboardType.Text,
                 imeAction = ImeAction.Next
             ),
             singleLine = true,
@@ -178,15 +192,12 @@ fun SignUpScreenContent(
             singleLine = true,
             shape = RoundedCornerShape(8.dp),
             trailingIcon = {
-//                IconButton(onClick = { showPassword = !showPassword }) {
-//                    Icon(
-//                        painter = painterResource(
-//                            id = if (showPassword) R.drawable.ic_visibility_on
-//                            else R.drawable.ic_visibility_off
-//                        ),
-//                        contentDescription = if (showPassword) "Hide password" else "Show password"
-//                    )
-//                }
+                IconButton(onClick = { showPassword = !showPassword }) {
+                    Icon(
+                        if (showPassword) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                        contentDescription = if (showPassword) "Hide password" else "Show password"
+                    )
+                }
             }
         )
 
@@ -201,7 +212,7 @@ fun SignUpScreenContent(
                 checked = acceptTerms,
                 onCheckedChange = { acceptTerms = it },
                 colors = CheckboxDefaults.colors(
-//                    checkedColor = Purple40
+                    checkedColor = MaterialTheme.colorScheme.primary
                 ),
                 modifier = Modifier.size(20.dp)
             )
@@ -219,17 +230,33 @@ fun SignUpScreenContent(
         Button(
             onClick = {
                 event(SignUpScreenEvents.SignUp(state.name, state.email, state.password))    },
-            enabled = email.isNotEmpty() && password.isNotEmpty() && name.isNotEmpty() && acceptTerms,
+            enabled = email.isNotEmpty() || password.isNotEmpty() || name.isNotEmpty() || acceptTerms,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp),
             colors = ButtonDefaults.buttonColors(
-//                containerColor = Purple40,
+                containerColor = MaterialTheme.colorScheme.primary,
                 disabledContainerColor = Color.Gray.copy(alpha = 0.3f)
             ),
             shape = RoundedCornerShape(8.dp)
         ) {
-            Text("SIGN UP")
+            if (state.isLoading) {
+                Spacer(modifier = Modifier.width(8.dp))
+                CircularProgressIndicator(
+                    color = Color.White,
+                    modifier = Modifier.size(24.dp)
+                )
+            } else {
+                Text("SIGN UP")
+            }
+        }
+
+        if (state.errorMessage != null) {
+            Text(
+                text = state.errorMessage,
+                color = Color.Red,
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -271,6 +298,6 @@ fun SignUpScreenContent(
 @Composable
 private fun SignUpPreview(){
     SmartAttendanceTheme {
-        SignUpScreen()
+//        SignUpScreen()
     }
 }

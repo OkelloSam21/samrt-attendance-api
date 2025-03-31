@@ -1,39 +1,26 @@
-package com.smartattendance.android.feature.auth.login.signup
+package com.smartattendance.android.feature.auth.signup
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.smartattendance.android.domain.model.AuthResult
+import com.smartattendance.android.domain.repository.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import jakarta.inject.Inject
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-//@HiltViewModel
-class SignUpViewModel @Inject constructor() : ViewModel() {
+@HiltViewModel
+class SignUpViewModel @Inject constructor(
+    private val authRepository: AuthRepository
+) : ViewModel() {
     private val _uiState = MutableStateFlow(SignUpUiState())
     val uiState = _uiState.asStateFlow()
 
-    // SharedFlow for navigation events
-    private val _navigationEvents = MutableSharedFlow<SignUpNavigationEvent>()
-    val navigationEvents = _navigationEvents.asSharedFlow()
 
     fun onEvent(event: SignUpScreenEvents) {
         when (event) {
-            is SignUpScreenEvents.BackClicked -> {
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        errorMessage = null,
-                    )
-                }
-                viewModelScope.launch {
-                    _navigationEvents.emit(SignUpNavigationEvent.NavigateBack)
-                }
-            }
-
             is SignUpScreenEvents.EmailChanged -> {
                 _uiState.update { it.copy(email = event.email) }
             }
@@ -44,9 +31,6 @@ class SignUpViewModel @Inject constructor() : ViewModel() {
                         isLoading = false,
                         errorMessage = null,
                     )
-                }
-                viewModelScope.launch {
-                    _navigationEvents.emit(SignUpNavigationEvent.NavigateToLogin)
                 }
             }
 
@@ -64,24 +48,36 @@ class SignUpViewModel @Inject constructor() : ViewModel() {
                         isLoading = true,
                         name = event.name,
                         email = event.email,
-                        password = event.password
-                    )
-                }
-                viewModelScope.launch {
-                    _navigationEvents.emit(SignUpNavigationEvent.NavigateToDashboard)
-                }
-            }
-
-            SignUpScreenEvents.NavigateDashboard -> {
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
+                        password = event.password,
                         errorMessage = null,
                     )
                 }
-            }
 
-            else -> {}
+                viewModelScope.launch {
+                    val email = _uiState.value.email
+                    val password = _uiState.value.password
+
+                    when(val result = authRepository.login(email, password)){
+                        is AuthResult.Error -> {
+                            _uiState.update {
+                                it.copy(
+                                    isLoading = false,
+                                    errorMessage = result.message
+                                )
+                            }
+
+                        }
+                        AuthResult.Success -> {
+                            _uiState.update {
+                                it.copy(
+                                    isLoading = false,
+                                    errorMessage = null
+                                )
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -91,7 +87,9 @@ data class SignUpUiState(
     val errorMessage: String? = null,
     val name: String = "",
     val email: String = "",
-    val password: String = ""
+    val password: String = "",
+    val isSignUpSuccessful: Boolean = false,
+//    val userType: UserType? = UserType.STUDENT
 )
 
 sealed class SignUpScreenEvents {
@@ -101,13 +99,7 @@ sealed class SignUpScreenEvents {
     data class NameChanged(val name: String) : SignUpScreenEvents()
     data class EmailChanged(val email: String) : SignUpScreenEvents()
     data class PasswordChanged(val password: String) : SignUpScreenEvents()
-    object NavigateDashboard : SignUpScreenEvents()
-    object BackClicked : SignUpScreenEvents()
+//    object NavigateDashboard : SignUpScreenEvents()
+//    object BackClicked : SignUpScreenEvents()
     object LoginClicked : SignUpScreenEvents()
-}
-
-sealed class SignUpNavigationEvent {
-    object NavigateToDashboard : SignUpNavigationEvent()
-    object NavigateToLogin : SignUpNavigationEvent()
-    object NavigateBack : SignUpNavigationEvent()
 }
