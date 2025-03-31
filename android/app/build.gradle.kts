@@ -90,6 +90,7 @@ dependencies {
     // hilt
     implementation(libs.hilt.android)
     implementation(libs.androidx.hilt.navigation)
+    implementation(libs.androidx.camera.core)
     ksp(libs.hilt.android.compiler)
 
     implementation(libs.material)

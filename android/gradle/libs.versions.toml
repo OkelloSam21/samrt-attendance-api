@@ -64,6 +64,7 @@ startup-runtime = "1.2.0"
 foundation-android = "1.7.5"
 ktlint = "12.1.2"
 buildconfig = "5.5.1"
+cameraCore = "1.4.2"
 
 
 [libraries]
@@ -138,6 +139,7 @@ ktor-client-android = { group = "io.ktor", name = "ktor-client-android", version
 ktor-client-content-negotiation = { group = "io.ktor", name = "ktor-client-content-negotiation", version.ref = "ktor-client" }
 ktor-serialization-kotlinx-json = { group = "io.ktor", name = "ktor-serialization-kotlinx-json", version.ref = "ktor-client" }
 ktor-client-logging = { group = "io.ktor", name = "ktor-client-logging", version.ref = "ktor-client" }
+androidx-camera-core = { group = "androidx.camera", name = "camera-core", version.ref = "cameraCore" }
 
 
 [bundles]
