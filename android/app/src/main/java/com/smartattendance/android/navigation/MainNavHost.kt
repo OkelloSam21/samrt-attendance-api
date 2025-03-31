@@ -13,17 +13,35 @@ import com.smartattendance.android.feature.onboarding.selectusertype.selectUserT
 import com.smartattendance.android.feature.student.dashboard.studentDashboardScreen
 
 @Composable
-fun MainNavHost() {
-    val navController: NavHostController = rememberNavController()
-
+fun MainNavHost(
+    initialStartDestination: String = SelectUserTypeDestination.route,
+    navController: NavHostController = rememberNavController()
+) {
     NavHost(
         navController = navController,
         startDestination = SelectUserTypeDestination
     ) {
         // Authentication Flows
-        selectUserTypeScreen(navController)
-        loginScreen()
-        signUpScreen()
+        composable(SelectUserTypeDestination.route) {
+            SelectUserTypeScreen(
+                viewModel = hiltViewModel(),
+                onNextClicked = { it->
+                    navController.navigateToSignUp(it)
+                }
+            )
+        }
+
+        composable(
+            route = LoginDestination.route,
+            arguments = listOf(
+                navArgument(LoginDestination.userTypeParam) {
+                    defaultValue = LoginDestination.defaultUserType
+                }
+            )
+        ) { backStackEntry ->
+            val userType = backStackEntry.arguments?.getString(LoginDestination.userTypeParam)
+            LoginScreen()
+        }
 
         // User-specific Dashboard Screens
         adminDashboardScreen(navController)

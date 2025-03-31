@@ -1,24 +1,19 @@
-package com.smartattendance.android.feature.auth.selectusertype
+package com.smartattendance.android.feature.onboarding.selectusertype
 
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
-import com.smartattendance.android.feature.admin.dashboard.navigateToAdminDashboard
 import com.smartattendance.android.feature.auth.login.navigateToLogin
-import com.smartattendance.android.feature.auth.login.selectusertype.SelectUserTypeNavigationEvent
-import com.smartattendance.android.feature.auth.login.selectusertype.SelectUserTypeScreen
-import com.smartattendance.android.feature.auth.login.selectusertype.SelectUserTypeViewModel
 import com.smartattendance.android.feature.auth.signup.navigateToSignUp
-import com.smartattendance.android.feature.lecturer.dashboard.navigateToLecturerDashboard
-import com.smartattendance.android.feature.student.dashboard.navigateToStudentDashboard
 import kotlinx.serialization.Serializable
 
 @Serializable
-object SelectUserTypeDestination
+object SelectUserTypeDestination{
+    const val route = "select_user_type"
+}
 
 
 enum class UserType {
@@ -40,20 +35,13 @@ fun NavGraphBuilder.selectUserTypeScreen(
                         navController.navigateToLogin(userType = event.userType.name.lowercase())
                     }
                     is SelectUserTypeNavigationEvent.NavigateToSignUp -> {
-                        navController.navigateToSignUp(userType = event.userType.name.lowercase())
+                        navController.navigateToSignUp(userType = event.userType)
                     }
-//                    is SelectUserTypeNavigationEvent.NavigateToDashboard -> {
-//                        when (event.userType) {
-//                            UserType.STUDENT -> navController.navigateToStudentDashboard()
-//                            UserType.ADMIN -> navController.navigateToAdminDashboard()
-//                            UserType.LECTURER -> navController.navigateToLecturerDashboard()
-//                        }
-//                    }
 
                     else -> {}
                 }
             }
         }
-        SelectUserTypeScreen(viewModel = viewModel)
+//        SelectUserTypeScreen(viewModel = viewModel)
     }
 }

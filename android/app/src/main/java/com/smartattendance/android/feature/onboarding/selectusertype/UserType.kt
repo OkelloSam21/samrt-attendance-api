@@ -1,21 +1,14 @@
-package com.smartattendance.android.feature.auth.login.selectusertype
+package com.smartattendance.android.feature.onboarding.selectusertype
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-enum class UserType {
-    STUDENT,
-    LECTURER,
-    ADMIN
-}
 
 @HiltViewModel
 class SelectUserTypeViewModel @Inject constructor(
@@ -40,13 +33,13 @@ class SelectUserTypeViewModel @Inject constructor(
             
             SelectUserTypeEvent.NextClicked -> {
                 val userType = _uiState.value.selectedUserType
-                if (userType != null) {
-                    viewModelScope.launch {
-                        _navigationEvents.emit(
-                            SelectUserTypeNavigationEvent.NavigateToLogin(userType)
-                        )
-                    }
-                }
+//                if (userType != null) {
+//                    viewModelScope.launch {
+//                        _navigationEvents.emit(
+//                            SelectUserTypeNavigationEvent.NavigateToLogin(userType)
+//                        )
+//                    }
+//                }
             }
         }
     }
