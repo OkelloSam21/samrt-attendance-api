@@ -9,7 +9,7 @@ object SignUpDestination {
     const val route = "signup?userType={userType}"
 }
 
-fun NavController.navigateToSignUp(userType: UserType) {
+fun NavController.navigateToSignUp(userType: UserType?) {
     this.navigate(SignUpDestination.route) {
         launchSingleTop = true
     }

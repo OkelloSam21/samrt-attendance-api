@@ -47,6 +47,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.smartattendance.android.feature.onboarding.selectusertype.UserType
 import com.smartattendance.modulesui.design.ui.theme.SmartAttendanceTheme
 
 
@@ -54,9 +55,18 @@ import com.smartattendance.modulesui.design.ui.theme.SmartAttendanceTheme
 fun SignUpScreen(
     viewModel: SignUpViewModel = hiltViewModel(),
     onLoginClicked: () -> Unit,
-    onSignUpSuccess: () -> Unit
+    onSignUpSuccess: () -> Unit,
+    onBackClicked: () -> Unit
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+
+    // Add a check for user type
+    LaunchedEffect(state.userType) {
+        if (state.userType == null) {
+
+
+        }
+    }
 
     LaunchedEffect(key1 = state.isSignUpSuccessful) {
         if (state.isSignUpSuccessful) onSignUpSuccess()
@@ -65,7 +75,8 @@ fun SignUpScreen(
     SignUpScreenContent(
         state = state,
         event = viewModel::onEvent,
-        onLoginClicked = onLoginClicked
+        onLoginClicked = onLoginClicked,
+        onBackClicked = onBackClicked
     )
 }
 
@@ -201,6 +212,48 @@ fun SignUpScreenContent(
             }
         )
 
+        // In the SignUpScreenContent
+        Text(
+            text = if (state.userType == UserType.STUDENT) "Reg No" else "Employee ID",
+            fontSize = 14.sp,
+            modifier = Modifier
+                .align(Alignment.Start)
+                .padding(bottom = 8.dp)
+        )
+
+        // Modify the TextField section
+        if (state.userType == UserType.STUDENT) {
+            OutlinedTextField(
+                value = state.regNo,
+                onValueChange = { event(SignUpScreenEvents.RegNoChanged(it)) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 8.dp),
+                placeholder = { Text("Registration Number") },
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Text,
+                    imeAction = ImeAction.Next
+                ),
+                singleLine = true,
+                shape = RoundedCornerShape(8.dp),
+            )
+        } else {
+            OutlinedTextField(
+                value = state.regNo,
+                onValueChange = { event(SignUpScreenEvents.EmployeeIdChanged(it)) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 8.dp),
+                placeholder = { Text("Employee ID") },
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Text,
+                    imeAction = ImeAction.Next
+                ),
+                singleLine = true,
+                shape = RoundedCornerShape(8.dp),
+            )
+        }
+
         // Terms and conditions
         Row(
             modifier = Modifier
@@ -291,13 +344,5 @@ fun SignUpScreenContent(
                 )
             }
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun SignUpPreview(){
-    SmartAttendanceTheme {
-//        SignUpScreen()
     }
 }
