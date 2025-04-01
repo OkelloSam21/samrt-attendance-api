@@ -4,16 +4,17 @@ import com.smartattendance.android.data.network.model.AdminSignUpRequest
 import com.smartattendance.android.data.network.model.AttendanceResponse
 import com.smartattendance.android.data.network.model.AttendanceSession
 import com.smartattendance.android.data.network.model.AttendanceSessionRequest
-import com.smartattendance.android.data.network.model.AuthResponse
 import com.smartattendance.android.data.network.model.CourseRequest
 import com.smartattendance.android.data.network.model.CourseResponse
 import com.smartattendance.android.data.network.model.CourseUpdateRequest
 import com.smartattendance.android.data.network.model.CreateUserRequest
 import com.smartattendance.android.data.network.model.LecturerSignUpRequest
 import com.smartattendance.android.data.network.model.LoginRequest
+import com.smartattendance.android.data.network.model.LoginResponse
 import com.smartattendance.android.data.network.model.MarkAttendanceRequest
 import com.smartattendance.android.data.network.model.QrCodeResponse
 import com.smartattendance.android.data.network.model.RefreshTokenRequest
+import com.smartattendance.android.data.network.model.SignUpResponse
 import com.smartattendance.android.data.network.model.StudentSignUpRequest
 import com.smartattendance.android.data.network.model.UserProfileResponse
 import com.smartattendance.android.data.network.util.ApiResponse
@@ -35,7 +36,7 @@ class ApiClient @Inject constructor(
     private val httpClient: HttpClient
 ) {
     // Authentication endpoints
-    suspend fun login(loginRequest: LoginRequest): ApiResponse<AuthResponse> {
+    suspend fun login(loginRequest: LoginRequest): ApiResponse<LoginResponse> {
         return try {
             val response = httpClient.post("/auth/login") {
                 contentType(ContentType.Application.Json)
@@ -47,7 +48,7 @@ class ApiClient @Inject constructor(
         }
     }
 
-    suspend fun refreshToken(refreshTokenRequest: RefreshTokenRequest): ApiResponse<AuthResponse> {
+    suspend fun refreshToken(refreshTokenRequest: RefreshTokenRequest): ApiResponse<LoginResponse> {
         return try {
             val response = httpClient.post("/auth/refresh") {
                 contentType(ContentType.Application.Json)
@@ -59,7 +60,7 @@ class ApiClient @Inject constructor(
         }
     }
 
-    suspend fun registerStudent(request: StudentSignUpRequest): ApiResponse<AuthResponse> {
+    suspend fun registerStudent(request: StudentSignUpRequest): ApiResponse<SignUpResponse> {
         return try {
             val response = httpClient.post("/auth/signup") {
                 contentType(ContentType.Application.Json)
@@ -71,7 +72,7 @@ class ApiClient @Inject constructor(
         }
     }
 
-    suspend fun registerLecturer(request: LecturerSignUpRequest): ApiResponse<AuthResponse> {
+    suspend fun registerLecturer(request: LecturerSignUpRequest): ApiResponse<SignUpResponse> {
         return try {
             val response = httpClient.post("/auth/signup") {
                 contentType(ContentType.Application.Json)
@@ -83,7 +84,7 @@ class ApiClient @Inject constructor(
         }
     }
 
-    suspend fun registerAdmin(request: AdminSignUpRequest): ApiResponse<AuthResponse> {
+    suspend fun registerAdmin(request: AdminSignUpRequest): ApiResponse<SignUpResponse> {
         return try {
             val response = httpClient.post("/auth/signup") {
                 contentType(ContentType.Application.Json)
