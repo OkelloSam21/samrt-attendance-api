@@ -38,10 +38,21 @@ data class AdminSignUpRequest(
 
 // Authentication response
 @Serializable
-data class AuthResponse(
+data class AuthResponseWrapper(
+   val signUpResponse: SignUpResponse,
+    val loginResponse: LoginResponse
+)
+
+@Serializable
+data class SignUpResponse(
+    val message: String? = null,
+    val userId: String
+)
+
+@Serializable
+data class LoginResponse(
     val accessToken: String,
     val refreshToken: String,
-    val user: UserDto
 )
 
 @Serializable
