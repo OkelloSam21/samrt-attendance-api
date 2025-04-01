@@ -1,6 +1,7 @@
 package com.smartattendance.android.navigation
 
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -13,7 +14,6 @@ import com.smartattendance.android.feature.admin.dashboard.AdminDashboardScreen
 import com.smartattendance.android.feature.admin.dashboard.navigateToAdminDashboard
 import com.smartattendance.android.feature.auth.login.LoginDestination
 import com.smartattendance.android.feature.auth.login.LoginScreen
-import com.smartattendance.android.feature.auth.login.navigateToDashBoard
 import com.smartattendance.android.feature.auth.login.navigateToLogin
 import com.smartattendance.android.feature.onboarding.selectusertype.SelectUserTypeScreen
 import com.smartattendance.android.feature.auth.signup.SignUpScreen
@@ -43,8 +43,10 @@ fun MainNavHost(
         composable(SelectUserTypeDestination.route) {
             SelectUserTypeScreen(
                 viewModel = hiltViewModel(),
-                onNextClicked = { it ->
-                    navController.navigateToSignUp(it)
+                onNextClicked = { userType ->
+                    // Save the user type in SavedStateHandle before navigating
+                    navController.previousBackStackEntry?.savedStateHandle?.set("selectedUserType", userType)
+                    navController.navigateToSignUp(userType)
                 }
             )
         }
@@ -52,56 +54,50 @@ fun MainNavHost(
         composable(
             route = LoginDestination.route,
         ) { backStackEntry ->
-            val selectUserTypeEntry = remember {
-                navController.getBackStackEntry(SelectUserTypeDestination.route)
-            }
-            val selectedUserType =
-                selectUserTypeEntry.savedStateHandle.get<UserType>("selectedUserType")
             LoginScreen(
                 onNavigateToSignUp = {
-                    when (selectedUserType) {
-                        UserType.STUDENT -> navController.navigateToSignUp(UserType.STUDENT)
-                        UserType.LECTURER -> navController.navigateToSignUp(UserType.LECTURER)
-                        UserType.ADMIN -> navController.navigateToSignUp(UserType.ADMIN)
+                    // Retrieve the user type from previous back stack entry
+                    val userType = navController.previousBackStackEntry
+                        ?.savedStateHandle
+                        ?.get<UserType>("selectedUserType")
+
+                    userType?.let { navController.navigateToSignUp(it) }
+                },
+                onNavigateToDashboard = { userType ->
+                    when (userType) {
+                        UserType.STUDENT -> navController.navigateToStudentDashboard()
+                        UserType.LECTURER -> navController.navigateToLecturerDashboard()
+                        UserType.ADMIN -> navController.navigateToAdminDashboard()
                         else -> {}
                     }
                 },
-                onNavigateToDashboard = {
-
-                },
-                onNavigateToForgotPassword = {
-
-                }
+                onNavigateToForgotPassword = {}
             )
         }
 
         composable(route = SignUpDestination.route) {
             val signUpViewModel: SignUpViewModel = hiltViewModel()
-            val selectUserTypeEntry = remember {
-                navController.getBackStackEntry(SelectUserTypeDestination.route)
-            }
 
-            val selectedUserType =
-                selectUserTypeEntry.savedStateHandle.get<UserType>("selectedUserType")
             SignUpScreen(
                 viewModel = signUpViewModel,
                 onSignUpSuccess = {
-                    if (selectedUserType != null) {
-                        when (selectedUserType) {
-                            UserType.STUDENT -> navController.navigateToStudentDashboard()
-                            UserType.LECTURER -> navController.navigateToLecturerDashboard()
-                            UserType.ADMIN -> navController.navigateToAdminDashboard()
+                    val userType = signUpViewModel.uiState.value.userType
+                    when (userType) {
+                        UserType.STUDENT -> navController.navigateToStudentDashboard()
+                        UserType.LECTURER -> navController.navigateToLecturerDashboard()
+                        UserType.ADMIN -> navController.navigateToAdminDashboard()
+                        null -> {
+                            // Handle error case
+                            Log.e("SignUp", "No user type selected")
                         }
-                    } else {
-                        // Handle the case where userType is null
-                        // You can show an error message or navigate back
-
                     }
                 },
                 onLoginClicked = {
                     navController.navigateToLogin()
+                },
+                onBackClicked = {
+                    navController.popBackStack()
                 }
-
             )
         }
 
