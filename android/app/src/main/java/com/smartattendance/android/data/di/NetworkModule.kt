@@ -9,7 +9,9 @@ import io.ktor.client.HttpClient
 import io.ktor.client.engine.android.Android
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
+import io.ktor.client.plugins.logging.DEFAULT
 import io.ktor.client.plugins.logging.LogLevel
+import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.request.header
 import io.ktor.http.ContentType
@@ -67,11 +69,10 @@ object NetworkModule {
             install(ContentNegotiation) {
                 json(json)
             }
-
             install(Logging) {
                 level = LogLevel.BODY
+                logger = Logger.DEFAULT
             }
-
             defaultRequest {
                 header(HttpHeaders.ContentType, ContentType.Application.Json)
                 url(BASE_URL)
