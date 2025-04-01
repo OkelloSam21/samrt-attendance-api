@@ -2,50 +2,52 @@ package com.smartattendance.android.feature.onboarding.selectusertype
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.smartattendance.android.domain.repository.UserPreferencesRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 
 @HiltViewModel
 class SelectUserTypeViewModel @Inject constructor(
-    // If you need a repository for saving user type, inject it here
-    private val savedStateHandle: SavedStateHandle
+    private val userPreferencesRepository: UserPreferencesRepository
 ) : ViewModel() {
-    
+
     private val _uiState = MutableStateFlow(SelectUserTypeUiState())
     val uiState = _uiState.asStateFlow()
 
-    private var selectedUserType: UserType?
-        get() = savedStateHandle["selectedUserType"]
-        set(value) {
-            savedStateHandle["selectedUserType"] = value
-        }
+    private val _navigationEvents = MutableSharedFlow<SelectUserTypeNavigationEvent>()
+    val navigationEvents = _navigationEvents.asSharedFlow()
 
-    
     fun onEvent(event: SelectUserTypeEvent) {
         when (event) {
             is SelectUserTypeEvent.UserTypeSelected -> {
+                // Update UI state
                 _uiState.update {
                     it.copy(selectedUserType = event.userType)
                 }
-                // You could save the user type here if needed
-                selectedUserType = event.userType
+
+                // Save user type to preferences
+                viewModelScope.launch {
+                    userPreferencesRepository.saveSelectedUserType(event.userType.name)
+                }
             }
-            
+
             SelectUserTypeEvent.NextClicked -> {
                 val userType = _uiState.value.selectedUserType
-//                if (userType != null) {
-//                    viewModelScope.launch {
-//                        _navigationEvents.emit(
-//                            SelectUserTypeNavigationEvent.NavigateToLogin(userType)
-//                        )
-//                    }
-//                }
+                userType?.let { type ->
+                    viewModelScope.launch {
+                        _navigationEvents.emit(
+                            SelectUserTypeNavigationEvent.NavigateToSignUp(type)
+                        )
+                    }
+                }
             }
         }
     }

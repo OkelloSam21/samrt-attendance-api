@@ -9,6 +9,10 @@ interface UserPreferencesRepository {
     val userRole: Flow<String?>
     val userEmail: Flow<String?>
     val userName: Flow<String?>
+    val selectedUserType: Flow<String?>
+
+    suspend fun saveSelectedUserType(userType: String)
+    suspend fun clearSelectedUserType()
 
     suspend fun saveAccessToken(token: String)
     suspend fun saveRefreshToken(token: String)

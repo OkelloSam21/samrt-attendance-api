@@ -29,6 +29,7 @@ class UserPreferencesRepositoryImpl @Inject constructor(
         val USER_ROLE = stringPreferencesKey("user_role")
         val USER_EMAIL = stringPreferencesKey("user_email")
         val USER_NAME = stringPreferencesKey("user_name")
+        val SELECTED_USER_TYPE = stringPreferencesKey("selected_user_type")
     }
 
     // Access token
@@ -97,6 +98,23 @@ class UserPreferencesRepositoryImpl @Inject constructor(
         }
     }
 
+    // Implement new methods for user type
+    override val selectedUserType: Flow<String?> = dataStore.data.map { preferences ->
+        preferences[PreferenceKeys.SELECTED_USER_TYPE]
+    }
+
+    override suspend fun saveSelectedUserType(userType: String) {
+        dataStore.edit { preferences ->
+            preferences[PreferenceKeys.SELECTED_USER_TYPE] = userType
+        }
+    }
+
+    override suspend fun clearSelectedUserType() {
+        dataStore.edit { preferences ->
+            preferences.remove(PreferenceKeys.SELECTED_USER_TYPE)
+        }
+    }
+
     // Clear all user data (for logout)
     override suspend fun clearUserData() {
         dataStore.edit { preferences ->
@@ -106,6 +124,7 @@ class UserPreferencesRepositoryImpl @Inject constructor(
             preferences.remove(PreferenceKeys.USER_ROLE)
             preferences.remove(PreferenceKeys.USER_EMAIL)
             preferences.remove(PreferenceKeys.USER_NAME)
+            preferences.remove(PreferenceKeys.SELECTED_USER_TYPE)
         }
     }
 }

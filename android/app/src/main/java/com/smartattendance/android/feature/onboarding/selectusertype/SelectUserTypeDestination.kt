@@ -1,13 +1,10 @@
 package com.smartattendance.android.feature.onboarding.selectusertype
 
-import androidx.compose.runtime.LaunchedEffect
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
-import com.smartattendance.android.feature.auth.login.navigateToLogin
-import com.smartattendance.android.feature.auth.signup.navigateToSignUp
 import kotlinx.serialization.Serializable
 
 @Serializable
