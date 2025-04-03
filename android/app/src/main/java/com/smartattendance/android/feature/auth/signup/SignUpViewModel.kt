@@ -1,7 +1,6 @@
 package com.smartattendance.android.feature.auth.signup
 
 import android.util.Log
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.smartattendance.android.data.network.model.AdminSignUpRequest
@@ -26,24 +25,10 @@ class SignUpViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(SignUpUiState())
     val uiState = _uiState.asStateFlow()
 
-    init {
-        // Retrieve user type from preferences
-        viewModelScope.launch {
-            userPreferencesRepository.selectedUserType.collect { userTypeString ->
-                userTypeString?.let { typeString ->
-                    try {
-                        val userType = UserType.valueOf(typeString.uppercase())
-                        _uiState.update {
-                            it.copy(userType = userType)
-                        }
-                    } catch (e: IllegalArgumentException) {
-                        _uiState.update {
-                            it.copy(errorMessage = "Invalid user type")
-                        }
-                    }
-                }
-            }
-        }
+    // New method to set the user type from the screen
+    fun setUserType(userType: UserType) {
+        _uiState.update { it.copy(userType = userType) }
+        Log.d("SignUpViewModel", "User type set: $userType")
     }
 
     fun onEvent(event: SignUpScreenEvents) {
@@ -83,12 +68,12 @@ class SignUpViewModel @Inject constructor(
                 viewModelScope.launch {
                     val state = _uiState.value
 
-                    // Validate user type
+                    // User type is now directly from the state
                     val userType = state.userType ?: run {
                         _uiState.update {
                             it.copy(
                                 isLoading = false,
-                                errorMessage = "User type not selected"
+                                errorMessage = "User type not provided" // More specific error
                             )
                         }
                         return@launch
@@ -102,7 +87,7 @@ class SignUpViewModel @Inject constructor(
                                 errorMessage = when (userType) {
                                     UserType.STUDENT -> "Registration number is required"
                                     UserType.LECTURER -> "Employee role number is required"
-                                    UserType.ADMIN -> ""
+                                    else -> "" // Should not happen, but handle it
                                 }
                             )
                         }
@@ -117,12 +102,14 @@ class SignUpViewModel @Inject constructor(
                             password = state.password,
                             regNo = state.regNo
                         )
+
                         UserType.LECTURER -> LecturerSignUpRequest(
                             name = state.name,
                             email = state.email,
                             password = state.password,
                             employeeRoleNo = state.regNo
                         )
+
                         UserType.ADMIN -> AdminSignUpRequest(
                             name = state.name,
                             email = state.email,
@@ -139,10 +126,11 @@ class SignUpViewModel @Inject constructor(
                             _uiState.update {
                                 it.copy(
                                     isLoading = false,
-                                    errorMessage = result.message ?: "Registration failed"
+                                    errorMessage = result.message
                                 )
                             }
                         }
+
                         AuthResult.Success -> {
                             _uiState.update {
                                 it.copy(
@@ -151,6 +139,8 @@ class SignUpViewModel @Inject constructor(
                                     isSignUpSuccessful = true
                                 )
                             }
+                            // Optionally, save the user type to preferences here for persistent login
+                            userPreferencesRepository.saveSelectedUserType(userType.name)
                         }
                     }
                 }
@@ -159,6 +149,7 @@ class SignUpViewModel @Inject constructor(
             is SignUpScreenEvents.EmployeeIdChanged -> {
                 _uiState.update { it.copy(regNo = event.employeeId) }
             }
+
             is SignUpScreenEvents.RegNoChanged -> {
                 _uiState.update { it.copy(regNo = event.regNo) }
             }
@@ -175,7 +166,6 @@ data class SignUpUiState(
     val userType: UserType? = null,
     val password: String = "",
     val isSignUpSuccessful: Boolean = false,
-//    val userType: UserType? = UserType.STUDENT
 )
 
 sealed class SignUpScreenEvents {
