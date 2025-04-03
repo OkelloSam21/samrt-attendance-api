@@ -93,19 +93,19 @@ fun MainNavHost(
             arguments = listOf(
                 navArgument("userType") { type = NavType.StringType }
             )
-        ) {  backStackEntry ->
-
-            val userTypeString = backStackEntry.arguments?.getString("userType")
-
-            val userType = try {
-                userTypeString?.let { UserType.valueOf(it) } ?: throw IllegalArgumentException("UserType cannot be null")
-            } catch (e: IllegalArgumentException) {
-                Log.e("Main NavHost", "Invalid or missing userType in Login route", e)
-                navController.navigateToSelectUserType()
-                return@composable
-            }
+        ) {
+//                backStackEntry ->
+//
+//            val userTypeString = backStackEntry.arguments?.getString("userType")
+//
+//            val userType = try {
+//                userTypeString?.let { UserType.valueOf(it) } ?: throw IllegalArgumentException("UserType cannot be null")
+//            } catch (e: IllegalArgumentException) {
+//                Log.e("Main NavHost", "Invalid or missing userType in Login route", e)
+//                navController.navigateToSelectUserType()
+//                return@composable
+//            }
             LoginScreen(
-                userType = userType,
                 onNavigateToSignUp = {
                     // In this approach, we don't navigate to SignUp from Login anymore with userType.
                     // If you need to, consider navigating back to SelectUserType first, or rethinking the flow.
