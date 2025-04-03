@@ -45,6 +45,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.smartattendance.android.components.ReusableButton
 import com.smartattendance.android.feature.onboarding.selectusertype.UserType
 import com.smartattendance.modulesui.design.ui.theme.SmartAttendanceTheme
 
@@ -52,7 +53,8 @@ import com.smartattendance.modulesui.design.ui.theme.SmartAttendanceTheme
 @Composable
 fun LoginScreen(
     viewModel: LoginViewModel = hiltViewModel(),
-    onNavigateToSignUp: () -> Unit,
+    userType: UserType,
+    onNavigateToSignUp: (UserType) -> Unit,
     onNavigateToDashboard: (UserType) -> Unit,
     onNavigateToForgotPassword: () -> Unit,
 ) {
@@ -68,7 +70,7 @@ fun LoginScreen(
         LoginScreenContent(
             state = state,
             event = viewModel::onEvent,
-            onSignUpClicked = onNavigateToSignUp,
+            onSignUpClicked = { onNavigateToSignUp(userType) },
             onForgotPasswordClicked = onNavigateToForgotPassword
         )
     }
@@ -190,7 +192,7 @@ fun LoginScreenContent(
                     checked = rememberMe,
                     onCheckedChange = { rememberMe = it },
                     colors = CheckboxDefaults.colors(
-//                        checkedColor = Purple40
+                        checkedColor = MaterialTheme.colorScheme.primaryContainer
                     ),
                     modifier = Modifier.size(20.dp)
                 )
@@ -223,13 +225,13 @@ fun LoginScreenContent(
             isLoading = state.isLoading
         )
 
-        Spacer(modifier = Modifier.weight(1f))
+        Spacer(modifier = Modifier.height(75.dp))
 
 
 
         // Don't have an account
         Row(
-            modifier = Modifier.padding(bottom = 16.dp),
+            modifier = Modifier.padding(bottom = 32.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
@@ -253,17 +255,17 @@ fun LoginScreenContent(
 }
 
 
-
-//@Preview(showBackground = true)
-//@Composable
-//fun LoginScreenPreview() {
-//    SmartAttendanceTheme {
-//        LoginScreen(
-////            viewModel = ,
-//            navigateToSignUp = {},
-//            navigateToDashboard = {}
-//        )
-//    }
-//}
+@Preview(showBackground = true)
+@Composable
+fun LoginScreenPreview() {
+    SmartAttendanceTheme {
+        LoginScreen(
+            userType = UserType.STUDENT,
+            onNavigateToSignUp = {},
+            onNavigateToDashboard = {},
+            onNavigateToForgotPassword = {},
+        )
+    }
+}
 
 
