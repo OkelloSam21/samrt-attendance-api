@@ -1,20 +1,23 @@
 package com.smartattendance.android
 
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.smartattendance.android.domain.repository.UserPreferencesRepository
 import com.smartattendance.android.navigation.MainNavHost
 import dagger.hilt.android.AndroidEntryPoint
-import androidx.activity.viewModels
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.smartattendance.android.feature.onboarding.selectusertype.SelectUserTypeDestination
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     private val viewModel: MainViewModel by viewModels()
+
+    @Inject
+    lateinit var userPreferencesRepository: UserPreferencesRepository
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
@@ -27,14 +30,15 @@ class MainActivity : ComponentActivity() {
 
         enableEdgeToEdge()
         setContent {
-            val startDestinationState = viewModel.startDestination.collectAsStateWithLifecycle()
-            val startDestination = startDestinationState.value ?: SelectUserTypeDestination.route
+            val startDestinationEventState = viewModel.startDestination.collectAsStateWithLifecycle()
+            val startDestinationEvent = startDestinationEventState.value
 
-            // Debug print
-            Log.d("Navigation", "Start Destination: $startDestination")
-            // Only set content when start destination is determined
-            MainNavHost(initialStartDestination = startDestination)
+            //Log.d("Navigation", "Start Destination Event: $startDestinationEvent") //for debugging
+
+            MainNavHost(
+                startDestinationEvent = startDestinationEvent, //Pass the event
+                userPreferencesRepository = userPreferencesRepository
+            )
         }
     }
 }
-

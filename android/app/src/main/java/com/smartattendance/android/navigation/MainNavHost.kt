@@ -3,49 +3,86 @@ package com.smartattendance.android.navigation
 import android.annotation.SuppressLint
 import android.util.Log
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import com.smartattendance.android.MainViewModel
+import com.smartattendance.android.NavigationEvent
+import com.smartattendance.android.domain.repository.UserPreferencesRepository
 import com.smartattendance.android.feature.admin.dashboard.AdminDashboardDestination
 import com.smartattendance.android.feature.admin.dashboard.AdminDashboardScreen
-import com.smartattendance.android.feature.admin.dashboard.navigateToAdminDashboard
-import com.smartattendance.android.feature.auth.login.LoginDestination
 import com.smartattendance.android.feature.auth.login.LoginScreen
-import com.smartattendance.android.feature.auth.login.navigateToLogin
-import com.smartattendance.android.feature.onboarding.selectusertype.SelectUserTypeScreen
 import com.smartattendance.android.feature.auth.signup.SignUpScreen
-import com.smartattendance.android.feature.auth.signup.SignUpDestination
 import com.smartattendance.android.feature.auth.signup.SignUpViewModel
-import com.smartattendance.android.feature.auth.signup.navigateToSignUp
-import com.smartattendance.android.feature.onboarding.selectusertype.SelectUserTypeDestination
-import com.smartattendance.android.feature.lecturer.dashboard.LecturerDashboardDestination
 import com.smartattendance.android.feature.lecturer.dashboard.LecturerDashboardScreen
-import com.smartattendance.android.feature.lecturer.dashboard.navigateToLecturerDashboard
+import com.smartattendance.android.feature.onboarding.selectusertype.SelectUserTypeDestination
+import com.smartattendance.android.feature.onboarding.selectusertype.SelectUserTypeScreen
 import com.smartattendance.android.feature.onboarding.selectusertype.UserType
-import com.smartattendance.android.feature.student.dashboard.StudentDashboardDestination
 import com.smartattendance.android.feature.student.dashboard.StudentDashboardScreen
-import com.smartattendance.android.feature.student.dashboard.navigateToStudentDashboard
+import com.smartattendance.android.navigation.helper.navigateToDashboardIfAuthorized
+import com.smartattendance.android.navigation.helper.navigateToLogin
+import com.smartattendance.android.navigation.helper.navigateToSelectUserType
+import com.smartattendance.android.navigation.helper.navigateToSignUp
+import kotlinx.coroutines.launch
 
 @SuppressLint("UnrememberedGetBackStackEntry")
 @Composable
 fun MainNavHost(
-    initialStartDestination: String = SelectUserTypeDestination.route,
-    navController: NavHostController = rememberNavController()
+    startDestinationEvent: NavigationEvent?,
+    navController: NavHostController = rememberNavController(),
+    userPreferencesRepository: UserPreferencesRepository
 ) {
+    val coroutineScope = rememberCoroutineScope()
+    val mainViewModel: MainViewModel = hiltViewModel()
+
+    val startDestination = mainViewModel.startDestination.collectAsStateWithLifecycle()
+
+    LaunchedEffect(startDestinationEvent) {
+        startDestination.let { event ->
+            when (event) {
+                NavigationEvent.NavigateToSelectUserType -> navController.navigateToSelectUserType()
+                is NavigationEvent.NavigateToLogin -> {
+                    navController.navigateToLogin(event.userType)
+                }
+                NavigationEvent.NavigateToStudentDashboard -> {
+                    navController.navigateToDashboardIfAuthorized(
+                        userPreferencesRepository,
+                        StudentDashboardDestination.route
+                    )
+                }
+                NavigationEvent.NavigateToAdminDashboard -> {
+                    navController.navigateToDashboardIfAuthorized(
+                        userPreferencesRepository,
+                        AdminDashboardDestination.route
+                    )
+                }
+                NavigationEvent.NavigateToLecturerDashboard -> {
+                    navController.navigateToDashboardIfAuthorized(
+                        userPreferencesRepository,
+                        LecturerDashboardDestination.route
+                    )
+                }
+            }
+            mainViewModel.onNavigationHandled()
+        }
+    }
+
     NavHost(
         navController = navController,
-        startDestination = initialStartDestination
+        startDestination = SelectUserTypeDestination.route
     ) {
         // Authentication Flows
         composable(SelectUserTypeDestination.route) {
             SelectUserTypeScreen(
                 viewModel = hiltViewModel(),
                 onNextClicked = { userType ->
-                    // Save the user type in SavedStateHandle before navigating
-                    navController.previousBackStackEntry?.savedStateHandle?.set("selectedUserType", userType)
                     navController.navigateToSignUp(userType)
                 }
             )
@@ -53,55 +90,87 @@ fun MainNavHost(
 
         composable(
             route = LoginDestination.route,
-        ) { backStackEntry ->
-            LoginScreen(
-                onNavigateToSignUp = {
-                    // Retrieve the user type from previous back stack entry
-                    val userType = navController.previousBackStackEntry
-                        ?.savedStateHandle
-                        ?.get<UserType>("selectedUserType")
+            arguments = listOf(
+                navArgument("userType") { type = NavType.StringType }
+            )
+        ) {  backStackEntry ->
 
-                    userType?.let { navController.navigateToSignUp(it) }
+            val userTypeString = backStackEntry.arguments?.getString("userType")
+
+            val userType = try {
+                userTypeString?.let { UserType.valueOf(it) } ?: throw IllegalArgumentException("UserType cannot be null")
+            } catch (e: IllegalArgumentException) {
+                Log.e("Main NavHost", "Invalid or missing userType in Login route", e)
+                navController.navigateToSelectUserType()
+                return@composable
+            }
+            LoginScreen(
+                userType = userType,
+                onNavigateToSignUp = {
+                    // In this approach, we don't navigate to SignUp from Login anymore with userType.
+                    // If you need to, consider navigating back to SelectUserType first, or rethinking the flow.
+                    navController.navigate(SelectUserTypeDestination.route)
                 },
                 onNavigateToDashboard = { userType ->
-                    when (userType) {
-                        UserType.STUDENT -> navController.navigateToStudentDashboard()
-                        UserType.LECTURER -> navController.navigateToLecturerDashboard()
-                        UserType.ADMIN -> navController.navigateToAdminDashboard()
-                        else -> {}
+                    val destination = when (userType) {
+                        UserType.STUDENT -> StudentDashboardDestination.route
+                        UserType.LECTURER -> LecturerDashboardDestination.route
+                        UserType.ADMIN -> AdminDashboardDestination.route
+                    }
+
+                    coroutineScope.launch {
+                        navController.navigateToDashboardIfAuthorized(userPreferencesRepository, destination)
                     }
                 },
                 onNavigateToForgotPassword = {}
             )
         }
 
-        composable(route = SignUpDestination.route) {
-            val signUpViewModel: SignUpViewModel = hiltViewModel()
+        composable(
+            route = SignUpDestination.route,
+            arguments = listOf(navArgument("userType") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val userTypeString = backStackEntry.arguments?.getString("userType")
 
-            SignUpScreen(
-                viewModel = signUpViewModel,
-                onSignUpSuccess = {
-                    val userType = signUpViewModel.uiState.value.userType
-                    when (userType) {
-                        UserType.STUDENT -> navController.navigateToStudentDashboard()
-                        UserType.LECTURER -> navController.navigateToLecturerDashboard()
-                        UserType.ADMIN -> navController.navigateToAdminDashboard()
-                        null -> {
-                            // Handle error case
-                            Log.e("SignUp", "No user type selected")
+            val userType = try {
+                userTypeString?.let { UserType.valueOf(it) }
+            } catch (e: IllegalArgumentException) {
+                Log.e("MainNavHost", "Invalid UserType: $userTypeString", e)
+                null // Or handle the error as appropriate for your app
+            }
+
+            if (userType != null) {
+                val signUpViewModel: SignUpViewModel = hiltViewModel()
+
+                SignUpScreen(
+                    viewModel = signUpViewModel,
+                    userType = userType, // Pass the userType to the SignUpScreen
+                    onSignUpSuccess = {
+                        val destination = when (userType) {
+                            UserType.STUDENT -> StudentDashboardDestination.route
+                            UserType.LECTURER -> LecturerDashboardDestination.route
+                            UserType.ADMIN -> AdminDashboardDestination.route
                         }
+
+                        coroutineScope.launch {
+                            navController.navigateToDashboardIfAuthorized(userPreferencesRepository, destination)
+                        }
+                    },
+                    onLoginClicked = {
+                        navController.navigateToLogin(userType)
+                    },
+                    onBackClicked = {
+                        navController.popBackStack()
                     }
-                },
-                onLoginClicked = {
-                    navController.navigateToLogin()
-                },
-                onBackClicked = {
-                    navController.popBackStack()
-                }
-            )
+                )
+            } else {
+                // Handle the error: UserType not found in arguments
+                Log.e("MainNavHost", "UserType not found in SignUp arguments")
+                // Maybe navigate back or show an error message.
+            }
         }
 
-        // Dashboard Screens
+        // Dashboard Screens - No changes needed here as they don't receive userType directly anymore.
         composable(StudentDashboardDestination.route) {
             StudentDashboardScreen(
                 onNavigateToScanQr = { },

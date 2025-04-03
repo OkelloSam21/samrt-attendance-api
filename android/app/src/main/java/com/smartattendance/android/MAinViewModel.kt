@@ -3,12 +3,7 @@ package com.smartattendance.android
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.smartattendance.android.data.repository.UserPreferencesRepositoryImpl
-import com.smartattendance.android.feature.admin.dashboard.AdminDashboardDestination
-import com.smartattendance.android.feature.auth.login.LoginDestination
-import com.smartattendance.android.feature.onboarding.selectusertype.SelectUserTypeDestination
 import com.smartattendance.android.feature.onboarding.selectusertype.UserType
-import com.smartattendance.android.feature.lecturer.dashboard.LecturerDashboardDestination
-import com.smartattendance.android.feature.student.dashboard.StudentDashboardDestination
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -20,14 +15,14 @@ import javax.inject.Inject
 @HiltViewModel
 class MainViewModel @Inject constructor(
     private val repository: UserPreferencesRepositoryImpl
-): ViewModel() {
+) : ViewModel() {
     // State to keep splash screen visible
     private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
-    // Destination state
-    private val _startDestination = MutableStateFlow<String?>(null)
-    val startDestination: StateFlow<String?> = _startDestination.asStateFlow()
+    // Destination state – Now holds a navigation event instead of a route string
+    private val _startDestination = MutableStateFlow<NavigationEvent?>(null)
+    val startDestination: StateFlow<NavigationEvent?> = _startDestination.asStateFlow()
 
     init {
         determineInitialDestination()
@@ -36,23 +31,29 @@ class MainViewModel @Inject constructor(
     private fun determineInitialDestination() {
         viewModelScope.launch {
             try {
-                // Collect the first values of access token and user role
                 val accessToken = repository.accessToken.first()
                 val userRole = repository.userRole.first()
 
-                // Determine destination based on access token and user role
-                val destination = when {
-                    // No access token and no user role - first-time installation
+                val navigationEvent = when {
                     accessToken.isNullOrBlank() && userRole.isNullOrBlank() ->
-                        SelectUserTypeDestination.route
+                        NavigationEvent.NavigateToSelectUserType
 
-                    // Access token is blank but user role exists - go to login
-                    accessToken.isNullOrBlank() ->
-                        LoginDestination.route
+                    accessToken.isNullOrBlank() -> {
+                        val userType = when (userRole?.lowercase()) {
+                            "student" -> UserType.STUDENT
+                            "admin" -> UserType.ADMIN
+                            "lecturer" -> UserType.LECTURER
+                            else -> {
+                                // Handle invalid or missing userRole when accessToken is blank
+                                // For consistency, navigate to SelectUserType
+                                null  // Or throw an exception, depending on your preference.
+                            }
+                        }
+                        userType?.let { NavigationEvent.NavigateToLogin(userType = it) } ?:
+                        NavigationEvent.NavigateToSelectUserType
+                    }
 
-                    // Access token and user role exist - navigate to dashboard
                     else -> {
-                        // Convert user role to UserType enum
                         val userType = when (userRole?.lowercase()) {
                             "student" -> UserType.STUDENT
                             "admin" -> UserType.ADMIN
@@ -60,26 +61,35 @@ class MainViewModel @Inject constructor(
                             else -> null
                         }
 
-                        // If user type is valid, return dashboard route, otherwise login
-                        userType?.let {
-                            when (it) {
-                                UserType.STUDENT -> StudentDashboardDestination.route
-                                UserType.ADMIN -> AdminDashboardDestination.route
-                                UserType.LECTURER -> LecturerDashboardDestination.route
-                            }
-                        } ?: LoginDestination.route
+                        when (userType) {
+                            UserType.STUDENT -> NavigationEvent.NavigateToStudentDashboard
+                            UserType.ADMIN -> NavigationEvent.NavigateToAdminDashboard
+                            UserType.LECTURER -> NavigationEvent.NavigateToLecturerDashboard
+                            else -> NavigationEvent.NavigateToSelectUserType  // Invalid or missing role
+                        }
                     }
                 }
 
-                // Set the start destination
-                _startDestination.value = destination
+                _startDestination.value = navigationEvent
             } catch (e: Exception) {
-                // Handle any errors during destination determination
-                _startDestination.value = LoginDestination.route
+                _startDestination.value = NavigationEvent.NavigateToSelectUserType // consistent handling
             } finally {
-                // Always set loading to false
                 _isLoading.value = false
             }
         }
     }
+
+    // New event to signal that the navigation has been handled
+    fun onNavigationHandled() {
+        _startDestination.value = null
+    }
+}
+
+// Sealed class to represent navigation events
+sealed class NavigationEvent {
+    object NavigateToSelectUserType : NavigationEvent()
+    data class NavigateToLogin(val userType: UserType) : NavigationEvent()
+    object NavigateToStudentDashboard : NavigationEvent()
+    object NavigateToAdminDashboard : NavigationEvent()
+    object NavigateToLecturerDashboard : NavigationEvent()
 }
