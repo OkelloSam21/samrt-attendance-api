@@ -1,5 +1,6 @@
 package com.smartattendance.android.feature.auth.login
 
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -16,13 +17,21 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val savedStateHandle: SavedStateHandle,
-    private val repository: AuthRepository
+    private val repository: AuthRepository,
+    savedStateHandle: SavedStateHandle
 ): ViewModel() {
-//    private val args = LoginArgs(savedStateHandle)
 
     private val _uiState = MutableStateFlow(LoginUiState())
     val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
+
+    // Extract userType from SavedStateHandle
+    private val userType: UserType =
+        UserType.valueOf(savedStateHandle.get<String>("userType") ?: UserType.STUDENT.name) // Provide a reasonable default like student or handle the null case as appropriate for your app
+
+    init{
+        _uiState.update { it.copy(userType = userType) }
+        Log.d("LoginViewModel", "userType: $userType")
+    }
 
     fun onEvent(event: LoginUiEvents) {
         when (event) {
@@ -36,6 +45,7 @@ class LoginViewModel @Inject constructor(
 
             is LoginUiEvents.OnLoginClicked -> {
                 _uiState.update { it.copy(isLoading = true) }
+                Log.d("Login ViewModel", "usertype is : ${_uiState.value.userType}")
                 login(
                     email = uiState.value.email,
                     password = uiState.value.password
@@ -46,7 +56,7 @@ class LoginViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(
                         errorMessage = "",
-                        isLoginSuccessful = true
+                        isLoginSuccessful = false
                     )
                 }
             }
@@ -60,10 +70,10 @@ class LoginViewModel @Inject constructor(
         viewModelScope.launch{
             when ( val result = repository.login(email  = email, password = password ) ){
                 is AuthResult.Success -> {
-                    _uiState.update { it.copy(isLoading = false) }
+                    _uiState.update { it.copy(isLoading = false, isLoginSuccessful = true) }
                 }
                 is AuthResult.Error -> {
-                    _uiState.update { it.copy(errorMessage = result.message, isLoginSuccessful = true, isLoading = false) }
+                    _uiState.update { it.copy(errorMessage = result.message, isLoginSuccessful = false, isLoading = false) }
                 }
             }
         }

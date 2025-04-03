@@ -15,11 +15,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -49,11 +46,9 @@ import com.smartattendance.android.components.ReusableButton
 import com.smartattendance.android.feature.onboarding.selectusertype.UserType
 import com.smartattendance.modulesui.design.ui.theme.SmartAttendanceTheme
 
-
 @Composable
 fun LoginScreen(
     viewModel: LoginViewModel = hiltViewModel(),
-    userType: UserType,
     onNavigateToSignUp: (UserType) -> Unit,
     onNavigateToDashboard: (UserType) -> Unit,
     onNavigateToForgotPassword: () -> Unit,
@@ -62,7 +57,7 @@ fun LoginScreen(
 
     LaunchedEffect(state.isLoginSuccessful) {
         if (state.isLoginSuccessful) {
-            onNavigateToDashboard(state.userType)
+                onNavigateToDashboard(state.userType)
         }
     }
 
@@ -70,7 +65,7 @@ fun LoginScreen(
         LoginScreenContent(
             state = state,
             event = viewModel::onEvent,
-            onSignUpClicked = { onNavigateToSignUp(userType) },
+            onSignUpClicked = { onNavigateToSignUp(state.userType) },
             onForgotPasswordClicked = onNavigateToForgotPassword
         )
     }
@@ -260,7 +255,6 @@ fun LoginScreenContent(
 fun LoginScreenPreview() {
     SmartAttendanceTheme {
         LoginScreen(
-            userType = UserType.STUDENT,
             onNavigateToSignUp = {},
             onNavigateToDashboard = {},
             onNavigateToForgotPassword = {},
