@@ -1,6 +1,5 @@
 package com.smartattendance.android.feature.onboarding.selectusertype
 
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.smartattendance.android.domain.repository.UserPreferencesRepository
