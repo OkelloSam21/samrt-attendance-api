@@ -280,29 +280,12 @@ fun SignUpScreenContent(
         }
 
         // Sign up button
-        Button(
-            onClick = {
-                event(SignUpScreenEvents.SignUp(state.name, state.email, state.password))    },
-            enabled = email.isNotEmpty() || password.isNotEmpty() || name.isNotEmpty() || acceptTerms,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(50.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary,
-                disabledContainerColor = Color.Gray.copy(alpha = 0.3f)
-            ),
-            shape = RoundedCornerShape(8.dp)
-        ) {
-            if (state.isLoading) {
-                Spacer(modifier = Modifier.width(8.dp))
-                CircularProgressIndicator(
-                    color = Color.White,
-                    modifier = Modifier.size(24.dp)
-                )
-            } else {
-                Text("SIGN UP")
-            }
-        }
+        ReusableButton(
+            text = "SIGN UP",
+            onClick = { event(SignUpScreenEvents.SignUp(state.name, state.email, state.password)) },
+            enabled = (state.email.isNotEmpty() && state.password.isNotEmpty() && state.name.isNotEmpty() && acceptTerms),
+            isLoading = state.isLoading
+        )
 
         if (state.errorMessage != null) {
             Text(

@@ -216,18 +216,12 @@ fun LoginScreenContent(
         }
 
         // Login button
-        Button(
+        ReusableButton(
+            text = "LOG IN",
             onClick = { event(LoginUiEvents.OnLoginClicked) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(50.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary
-            ),
-            shape = RoundedCornerShape(8.dp)
-        ) {
-            Text("LOGIN")
-        }
+            enabled = state.email.isNotEmpty() && state.password.isNotEmpty(),
+            isLoading = state.isLoading
+        )
 
         Spacer(modifier = Modifier.weight(1f))
 
