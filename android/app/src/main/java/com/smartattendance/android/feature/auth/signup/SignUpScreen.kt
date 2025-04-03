@@ -47,6 +47,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.smartattendance.android.components.ReusableButton
 import com.smartattendance.android.feature.onboarding.selectusertype.UserType
 import com.smartattendance.modulesui.design.ui.theme.SmartAttendanceTheme
 
@@ -55,21 +56,18 @@ import com.smartattendance.modulesui.design.ui.theme.SmartAttendanceTheme
 fun SignUpScreen(
     viewModel: SignUpViewModel = hiltViewModel(),
     onLoginClicked: () -> Unit,
-    onSignUpSuccess: () -> Unit,
+    onSignUpSuccess: (UserType) -> Unit,
+    userType: UserType,
     onBackClicked: () -> Unit
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
-    // Add a check for user type
-    LaunchedEffect(state.userType) {
-        if (state.userType == null) {
-
-
-        }
+    LaunchedEffect(key1 = Unit) {
+        viewModel.setUserType(userType)
     }
 
     LaunchedEffect(key1 = state.isSignUpSuccessful) {
-        if (state.isSignUpSuccessful) onSignUpSuccess()
+        if (state.isSignUpSuccessful) onSignUpSuccess(state.userType!!)
     }
 
     SignUpScreenContent(
@@ -90,9 +88,6 @@ fun SignUpScreenContent(
 ) {
     val scrollState = rememberScrollState()
 
-    var name by remember { mutableStateOf("") }
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
     var showPassword by remember { mutableStateOf(false) }
     var acceptTerms by remember { mutableStateOf(false) }
 
@@ -213,13 +208,17 @@ fun SignUpScreenContent(
         )
 
         // In the SignUpScreenContent
-        Text(
-            text = if (state.userType == UserType.STUDENT) "Reg No" else "Employee ID",
-            fontSize = 14.sp,
-            modifier = Modifier
-                .align(Alignment.Start)
-                .padding(bottom = 8.dp)
-        )
+        if (state.userType == UserType.STUDENT || state.userType == UserType.LECTURER) {
+            Text(
+                text = if (state.userType == UserType.STUDENT) "Reg No" else "Employee ID",
+                fontSize = 14.sp,
+                modifier = Modifier
+                    .align(Alignment.Start)
+                    .padding(bottom = 8.dp)
+            )
+        } else {
+//            return@Column
+        }
 
         // Modify the TextField section
         if (state.userType == UserType.STUDENT) {
@@ -232,12 +231,12 @@ fun SignUpScreenContent(
                 placeholder = { Text("Registration Number") },
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Text,
-                    imeAction = ImeAction.Next
+                    imeAction = ImeAction.Done
                 ),
                 singleLine = true,
                 shape = RoundedCornerShape(8.dp),
             )
-        } else {
+        } else if(state.userType == UserType.LECTURER) {
             OutlinedTextField(
                 value = state.regNo,
                 onValueChange = { event(SignUpScreenEvents.EmployeeIdChanged(it)) },
@@ -247,11 +246,13 @@ fun SignUpScreenContent(
                 placeholder = { Text("Employee ID") },
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Text,
-                    imeAction = ImeAction.Next
+                    imeAction = ImeAction.Done
                 ),
                 singleLine = true,
                 shape = RoundedCornerShape(8.dp),
             )
+        } else {
+//            return@Column
         }
 
         // Terms and conditions
