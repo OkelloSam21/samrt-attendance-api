@@ -2,7 +2,7 @@ package com.smartattendance.android.feature.student.dashboard
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.smartattendance.android.data.repository.AttendanceRepository
+import com.smartattendance.android.data.repository.AttendanceRepositoryImpl
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -13,7 +13,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class StudentDashboardViewModel @Inject constructor(
-    private val attendanceRepository: AttendanceRepository
+    private val attendanceRepositoryImpl: AttendanceRepositoryImpl
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(StudentDashboardUiState())
@@ -62,7 +62,7 @@ class StudentDashboardViewModel @Inject constructor(
             _uiState.update { it.copy(isMarking = true) }
 
             try {
-                attendanceRepository.markAttendance(classId)
+                attendanceRepositoryImpl.markAttendance(classId)
 
                 _uiState.update {
                     it.copy(
