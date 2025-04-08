@@ -29,6 +29,10 @@ jobs:
       - name: Build Ktor backend
         run: ./gradlew build
 
+      # Step 4: Build Docker Image (now the JAR exists)
+      - name: Build Docker Image
+        run: docker build -t ktor-backend:latest .
+
       # Step 5: Install Railway CLI
       - name: Install Railway CLI
         run: curl -fsSL https://railway.app/install.sh | sh
@@ -41,6 +45,7 @@ jobs:
       - name: Deploy to Railway
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-        run: 
+        run: |
+          railway login --token $RAILWAY_TOKEN
           railway link 14e8bb3c-1a4a-40db-bb52-da85fd4d9f90
           railway up --service samrt-attendance-api
