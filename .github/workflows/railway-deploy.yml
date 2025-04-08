@@ -29,10 +29,6 @@ jobs:
       - name: Build Ktor backend
         run: ./gradlew build
 
-      # Step 4: Build Docker Image (now the JAR exists)
-      - name: Build Docker Image
-        run: railway up --service samrt-attendance-api
-
       # Step 5: Install Railway CLI
       - name: Install Railway CLI
         run: curl -fsSL https://railway.app/install.sh | sh
