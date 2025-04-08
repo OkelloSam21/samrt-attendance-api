@@ -29,13 +29,16 @@ jobs:
       - name: Run Gradle Build
         run: ./gradlew build
 
-      # Step 4: Build Docker Image
-      - name: Build Docker Image
-        run: docker build -t ktor-backend:latest .
+      # Step 4: Install Railway CLI
+      - name: Install Railway CLI
+        run: curl -fsSL https://railway.app/install.sh | sh
 
-      # Step 5: Login to Railway and Push Docker Image
+      # Step 5: Add Railway to PATH
+      - name: Add Railway to PATH
+        run: echo "$HOME/.railway/bin" >> $GITHUB_PATH
+
+      # Step 6: Login to Railway and Deploy
       - name: Deploy to Railway
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-        run: |
-          railway up --service ktor-backend
+        run: railway up --service ktor-backend
