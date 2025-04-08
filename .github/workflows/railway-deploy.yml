@@ -47,4 +47,8 @@ jobs:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
           RAILWAY_PROJECT_ID: 14e8bb3c-1a4a-40db-bb52-da85fd4d9f90
         run: |
-          railway up --service samrt-attendance-api
+              # Build the JAR
+              ./gradlew build
+    
+              # Deploy using the Dockerfile
+              railway up --service samrt-attendance-api --detach
