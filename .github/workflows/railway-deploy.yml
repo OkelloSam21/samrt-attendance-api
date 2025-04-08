@@ -41,11 +41,10 @@ jobs:
       - name: Add Railway to PATH
         run: echo "$HOME/.railway/bin" >> $GITHUB_PATH
 
-      # Step 7: Login to Railway and Deploy
+      # Step 7: Deploy to Railway using token directly
       - name: Deploy to Railway
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_PROJECT_ID: 14e8bb3c-1a4a-40db-bb52-da85fd4d9f90
         run: |
-          echo "$RAILWAY_TOKEN" | railway login
-          railway link 14e8bb3c-1a4a-40db-bb52-da85fd4d9f90
           railway up --service samrt-attendance-api
