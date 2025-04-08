@@ -22,22 +22,23 @@ jobs:
           java-version: '17'
           cache: 'gradle'
 
-      - name: Run chmod to make gradlew executable
-        run: chmod +x ./gradlew
-
-      # Step 3: Build Ktor backend
-      - name: Run Gradle Build
+      # Step 3: Run Gradle Build (generate the JAR)
+      - name: Build Ktor backend
         run: ./gradlew build
 
-      # Step 4: Install Railway CLI
+      # Step 4: Build Docker Image (now the JAR exists)
+      - name: Build Docker Image
+        run: docker build -t ktor-backend:latest .
+
+      # Step 5: Install Railway CLI
       - name: Install Railway CLI
         run: curl -fsSL https://railway.app/install.sh | sh
 
-      # Step 5: Add Railway to PATH
+      # Step 6: Add Railway to PATH
       - name: Add Railway to PATH
         run: echo "$HOME/.railway/bin" >> $GITHUB_PATH
 
-      # Step 6: Login to Railway and Deploy
+      # Step 7: Login to Railway and Deploy
       - name: Deploy to Railway
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
