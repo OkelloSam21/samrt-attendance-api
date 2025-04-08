@@ -45,4 +45,6 @@ jobs:
       - name: Deploy to Railway
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-        run: railway up --service ktor-backend
+        run: 
+          railway link 14e8bb3c-1a4a-40db-bb52-da85fd4d9f90
+          railway up --service samrt-attendance-api
