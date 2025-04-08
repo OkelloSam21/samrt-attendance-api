@@ -21,6 +21,9 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
           cache: 'gradle'
+          
+      - name: Run chmod to make gradlew executable
+        run: chmod +x ./gradlew
 
       # Step 3: Run Gradle Build (generate the JAR)
       - name: Build Ktor backend
