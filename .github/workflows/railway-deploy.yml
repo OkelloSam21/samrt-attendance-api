@@ -46,6 +46,6 @@ jobs:
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
-          railway login --token $RAILWAY_TOKEN
+          echo "$RAILWAY_TOKEN" | railway login
           railway link 14e8bb3c-1a4a-40db-bb52-da85fd4d9f90
           railway up --service samrt-attendance-api
