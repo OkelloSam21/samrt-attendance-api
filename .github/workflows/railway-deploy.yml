@@ -41,7 +41,7 @@ jobs:
       - name: Add Railway to PATH
         run: echo "$HOME/.railway/bin" >> $GITHUB_PATH
 
-      # Step 7: Deploy to Railway using token directly
+      # Step 7: Deploy to Railway with retry mechanism
       - name: Deploy to Railway
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
@@ -49,6 +49,9 @@ jobs:
         run: |
               # Build the JAR
               ./gradlew build
-    
-              # Deploy using the Dockerfile
-              railway up --service samrt-attendance-api --detach
+      
+              # Retry mechanism for deployment
+              for i in {1..3}; do
+                railway up --service samrt-attendance-api --detach && break || sleep 10
+              done
+              
