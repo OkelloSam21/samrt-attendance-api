@@ -31,7 +31,7 @@ jobs:
 
       # Step 4: Build Docker Image (now the JAR exists)
       - name: Build Docker Image
-        run: docker build -t ktor-backend:latest .
+        run: docker build -t ktor-backend:latest
 
       # Step 5: Install Railway CLI
       - name: Install Railway CLI
@@ -40,6 +40,11 @@ jobs:
       # Step 6: Add Railway to PATH
       - name: Add Railway to PATH
         run: echo "$HOME/.railway/bin" >> $GITHUB_PATH
+      - name: Verify JAR file location
+        run: |
+          ./gradlew build
+          find . -name "*.jar" | sort
+          ls -la build/libs/
 
       # Step 7: Deploy to Railway with retry mechanism
       - name: Deploy to Railway
