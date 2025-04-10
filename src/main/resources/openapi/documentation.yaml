@@ -6,7 +6,9 @@ info:
 
 servers:
   - url: https://smartattendance-backend-bug4bxgybhbwecey.canadacentral-01.azurewebsites.net
-    description: Deployed server
+    description: azure deployed server
+  - url: https://samrt-attendance-api-production.up.railway.app/
+    description: railway deploed server
   - url: http://localhost:8080
     description: development server
 
