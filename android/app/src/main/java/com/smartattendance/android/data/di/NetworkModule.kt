@@ -18,7 +18,6 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
-import okhttp3.OkHttp
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import java.util.concurrent.TimeUnit
@@ -28,7 +27,8 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
 
-    private const val BASE_URL = "https://smartattendance-backend-bug4bxgybhbwecey.canadacentral-01.azurewebsites.net/"
+//    private const val BASE_URL = "https://smartattendance-backend-bug4bxgybhbwecey.canadacentral-01.azurewebsites.net/"
+    private const val BASE_URL = "https://samrt-attendance-api-production.up.railway.app/"
 
     @Provides
     @Singleton
@@ -50,11 +50,11 @@ object NetworkModule {
     @Singleton
     fun providesOkHttpClient(
         logger: HttpLoggingInterceptor,
-        //authInterceptor: AuthInterceptor // Assuming you have an AuthInterceptor
+        //authInterceptor: AuthInterceptor
     ): OkHttpClient {
         return OkHttpClient.Builder()
             .addInterceptor(logger)
-            //.addInterceptor(authInterceptor)  // Add your AuthInterceptor if you have one
+            //.addInterceptor(authInterceptor)
             .connectTimeout(10, TimeUnit.SECONDS)
             .readTimeout(10, TimeUnit.SECONDS)
             .writeTimeout(10, TimeUnit.SECONDS)
