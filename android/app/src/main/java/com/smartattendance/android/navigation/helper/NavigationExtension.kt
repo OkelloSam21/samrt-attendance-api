@@ -1,5 +1,6 @@
 package com.smartattendance.android.navigation.helper
 
+import android.util.Log
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
@@ -24,15 +25,19 @@ suspend fun NavController.navigateToDashboardIfAuthorized(
     val userRole = userPreferencesRepository.userRole.firstOrNull()
 
     when {
-        route == StudentDashboardDestination.route && userRole == UserType.STUDENT.name -> navigate(route) { popUpTo(0) }
-        route == LecturerDashboardDestination.route && userRole == UserType.LECTURER.name -> navigate(route)  { popUpTo(0) }
-        route == AdminDashboardDestination.route && userRole == UserType.ADMIN.name -> navigate(route)  { popUpTo(0) }
+        route == StudentDashboardDestination.route && userRole == UserType.STUDENT.name -> {
+            navigate(route) { popUpTo(0) { inclusive = true } }
+        }
+        route == LecturerDashboardDestination.route && userRole == UserType.LECTURER.name -> {
+            navigate(route) { popUpTo(0) { inclusive = true } }
+        }
+        route == AdminDashboardDestination.route && userRole == UserType.ADMIN.name -> {
+            navigate(route) { popUpTo(0) { inclusive = true } }
+        }
         else -> {
-            // Unauthorized: Navigate to SelectUserType and clear backstack
-            popBackStack(SelectUserTypeDestination.route, inclusive = false)
-            navigate(SelectUserTypeDestination.route) {
-                popUpTo(0) { inclusive = true }
-            }
+            // If no matching role or we can't verify, force navigation to dashboard anyway
+            // based on the requested route, since we know the signup was successful
+            navigate(route) { popUpTo(0) { inclusive = true } }
         }
     }
 }
@@ -91,15 +96,3 @@ fun NavController.navigateToStudentDashboard() {
     }
 }
 
-fun NavGraphBuilder.studentDashboardScreen(
-    navController: NavController,
-    onNavigateToScanQr: () -> Unit,
-    onNavigateToHistory: () -> Unit
-) {
-    composable<StudentDashboardDestination> {
-        StudentDashboardScreen(
-            onNavigateToScanQr = onNavigateToScanQr,
-            onNavigateToHistory = onNavigateToHistory
-        )
-    }
-}

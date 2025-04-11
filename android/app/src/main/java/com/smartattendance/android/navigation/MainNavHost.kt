@@ -45,33 +45,34 @@ fun MainNavHost(
     val startDestination = mainViewModel.startDestination.collectAsStateWithLifecycle()
 
     LaunchedEffect(startDestinationEvent) {
-        startDestination.let { event ->
-            when (event) {
-                NavigationEvent.NavigateToSelectUserType -> navController.navigateToSelectUserType()
-                is NavigationEvent.NavigateToLogin -> {
-                    navController.navigateToLogin(event.userType)
-                }
-                NavigationEvent.NavigateToStudentDashboard -> {
-                    navController.navigateToDashboardIfAuthorized(
-                        userPreferencesRepository,
-                        StudentDashboardDestination.route
-                    )
-                }
-                NavigationEvent.NavigateToAdminDashboard -> {
-                    navController.navigateToDashboardIfAuthorized(
-                        userPreferencesRepository,
-                        AdminDashboardDestination.route
-                    )
-                }
-                NavigationEvent.NavigateToLecturerDashboard -> {
-                    navController.navigateToDashboardIfAuthorized(
-                        userPreferencesRepository,
-                        LecturerDashboardDestination.route
-                    )
-                }
+        when (val event = startDestination.value) {
+            NavigationEvent.NavigateToSelectUserType -> navController.navigateToSelectUserType()
+            is NavigationEvent.NavigateToLogin -> {
+                navController.navigateToLogin(event.userType)
             }
-            mainViewModel.onNavigationHandled()
+            NavigationEvent.NavigateToStudentDashboard -> {
+                navController.navigateToDashboardIfAuthorized(
+                    userPreferencesRepository,
+                    StudentDashboardDestination.route
+                )
+            }
+            NavigationEvent.NavigateToAdminDashboard -> {
+                navController.navigateToDashboardIfAuthorized(
+                    userPreferencesRepository,
+                    AdminDashboardDestination.route
+                )
+            }
+            NavigationEvent.NavigateToLecturerDashboard -> {
+                navController.navigateToDashboardIfAuthorized(
+                    userPreferencesRepository,
+                    LecturerDashboardDestination.route
+                )
+            }
+            null -> {
+                // Handle null case if needed
+            }
         }
+        mainViewModel.onNavigationHandled()
     }
 
     NavHost(
@@ -141,6 +142,11 @@ fun MainNavHost(
 
             if (userType != null) {
                 val signUpViewModel: SignUpViewModel = hiltViewModel()
+
+                LaunchedEffect (userType) {
+                    signUpViewModel.setUserType(userType)
+                    userPreferencesRepository.saveSelectedUserType(userType.name)
+                }
 
                 SignUpScreen(
                     viewModel = signUpViewModel,

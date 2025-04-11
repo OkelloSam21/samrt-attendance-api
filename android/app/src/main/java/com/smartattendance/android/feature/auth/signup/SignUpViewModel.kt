@@ -73,7 +73,7 @@ class SignUpViewModel @Inject constructor(
                         _uiState.update {
                             it.copy(
                                 isLoading = false,
-                                errorMessage = "User type not provided" // More specific error
+                                errorMessage = "User type not provided"
                             )
                         }
                         return@launch
@@ -118,10 +118,8 @@ class SignUpViewModel @Inject constructor(
                     }
 
                     // Single registration method
-                    val result = authRepository.register(request)
-
                     // Handle result
-                    when (result) {
+                    when (val result = authRepository.register(request)) {
                         is AuthResult.Error -> {
                             _uiState.update {
                                 it.copy(
