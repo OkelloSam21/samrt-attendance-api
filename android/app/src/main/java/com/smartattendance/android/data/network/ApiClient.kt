@@ -48,8 +48,29 @@ class ApiClient @Inject constructor(
                 contentType(ContentType.Application.Json)
                 setBody(loginRequest)
             }
-            ApiResponse.Success(response.body())
+
+            when (response.status) {
+                HttpStatusCode.OK -> {
+                    ApiResponse.Success(response.body())
+                }
+
+                HttpStatusCode.Unauthorized -> {
+                    val errorMessage = response.bodyAsText()
+                    Log.e("ApiClient", "Authentication failed: $errorMessage")
+                    ApiResponse.Error(errorMessage)
+                }
+
+                else -> {
+                    val errorMessage = response.bodyAsText()
+                    Log.e(
+                        "ApiClient",
+                        "Unexpected status: ${response.status}, Message: $errorMessage"
+                    )
+                    ApiResponse.Error("Unexpected error: ${response.status}")
+                }
+            }
         } catch (e: Exception) {
+            Log.e("ApiClient", "Login error", e)
             ApiResponse.Error(e.message ?: "Unknown error occurred")
         }
     }
@@ -168,7 +189,10 @@ class ApiClient @Inject constructor(
         }
     }
 
-    suspend fun updateCourse(courseId: String, updateRequest: CourseUpdateRequest): ApiResponse<CourseResponse> {
+    suspend fun updateCourse(
+        courseId: String,
+        updateRequest: CourseUpdateRequest
+    ): ApiResponse<CourseResponse> {
         return try {
             val response = httpClient.put("/courses/update/$courseId") {
                 contentType(ContentType.Application.Json)
