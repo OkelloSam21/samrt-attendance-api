@@ -1,4 +1,4 @@
-package com.smartattendance.android.data.di
+package com.smartattendance.android.di
 
 import com.smartattendance.android.data.network.ApiClient
 import dagger.Module
