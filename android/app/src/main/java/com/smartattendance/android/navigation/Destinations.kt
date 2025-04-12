@@ -31,6 +31,13 @@ object AdminDashboardDestination {
     const val route = "admin_dashboard"
 }
 
+object ScanQrDestination {
+    const val route = "scan_qr"
+}
+
+object AttendanceHistoryDestination {
+    const val route = "attendance_history"
+}
 @Serializable
 object CreateSessionDestination
 
