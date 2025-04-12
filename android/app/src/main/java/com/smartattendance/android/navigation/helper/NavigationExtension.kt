@@ -11,9 +11,11 @@ import com.smartattendance.android.feature.lecturer.dashboard.LecturerDashboardS
 import com.smartattendance.android.feature.onboarding.selectusertype.SelectUserTypeDestination
 import com.smartattendance.android.feature.onboarding.selectusertype.UserType
 import com.smartattendance.android.feature.student.dashboard.StudentDashboardScreen
+import com.smartattendance.android.navigation.AttendanceHistoryDestination
 import com.smartattendance.android.navigation.CreateSessionDestination
 import com.smartattendance.android.navigation.LecturerDashboardDestination
 import com.smartattendance.android.navigation.LoginDestination
+import com.smartattendance.android.navigation.ScanQrDestination
 import com.smartattendance.android.navigation.SignUpDestination
 import com.smartattendance.android.navigation.StudentDashboardDestination
 import kotlinx.coroutines.flow.firstOrNull
@@ -91,6 +93,20 @@ fun NavGraphBuilder.lecturerDashboardScreen(
 
 fun NavController.navigateToStudentDashboard() {
     this.navigate(StudentDashboardDestination.route) {
+        launchSingleTop = true
+        popUpTo(0) { inclusive = true }
+    }
+}
+
+fun NavController.navigateToScanQr() {
+    this.navigate(ScanQrDestination.route) {
+        launchSingleTop = true
+        popUpTo(0) { inclusive = true }
+    }
+}
+
+fun NavController.navigateToAttendanceHistory() {
+    this.navigate(AttendanceHistoryDestination.route) {
         launchSingleTop = true
         popUpTo(0) { inclusive = true }
     }
