@@ -164,7 +164,7 @@ fun MainNavHost(
             }
         }
 
-        // Dashboard Screens - No changes needed here as they don't receive userType directly anymore.
+
         composable(StudentDashboardDestination.route) {
             StudentDashboardScreen(
                 onNavigateToScanQr = {

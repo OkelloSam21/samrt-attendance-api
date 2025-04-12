@@ -101,14 +101,14 @@ fun NavController.navigateToStudentDashboard() {
 fun NavController.navigateToScanQr() {
     this.navigate(ScanQrDestination.route) {
         launchSingleTop = true
-        popUpTo(0) { inclusive = true }
+//        popUpTo(0) { inclusive = true }
     }
 }
 
 fun NavController.navigateToAttendanceHistory() {
     this.navigate(AttendanceHistoryDestination.route) {
         launchSingleTop = true
-        popUpTo(0) { inclusive = true }
+//        popUpTo(0) { inclusive = true }
     }
 }
 
