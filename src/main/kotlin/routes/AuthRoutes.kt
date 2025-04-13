@@ -23,9 +23,9 @@ import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.mindrot.jbcrypt.BCrypt
-import util.AUDIENCE
-import util.ISSUER
-import util.SECRET
+import common.util.AUDIENCE
+import common.util.ISSUER
+import common.util.SECRET
 import java.util.*
 
 val json = Json {

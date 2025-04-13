@@ -144,7 +144,7 @@ fun MainNavHost(
 
                 SignUpScreen(
                     viewModel = signUpViewModel,
-                    userType = userType, // Pass the userType to the SignUpScreen
+                    userType = userType,
                     onSignUpSuccess = {
                         val destination = when (userType) {
                             UserType.STUDENT -> StudentDashboardDestination.route
@@ -153,6 +153,7 @@ fun MainNavHost(
                         }
 
                         coroutineScope.launch {
+                            Log.d("SignUpScreen", "Destination : $destination")
                             navController.navigateToDashboardIfAuthorized(userPreferencesRepository, destination)
                         }
                     },

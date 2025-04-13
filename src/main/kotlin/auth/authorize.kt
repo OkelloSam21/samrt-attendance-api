@@ -2,7 +2,7 @@ package auth
 
 import io.ktor.server.application.*
 import models.UserRole
-import util.authorizeToken
+import common.util.authorizeToken
 
 /**
  * Function to verify user authorization, now simplified using `authorizeToken`.

@@ -13,10 +13,10 @@ import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
-import util.SECRET
-import util.authorizeToken
-import util.authorizeUser
-import util.parseAndValidateRequest
+import common.util.SECRET
+import common.util.authorizeToken
+import common.util.authorizeUser
+import common.util.parseAndValidateRequest
 import java.time.Instant
 import java.util.*
 

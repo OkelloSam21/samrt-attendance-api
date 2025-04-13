@@ -17,7 +17,7 @@ import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.mindrot.jbcrypt.BCrypt
-import util.SECRET
+import common.util.SECRET
 import java.util.*
 
 

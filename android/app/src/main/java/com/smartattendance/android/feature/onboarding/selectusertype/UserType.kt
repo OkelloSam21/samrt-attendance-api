@@ -1,5 +1,6 @@
 package com.smartattendance.android.feature.onboarding.selectusertype
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.smartattendance.android.domain.repository.UserPreferencesRepository
@@ -41,6 +42,7 @@ class SelectUserTypeViewModel @Inject constructor(
             SelectUserTypeEvent.NextClicked -> {
                 val userType = _uiState.value.selectedUserType
                 userType?.let { type ->
+                    Log.d("SelectUserTypeScreen", "Selected userTye : $type")
                     viewModelScope.launch {
                         _navigationEvents.emit(
                             SelectUserTypeNavigationEvent.NavigateToSignUp(type)

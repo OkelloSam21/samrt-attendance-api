@@ -1,7 +1,6 @@
 package application
 
 import auth.configureAuthentication
-import configureCors
 import db.DatabaseFactory
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
@@ -16,15 +15,16 @@ import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import plugins.configureRouting
 import routes.ConflictException
-import util.AppConfig
+import common.util.AppConfig
+import plugins.configureSwagger
 
-fun main() {
-
-    val serverPort = AppConfig.port ?: 8080
-    embeddedServer(Netty, port = serverPort, host = "0.0.0.0") {
-        module()
-    }.start(wait = true)
-}
+//fun main() {
+//
+//    val serverPort = AppConfig.port ?: 8080
+//    embeddedServer(Netty, port = serverPort, host = "0.0.0.0") {
+//        module()
+//    }.start(wait = true)
+//}
 
 fun Application.module() {
     // Install content negotiation
@@ -63,7 +63,6 @@ fun Application.module() {
     }
 
     configureAuthentication()
-    configureCors()
     configureSwagger()
     configureRouting()
     configureRouting()

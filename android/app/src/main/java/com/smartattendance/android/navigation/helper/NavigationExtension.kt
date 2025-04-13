@@ -1,5 +1,6 @@
 package com.smartattendance.android.navigation.helper
 
+import android.util.Log
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
@@ -21,18 +22,27 @@ suspend fun NavController.navigateToDashboardIfAuthorized(
     userPreferencesRepository: UserPreferencesRepository,
     route: String
 ) {
-    val userRole = userPreferencesRepository.userRole.firstOrNull()
+    val userRole = userPreferencesRepository.userRole.firstOrNull()?.lowercase()
+    val expectedRole = when (route) {
+        StudentDashboardDestination.route -> UserType.STUDENT.name.lowercase()
+        LecturerDashboardDestination.route -> UserType.LECTURER.name.lowercase()
+        AdminDashboardDestination.route -> UserType.ADMIN.name.lowercase()
+        else -> null
+    }
 
-    when {
-        route == StudentDashboardDestination.route && userRole == UserType.STUDENT.name -> navigate(route) { popUpTo(0) }
-        route == LecturerDashboardDestination.route && userRole == UserType.LECTURER.name -> navigate(route)  { popUpTo(0) }
-        route == AdminDashboardDestination.route && userRole == UserType.ADMIN.name -> navigate(route)  { popUpTo(0) }
-        else -> {
-            // Unauthorized: Navigate to SelectUserType and clear backstack
-            popBackStack(SelectUserTypeDestination.route, inclusive = false)
-            navigate(SelectUserTypeDestination.route) {
-                popUpTo(0) { inclusive = true }
-            }
+    Log.e("navigateToDashboardIfAuthorized", "userRole: $userRole, expectedRole: $expectedRole")
+//    Log.e("navigateToDashboardIfAuthorized", "userRole: $userRole, expectedRoute: $expectedRole")
+
+    if (userRole != null && userRole == expectedRole) {
+        navigate(route) {
+            popUpTo(0) { inclusive = true }
+        }
+    } else {
+        // Unauthorized: Navigate to SelectUserType and clear backstack
+        Log.e("navigateToDashboardIfAuthorized", "userRole: $userRole, expectedRole : $expectedRole")
+        popBackStack(SelectUserTypeDestination.route, inclusive = false)
+        navigate(SelectUserTypeDestination.route) {
+            popUpTo(0) { inclusive = true }
         }
     }
 }
