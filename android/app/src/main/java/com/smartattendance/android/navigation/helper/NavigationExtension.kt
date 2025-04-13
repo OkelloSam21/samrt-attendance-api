@@ -11,11 +11,9 @@ import com.smartattendance.android.feature.lecturer.dashboard.LecturerDashboardS
 import com.smartattendance.android.feature.onboarding.selectusertype.SelectUserTypeDestination
 import com.smartattendance.android.feature.onboarding.selectusertype.UserType
 import com.smartattendance.android.feature.student.dashboard.StudentDashboardScreen
-import com.smartattendance.android.navigation.AttendanceHistoryDestination
 import com.smartattendance.android.navigation.CreateSessionDestination
 import com.smartattendance.android.navigation.LecturerDashboardDestination
 import com.smartattendance.android.navigation.LoginDestination
-import com.smartattendance.android.navigation.ScanQrDestination
 import com.smartattendance.android.navigation.SignUpDestination
 import com.smartattendance.android.navigation.StudentDashboardDestination
 import kotlinx.coroutines.flow.firstOrNull
@@ -24,22 +22,27 @@ suspend fun NavController.navigateToDashboardIfAuthorized(
     userPreferencesRepository: UserPreferencesRepository,
     route: String
 ) {
-    val userRole = userPreferencesRepository.userRole.firstOrNull()
+    val userRole = userPreferencesRepository.userRole.firstOrNull()?.lowercase()
+    val expectedRole = when (route) {
+        StudentDashboardDestination.route -> UserType.STUDENT.name.lowercase()
+        LecturerDashboardDestination.route -> UserType.LECTURER.name.lowercase()
+        AdminDashboardDestination.route -> UserType.ADMIN.name.lowercase()
+        else -> null
+    }
 
-    when {
-        route == StudentDashboardDestination.route && userRole == UserType.STUDENT.name -> {
-            navigate(route) { popUpTo(0) { inclusive = true } }
+    Log.e("navigateToDashboardIfAuthorized", "userRole: $userRole, expectedRole: $expectedRole")
+//    Log.e("navigateToDashboardIfAuthorized", "userRole: $userRole, expectedRoute: $expectedRole")
+
+    if (userRole != null && userRole == expectedRole) {
+        navigate(route) {
+            popUpTo(0) { inclusive = true }
         }
-        route == LecturerDashboardDestination.route && userRole == UserType.LECTURER.name -> {
-            navigate(route) { popUpTo(0) { inclusive = true } }
-        }
-        route == AdminDashboardDestination.route && userRole == UserType.ADMIN.name -> {
-            navigate(route) { popUpTo(0) { inclusive = true } }
-        }
-        else -> {
-            // If no matching role or we can't verify, force navigation to dashboard anyway
-            // based on the requested route, since we know the signup was successful
-            navigate(route) { popUpTo(0) { inclusive = true } }
+    } else {
+        // Unauthorized: Navigate to SelectUserType and clear backstack
+        Log.e("navigateToDashboardIfAuthorized", "userRole: $userRole, expectedRole : $expectedRole")
+        popBackStack(SelectUserTypeDestination.route, inclusive = false)
+        navigate(SelectUserTypeDestination.route) {
+            popUpTo(0) { inclusive = true }
         }
     }
 }
@@ -98,17 +101,15 @@ fun NavController.navigateToStudentDashboard() {
     }
 }
 
-fun NavController.navigateToScanQr() {
-    this.navigate(ScanQrDestination.route) {
-        launchSingleTop = true
-//        popUpTo(0) { inclusive = true }
+fun NavGraphBuilder.studentDashboardScreen(
+    navController: NavController,
+    onNavigateToScanQr: () -> Unit,
+    onNavigateToHistory: () -> Unit
+) {
+    composable<StudentDashboardDestination> {
+        StudentDashboardScreen(
+            onNavigateToScanQr = onNavigateToScanQr,
+            onNavigateToHistory = onNavigateToHistory
+        )
     }
 }
-
-fun NavController.navigateToAttendanceHistory() {
-    this.navigate(AttendanceHistoryDestination.route) {
-        launchSingleTop = true
-//        popUpTo(0) { inclusive = true }
-    }
-}
-

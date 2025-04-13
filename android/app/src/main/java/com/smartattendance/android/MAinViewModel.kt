@@ -1,11 +1,12 @@
 package com.smartattendance.android
 
-import androidx.compose.runtime.State
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.smartattendance.android.data.repository.UserPreferencesRepositoryImpl
 import com.smartattendance.android.feature.onboarding.selectusertype.UserType
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.ktor.client.plugins.logging.Logger
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -73,7 +74,8 @@ class MainViewModel @Inject constructor(
 
                 _startDestination.value = navigationEvent
             } catch (e: Exception) {
-                _startDestination.value = NavigationEvent.NavigateToSelectUserType // consistent handling
+                _startDestination.value = NavigationEvent.NavigateToSelectUserType
+                Log.d("MainViewModel", "error occurred : ${e.message}")
             } finally {
                 _isLoading.value = false
             }

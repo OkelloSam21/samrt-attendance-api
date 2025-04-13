@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.ktor)
     kotlin("plugin.serialization") version "2.1.10"
+    id("com.google.devtools.ksp") version "2.1.20-1.0.32"
 }
 
 group = "com.smart-attendance"
@@ -46,6 +47,10 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-jdbc:0.43.0")
     implementation("org.jetbrains.exposed:exposed-java-time:0.43.0") // For timestamps
 
+    // Logging
+    implementation("ch.qos.logback:logback-classic:1.4.11")
+    implementation("io.github.microutils:kotlin-logging-jvm:3.0.5")
+
     implementation("com.zaxxer:HikariCP:5.0.1")
 
     implementation("com.mysql:mysql-connector-j:9.2.0")
@@ -56,9 +61,9 @@ dependencies {
 
     implementation("io.ktor:ktor-server-swagger:2.3.5")
     implementation("io.ktor:ktor-server-openapi:2.3.5")
-
     implementation("io.ktor:ktor-server-cors:2.3.5")
 
+    // QR Code Generation (for attendance)
     implementation("com.google.zxing:core:3.5.1")
     implementation("com.google.zxing:javase:3.5.1")
 
@@ -71,5 +76,20 @@ dependencies {
     implementation("io.github.cdimascio:dotenv-kotlin:6.4.1")
 
     implementation("io.ktor:ktor-server-status-pages:3.1.1")
+
+    // Hilt - Dependency Injection
+    val hiltVersion = "2.51.1"
+    implementation("com.google.dagger:hilt-core:$hiltVersion")
+    implementation("com.google.dagger:dagger-compiler:2.51.1")
+    ksp("com.google.dagger:dagger-compiler:2.51.1")
+
+
+    implementation("com.google.zxing:core:3.5.2")
+    implementation("com.google.zxing:javase:3.5.2")
+
+    // Testing
+    testImplementation("io.ktor:ktor-server-tests:3.1.1")
+    testImplementation("org.jetbrains.kotlin:kotlin-test:1.9.10")
+    testImplementation("io.mockk:mockk:1.13.8")
 
 }
