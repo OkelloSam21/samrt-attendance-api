@@ -1,4 +1,4 @@
-package com.smartattendance.android.data.di
+package com.smartattendance.android.di
 
 import androidx.lifecycle.SavedStateHandle
 import dagger.Module

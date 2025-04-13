@@ -1,4 +1,4 @@
-package com.smartattendance.android.data.di
+package com.smartattendance.android.di
 
 
 import com.smartattendance.android.data.repository.AttendanceRepositoryImpl

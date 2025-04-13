@@ -5,7 +5,7 @@ FROM openjdk:17-jdk-slim
 WORKDIR /usr/src/app
 
 # Copy the JAR file into the container
-COPY build/libs/smartAttendance-all.jar app.jar
+COPY build/libs/*.jar app.jar
 
 # Expose the application port
 EXPOSE 8080

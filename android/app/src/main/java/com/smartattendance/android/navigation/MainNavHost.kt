@@ -26,8 +26,12 @@ import com.smartattendance.android.feature.onboarding.selectusertype.SelectUserT
 import com.smartattendance.android.feature.onboarding.selectusertype.SelectUserTypeScreen
 import com.smartattendance.android.feature.onboarding.selectusertype.UserType
 import com.smartattendance.android.feature.student.dashboard.StudentDashboardScreen
+import com.smartattendance.android.feature.student.history.StudentAttendanceHistoryScreen
+import com.smartattendance.android.feature.student.scanqr.StudentScanQrScreen
+import com.smartattendance.android.navigation.helper.navigateToAttendanceHistory
 import com.smartattendance.android.navigation.helper.navigateToDashboardIfAuthorized
 import com.smartattendance.android.navigation.helper.navigateToLogin
+import com.smartattendance.android.navigation.helper.navigateToScanQr
 import com.smartattendance.android.navigation.helper.navigateToSelectUserType
 import com.smartattendance.android.navigation.helper.navigateToSignUp
 import kotlinx.coroutines.launch
@@ -45,33 +49,34 @@ fun MainNavHost(
     val startDestination = mainViewModel.startDestination.collectAsStateWithLifecycle()
 
     LaunchedEffect(startDestinationEvent) {
-        startDestination.let { event ->
-            when (event) {
-                NavigationEvent.NavigateToSelectUserType -> navController.navigateToSelectUserType()
-                is NavigationEvent.NavigateToLogin -> {
-                    navController.navigateToLogin(event.userType)
-                }
-                NavigationEvent.NavigateToStudentDashboard -> {
-                    navController.navigateToDashboardIfAuthorized(
-                        userPreferencesRepository,
-                        StudentDashboardDestination.route
-                    )
-                }
-                NavigationEvent.NavigateToAdminDashboard -> {
-                    navController.navigateToDashboardIfAuthorized(
-                        userPreferencesRepository,
-                        AdminDashboardDestination.route
-                    )
-                }
-                NavigationEvent.NavigateToLecturerDashboard -> {
-                    navController.navigateToDashboardIfAuthorized(
-                        userPreferencesRepository,
-                        LecturerDashboardDestination.route
-                    )
-                }
+        when (val event = startDestination.value) {
+            NavigationEvent.NavigateToSelectUserType -> navController.navigateToSelectUserType()
+            is NavigationEvent.NavigateToLogin -> {
+                navController.navigateToLogin(event.userType)
             }
-            mainViewModel.onNavigationHandled()
+            NavigationEvent.NavigateToStudentDashboard -> {
+                navController.navigateToDashboardIfAuthorized(
+                    userPreferencesRepository,
+                    StudentDashboardDestination.route
+                )
+            }
+            NavigationEvent.NavigateToAdminDashboard -> {
+                navController.navigateToDashboardIfAuthorized(
+                    userPreferencesRepository,
+                    AdminDashboardDestination.route
+                )
+            }
+            NavigationEvent.NavigateToLecturerDashboard -> {
+                navController.navigateToDashboardIfAuthorized(
+                    userPreferencesRepository,
+                    LecturerDashboardDestination.route
+                )
+            }
+            null -> {
+                // Handle null case if needed
+            }
         }
+        mainViewModel.onNavigationHandled()
     }
 
     NavHost(
@@ -94,17 +99,6 @@ fun MainNavHost(
                 navArgument("userType") { type = NavType.StringType }
             )
         ) {
-//                backStackEntry ->
-//
-//            val userTypeString = backStackEntry.arguments?.getString("userType")
-//
-//            val userType = try {
-//                userTypeString?.let { UserType.valueOf(it) } ?: throw IllegalArgumentException("UserType cannot be null")
-//            } catch (e: IllegalArgumentException) {
-//                Log.e("Main NavHost", "Invalid or missing userType in Login route", e)
-//                navController.navigateToSelectUserType()
-//                return@composable
-//            }
             LoginScreen(
                 onNavigateToSignUp = {
                     // In this approach, we don't navigate to SignUp from Login anymore with userType.
@@ -117,7 +111,6 @@ fun MainNavHost(
                         UserType.LECTURER -> LecturerDashboardDestination.route
                         UserType.ADMIN -> AdminDashboardDestination.route
                     }
-
                     coroutineScope.launch {
                         navController.navigateToDashboardIfAuthorized(userPreferencesRepository, destination)
                     }
@@ -136,11 +129,16 @@ fun MainNavHost(
                 userTypeString?.let { UserType.valueOf(it) }
             } catch (e: IllegalArgumentException) {
                 Log.e("MainNavHost", "Invalid UserType: $userTypeString", e)
-                null // Or handle the error as appropriate for your app
+                null
             }
 
             if (userType != null) {
                 val signUpViewModel: SignUpViewModel = hiltViewModel()
+
+                LaunchedEffect (userType) {
+                    signUpViewModel.setUserType(userType)
+                    userPreferencesRepository.saveSelectedUserType(userType.name)
+                }
 
                 SignUpScreen(
                     viewModel = signUpViewModel,
@@ -163,18 +161,18 @@ fun MainNavHost(
                         navController.popBackStack()
                     }
                 )
-            } else {
-                // Handle the error: UserType not found in arguments
-                Log.e("MainNavHost", "UserType not found in SignUp arguments")
-                // Maybe navigate back or show an error message.
             }
         }
 
-        // Dashboard Screens - No changes needed here as they don't receive userType directly anymore.
+
         composable(StudentDashboardDestination.route) {
             StudentDashboardScreen(
-                onNavigateToScanQr = { },
-                onNavigateToHistory = { }
+                onNavigateToScanQr = {
+                    navController.navigateToScanQr()
+                },
+                onNavigateToHistory = {
+                    navController.navigateToAttendanceHistory()
+                }
             )
         }
 
@@ -187,6 +185,22 @@ fun MainNavHost(
         composable(LecturerDashboardDestination.route) {
             LecturerDashboardScreen(
                 onNavigateBack = {}
+            )
+        }
+
+        composable(ScanQrDestination.route) {
+            StudentScanQrScreen(
+                onBackClicked = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable(AttendanceHistoryDestination.route) {
+            StudentAttendanceHistoryScreen(
+                onBackClicked = {
+                    navController.popBackStack()
+                }
             )
         }
     }
