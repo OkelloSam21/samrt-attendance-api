@@ -1,5 +1,4 @@
 import config.AppConfig
-import di.AppInjector
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
@@ -26,20 +25,20 @@ fun main() {
     }
 }
 
-    /**
-     * Configure the Ktor application
-     */
-    fun Application.configureApplication() {
-        // Install plugins
-        configureContentNegotiation()
-        configureStatusPages()
-        configureAuthentication()
-        configureCors()
-        configureSwagger()
+/**
+ * Configure the Ktor application
+ */
+fun Application.configureApplication() {
+    // Install plugins
+    configureContentNegotiation()
+    configureStatusPages()
+    configureAuthentication()
+    configureCors()
+    configureSwagger()
 
-        // Register routes
-        configureRouting()
+    // Register routes
+    configureRouting()
 
-        // Log successful configuration
-        logger.info { "Application configured successfully" }
-    }
+    // Log successful configuration
+    logger.info { "Application configured successfully" }
+}
