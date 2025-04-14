@@ -1,3 +1,4 @@
+import application.module
 import config.AppConfig
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
@@ -18,7 +19,7 @@ fun main() {
             port = AppConfig.server.port,
             host = AppConfig.server.host
         ) {
-            configureApplication()
+            module()
         }.start(wait = true)
     } catch (e: Exception) {
         logger.error(e) { "Failed to start application: ${e.message}" }
@@ -28,7 +29,7 @@ fun main() {
 /**
  * Configure the Ktor application
  */
-fun Application.configureApplication() {
+fun Application.module() {
     // Install plugins
     configureContentNegotiation()
     configureStatusPages()
