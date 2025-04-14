@@ -12,16 +12,15 @@
 #
 # # Run the application
 # CMD ["java", "-jar", "app.jar"]
+# Build stage
+FROM gradle:7-jdk17 as build
+WORKDIR /app
+COPY . .
+RUN gradle build --no-daemon
+
+# Run stage
 FROM openjdk:17-jdk-slim
-
-WORKDIR /usr/src/app
-
-# Copy dependencies (if using a flat directory approach)
-COPY build/dependencies/ ./lib/
-# Copy your thin JAR
-COPY build/libs/*-thin.jar app.jar
-
+WORKDIR /app
+COPY --from=build /app/build/libs/*.jar app.jar
 EXPOSE 8080
-
-# Run with dependencies in the classpath
-CMD ["java", "-cp", "app.jar:lib/*", "application.ApplicationKt"]
+CMD ["java", "-jar", "app.jar"]
