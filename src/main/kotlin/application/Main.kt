@@ -30,7 +30,7 @@ fun main() {
             factory = Netty,
             port = AppConfig.server.port,
             host = AppConfig.server.host,
-            module = Application::module
+            module = { module() }  // Reference the module function this way
         ).start(wait = true)
     } catch (e: Exception) {
         logger.error(e) { "Failed to start application: ${e.message}" }
