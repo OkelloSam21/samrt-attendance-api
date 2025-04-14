@@ -28,6 +28,15 @@ tasks {
     }
 }
 
+tasks.withType<Jar> {
+    manifest {
+        attributes["Main-Class"] = "application.ApplicationKt"
+    }
+
+    // Don't include dependencies in the JAR
+    archiveClassifier.set("thin")
+}
+
 dependencies {
     implementation(libs.ktor.server.core)
     implementation(libs.ktor.server.netty)
