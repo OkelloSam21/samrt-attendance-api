@@ -1,9 +1,7 @@
 package data.dtos
 
+import domain.models.SessionType
 import kotlinx.serialization.Serializable
-import models.*
-import java.time.Instant
-import java.util.UUID
 
 // Course DTOs
 @Serializable

@@ -1,6 +1,5 @@
 package di
 
-import db.DatabaseFactory
 import features.assignments.services.AssignmentService
 import features.attendance.services.AttendanceService
 import features.auth.services.AuthService
