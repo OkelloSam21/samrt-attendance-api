@@ -1,6 +1,6 @@
 ktor:
     application:
         modules:
-            - application.ApplicationKt.module
+            - application.MainKt.module
     deployment:
         port: 8080
