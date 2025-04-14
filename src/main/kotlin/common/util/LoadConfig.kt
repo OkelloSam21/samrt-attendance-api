@@ -1,9 +1,9 @@
 package common.util
 
-import auth.JwtConfig
+import config.AppConfig
 import io.ktor.server.application.*
 
-fun Application.loadJwtConfig(): JwtConfig {
+fun Application.loadJwtConfig(): AppConfig.JwtConfig {
     val isDevelopment = environment.config.propertyOrNull("ktor.deployment.development")?.getString()?.toBoolean() ?: true
 
     val secret = System.getenv("JWT_SECRET")
@@ -18,5 +18,5 @@ fun Application.loadJwtConfig(): JwtConfig {
     val audience = System.getenv("JWT_AUDIENCE") ?: error("JWT_AUDIENCE must be set in production mode")
     val realm = System.getenv("JWT_REALM") ?: error("JWT_REALM must be set in production mode")
 
-    return JwtConfig(secret, issuer, audience, realm)
+    return AppConfig.JwtConfig(secret, issuer, audience, realm)
 }

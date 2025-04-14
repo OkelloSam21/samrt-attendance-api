@@ -1,7 +1,6 @@
 package di
 
 import dagger.Component
-import db.DatabaseFactory
 import features.assignments.services.AssignmentService
 import features.attendance.services.AttendanceService
 import features.auth.services.AuthService
@@ -12,7 +11,7 @@ import features.users.services.UserService
 import javax.inject.Singleton
 
 /**
- * Main application component for Hilt dependency injection
+ * Main application component for dependency injection
  */
 @Singleton
 @Component(modules = [
@@ -26,18 +25,18 @@ import javax.inject.Singleton
 interface ApplicationComponent {
     // Core services
     fun databaseFactory(): DatabaseFactory
-    
-    // Auth and security
+
+    // Auth and security services
     fun jwtService(): JwtService
     fun authService(): AuthService
     fun roleAuthorization(): RoleAuthorization
-    
+
     // Feature services
     fun userService(): UserService
     fun courseService(): CourseService
     fun attendanceService(): AttendanceService
     fun assignmentService(): AssignmentService
-    
+
     @Component.Builder
     interface Builder {
         fun build(): ApplicationComponent

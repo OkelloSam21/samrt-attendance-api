@@ -1,6 +1,5 @@
 package di
 
-import db.DatabaseFactory
 import features.assignments.services.AssignmentService
 import features.assignments.services.AssignmentServiceImpl
 import features.attendance.services.AttendanceService
@@ -46,7 +45,7 @@ class ApplicationComponentImpl private constructor(
     class Builder {
         fun build(): ApplicationComponent {
             // Create all dependencies manually
-            val databaseFactory = db.DatabaseFactory
+            val databaseFactory = DatabaseFactory()
             val jwtService = JwtService()
             val roleAuthorization = RoleAuthorizationImpl()
 

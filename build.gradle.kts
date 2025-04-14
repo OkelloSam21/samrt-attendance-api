@@ -1,7 +1,7 @@
 plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.ktor)
-    kotlin("plugin.serialization") version "2.1.10"
+    kotlin("plugin.serialization") version "2.1.20"
     id("com.google.devtools.ksp") version "2.1.20-1.0.32"
 }
 
@@ -77,11 +77,9 @@ dependencies {
 
     implementation("io.ktor:ktor-server-status-pages:3.1.1")
 
-    // Hilt - Dependency Injection
-    val hiltVersion = "2.51.1"
-    implementation("com.google.dagger:hilt-core:$hiltVersion")
-    implementation("com.google.dagger:dagger-compiler:2.51.1")
-    ksp("com.google.dagger:dagger-compiler:2.51.1")
+    // Dagger Dependency Injection
+    implementation("com.google.dagger:dagger:2.48.1")
+    ksp("com.google.dagger:dagger-compiler:2.48.1")
 
 
     implementation("com.google.zxing:core:3.5.2")

@@ -2,11 +2,11 @@ package common.util
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
+import domain.models.UserRole
+import domain.tables.Users
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
-import models.UserRole
-import models.Users
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction

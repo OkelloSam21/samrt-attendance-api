@@ -1,7 +1,7 @@
 package common.util
 
+import domain.models.UserRole
 import io.ktor.server.application.*
-import models.UserRole
 
 /**
  * Helper function to wrap the authorization and extract user ID if authorized.
