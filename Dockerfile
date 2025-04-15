@@ -17,7 +17,7 @@ FROM openjdk:17-jdk-slim
 WORKDIR /usr/src/app
 
 # Copy dependencies (if using a flat directory approach)
-COPY build/dependencies/ ./lib/
+# COPY build/dependencies/ ./lib/
 # Copy your thin JAR
 COPY build/libs/*-thin.jar app.jar
 
