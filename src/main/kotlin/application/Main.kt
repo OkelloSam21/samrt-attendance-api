@@ -25,21 +25,3 @@ fun main() {
         logger.error(e) { "Failed to start application: ${e.message}" }
     }
 }
-
-/**
- * Configure the Ktor application
- */
-fun Application.module() {
-    // Install plugins
-    configureContentNegotiation()
-    configureStatusPages()
-    configureAuthentication()
-    configureCors()
-    configureSwagger()
-
-    // Register routes
-    configureRouting()
-
-    // Log successful configuration
-    logger.info { "Application configured successfully" }
-}
