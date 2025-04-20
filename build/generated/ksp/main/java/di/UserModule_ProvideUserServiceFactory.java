@@ -1,14 +1,15 @@
 package di;
 
+import com.example.di.UserModule;
 import dagger.internal.DaggerGenerated;
 import dagger.internal.Factory;
 import dagger.internal.Preconditions;
 import dagger.internal.QualifierMetadata;
 import dagger.internal.ScopeMetadata;
-import features.users.repositories.StaffRepository;
-import features.users.repositories.StudentRepository;
-import features.users.repositories.UserRepository;
-import features.users.services.UserService;
+import com.example.features.users.repositories.StaffRepository;
+import com.example.features.users.repositories.StudentRepository;
+import com.example.features.users.repositories.UserRepository;
+import com.example.features.users.services.UserService;
 import javax.annotation.processing.Generated;
 import javax.inject.Provider;
 

@@ -1,16 +1,17 @@
 package di;
 
+import com.example.di.AuthModule;
 import dagger.internal.DaggerGenerated;
 import dagger.internal.Factory;
 import dagger.internal.Preconditions;
 import dagger.internal.QualifierMetadata;
 import dagger.internal.ScopeMetadata;
-import features.auth.repositories.AuthRepository;
-import features.auth.services.AuthService;
-import features.auth.services.JwtService;
-import features.users.repositories.StaffRepository;
-import features.users.repositories.StudentRepository;
-import features.users.repositories.UserRepository;
+import com.example.features.auth.repositories.AuthRepository;
+import com.example.features.auth.services.AuthService;
+import com.example.features.auth.services.JwtService;
+import com.example.features.users.repositories.StaffRepository;
+import com.example.features.users.repositories.StudentRepository;
+import com.example.features.users.repositories.UserRepository;
 import javax.annotation.processing.Generated;
 import javax.inject.Provider;
 

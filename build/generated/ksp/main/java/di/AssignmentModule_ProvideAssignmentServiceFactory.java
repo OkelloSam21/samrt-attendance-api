@@ -1,16 +1,17 @@
 package di;
 
+import com.example.di.AssignmentModule;
 import dagger.internal.DaggerGenerated;
 import dagger.internal.Factory;
 import dagger.internal.Preconditions;
 import dagger.internal.QualifierMetadata;
 import dagger.internal.ScopeMetadata;
-import features.assignments.repositories.AssignmentRepository;
-import features.assignments.repositories.GradeRepository;
-import features.assignments.repositories.SubmissionRepository;
-import features.assignments.services.AssignmentService;
-import features.courses.repositories.CourseRepository;
-import features.users.repositories.UserRepository;
+import com.example.features.assignments.repositories.AssignmentRepository;
+import com.example.features.assignments.repositories.GradeRepository;
+import com.example.features.assignments.repositories.SubmissionRepository;
+import com.example.features.assignments.services.AssignmentService;
+import com.example.features.courses.repositories.CourseRepository;
+import com.example.features.users.repositories.UserRepository;
 import javax.annotation.processing.Generated;
 import javax.inject.Provider;
 

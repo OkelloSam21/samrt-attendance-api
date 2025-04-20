@@ -1,11 +1,12 @@
 package di;
 
+import com.example.di.AttendanceModule;
 import dagger.internal.DaggerGenerated;
 import dagger.internal.Factory;
 import dagger.internal.Preconditions;
 import dagger.internal.QualifierMetadata;
 import dagger.internal.ScopeMetadata;
-import features.attendance.repositories.AttendanceRepository;
+import com.example.features.attendance.repositories.AttendanceRepository;
 import javax.annotation.processing.Generated;
 
 @ScopeMetadata("javax.inject.Singleton")

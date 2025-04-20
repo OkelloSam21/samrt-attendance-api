@@ -1,11 +1,12 @@
 package di;
 
+import com.example.di.CourseModule;
 import dagger.internal.DaggerGenerated;
 import dagger.internal.Factory;
 import dagger.internal.Preconditions;
 import dagger.internal.QualifierMetadata;
 import dagger.internal.ScopeMetadata;
-import features.courses.repositories.CourseScheduleRepository;
+import com.example.features.courses.repositories.CourseScheduleRepository;
 import javax.annotation.processing.Generated;
 
 @ScopeMetadata("javax.inject.Singleton")

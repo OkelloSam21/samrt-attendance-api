@@ -1,12 +1,13 @@
 package features.courses.services;
 
+import com.example.features.courses.services.CourseServiceImpl;
 import dagger.internal.DaggerGenerated;
 import dagger.internal.Factory;
 import dagger.internal.QualifierMetadata;
 import dagger.internal.ScopeMetadata;
-import features.courses.repositories.CourseRepository;
-import features.courses.repositories.CourseScheduleRepository;
-import features.users.repositories.UserRepository;
+import com.example.features.courses.repositories.CourseRepository;
+import com.example.features.courses.repositories.CourseScheduleRepository;
+import com.example.features.users.repositories.UserRepository;
 import javax.annotation.processing.Generated;
 import javax.inject.Provider;
 

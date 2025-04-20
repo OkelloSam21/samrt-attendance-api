@@ -1,5 +1,6 @@
 package features.auth.repositories;
 
+import com.example.features.auth.repositories.AuthRepositoryImpl;
 import dagger.internal.DaggerGenerated;
 import dagger.internal.Factory;
 import dagger.internal.QualifierMetadata;

@@ -1,5 +1,6 @@
 package features.assignments.repositories;
 
+import com.example.features.assignments.repositories.GradeRepositoryImpl;
 import dagger.internal.DaggerGenerated;
 import dagger.internal.Factory;
 import dagger.internal.QualifierMetadata;

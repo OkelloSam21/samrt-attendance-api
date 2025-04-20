@@ -1,15 +1,16 @@
 package di;
 
+import com.example.di.AttendanceModule;
 import dagger.internal.DaggerGenerated;
 import dagger.internal.Factory;
 import dagger.internal.Preconditions;
 import dagger.internal.QualifierMetadata;
 import dagger.internal.ScopeMetadata;
-import features.attendance.repositories.AttendanceRepository;
-import features.attendance.repositories.AttendanceSessionRepository;
-import features.attendance.services.AttendanceService;
-import features.courses.repositories.CourseRepository;
-import features.users.repositories.UserRepository;
+import com.example.features.attendance.repositories.AttendanceRepository;
+import com.example.features.attendance.repositories.AttendanceSessionRepository;
+import com.example.features.attendance.services.AttendanceService;
+import com.example.features.courses.repositories.CourseRepository;
+import com.example.features.users.repositories.UserRepository;
 import javax.annotation.processing.Generated;
 import javax.inject.Provider;
 

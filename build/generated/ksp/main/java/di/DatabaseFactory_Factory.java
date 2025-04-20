@@ -1,5 +1,6 @@
 package di;
 
+import com.example.di.DatabaseFactory;
 import dagger.internal.DaggerGenerated;
 import dagger.internal.Factory;
 import dagger.internal.QualifierMetadata;

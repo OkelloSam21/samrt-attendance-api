@@ -1,5 +1,6 @@
 package features.attendance.repositories;
 
+import com.example.features.attendance.repositories.AttendanceRepositoryImpl;
 import dagger.internal.DaggerGenerated;
 import dagger.internal.Factory;
 import dagger.internal.QualifierMetadata;

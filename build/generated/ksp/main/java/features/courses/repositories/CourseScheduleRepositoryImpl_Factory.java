@@ -1,5 +1,6 @@
 package features.courses.repositories;
 
+import com.example.features.courses.repositories.CourseScheduleRepositoryImpl;
 import dagger.internal.DaggerGenerated;
 import dagger.internal.Factory;
 import dagger.internal.QualifierMetadata;

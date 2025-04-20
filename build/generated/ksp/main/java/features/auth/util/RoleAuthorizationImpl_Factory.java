@@ -1,5 +1,6 @@
 package features.auth.util;
 
+import com.example.features.auth.util.RoleAuthorizationImpl;
 import dagger.internal.DaggerGenerated;
 import dagger.internal.Factory;
 import dagger.internal.QualifierMetadata;

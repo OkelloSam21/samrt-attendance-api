@@ -1,11 +1,12 @@
 package di;
 
+import com.example.di.UserModule;
 import dagger.internal.DaggerGenerated;
 import dagger.internal.Factory;
 import dagger.internal.Preconditions;
 import dagger.internal.QualifierMetadata;
 import dagger.internal.ScopeMetadata;
-import features.users.repositories.StaffRepository;
+import com.example.features.users.repositories.StaffRepository;
 import javax.annotation.processing.Generated;
 
 @ScopeMetadata("javax.inject.Singleton")

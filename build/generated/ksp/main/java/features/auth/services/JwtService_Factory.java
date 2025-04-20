@@ -1,5 +1,6 @@
 package features.auth.services;
 
+import com.example.features.auth.services.JwtService;
 import dagger.internal.DaggerGenerated;
 import dagger.internal.Factory;
 import dagger.internal.QualifierMetadata;

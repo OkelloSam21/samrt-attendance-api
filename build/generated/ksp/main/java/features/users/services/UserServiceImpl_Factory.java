@@ -1,12 +1,13 @@
 package features.users.services;
 
+import com.example.features.users.services.UserServiceImpl;
 import dagger.internal.DaggerGenerated;
 import dagger.internal.Factory;
 import dagger.internal.QualifierMetadata;
 import dagger.internal.ScopeMetadata;
-import features.users.repositories.StaffRepository;
-import features.users.repositories.StudentRepository;
-import features.users.repositories.UserRepository;
+import com.example.features.users.repositories.StaffRepository;
+import com.example.features.users.repositories.StudentRepository;
+import com.example.features.users.repositories.UserRepository;
 import javax.annotation.processing.Generated;
 import javax.inject.Provider;
 
