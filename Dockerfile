@@ -1,20 +1,28 @@
-FROM gradle:7.6.3-jdk17 AS builder
+# Stage 1: Build
+FROM gradle:7.6.0-jdk17 AS build
 
-WORKDIR /workspace
+COPY . /appbuild
+WORKDIR /appbuild
 
-COPY --chown=gradle:gradle . .
+# Clean and build the application
+RUN gradle clean build
 
-RUN gradle shadowJar
-
-
+# Stage 2: Runtime
 FROM openjdk:17-slim
 
+# Set application user
+ENV APPLICATION_USER 1033
+RUN useradd -ms /bin/bash $APPLICATION_USER
+
+# Copy the built JAR file and resources from the build stage
+COPY --from=build /appbuild/build/libs/smartAttendance-all.jar app.jar
+COPY --from=build /appbuild/src/main/resources/ /app/resources/
+
+# Set permissions for the application directory
+RUN chown -R $APPLICATION_USER /app
+RUN chmod -R 755 /app
+
+# Switch to the application user
+USER $APPLICATION_USER
+
 WORKDIR /app
-
-COPY --from=builder /workspace/build/libs/smartAttendance-all.jar app.jar
-
-EXPOSE 8080
-
-ENV PORT=8080
-
-CMD ["java", "-jar", "app.jar"]
