@@ -1,6 +1,7 @@
 ktor:
   application:
     modules:
-      - application.ApplicationKt.module
+      - samrt-attendance-api\src\main\kotlin\application
+
   deployment:
     port: 8080
