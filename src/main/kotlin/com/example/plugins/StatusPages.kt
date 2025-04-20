@@ -1,11 +1,8 @@
 package com.example.plugins
 
-import com.example.application.common.exceptions.*
-import common.exceptions.*
-import com.example.common.responses.error
-import com.example.common.exceptions.*
 import com.example.common.exceptions.BadRequestException
 import com.example.common.exceptions.NotFoundException
+import com.example.common.responses.error
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.*

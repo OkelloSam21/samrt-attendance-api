@@ -1,9 +1,6 @@
 package com.example.di
 
 import com.example.features.assignments.repositories.*
-import dagger.Module
-import dagger.Provides
-import features.assignments.repositories.*
 import com.example.features.assignments.services.AssignmentService
 import com.example.features.assignments.services.AssignmentServiceImpl
 import com.example.features.attendance.repositories.AttendanceRepository
@@ -24,9 +21,10 @@ import com.example.features.courses.repositories.CourseScheduleRepositoryImpl
 import com.example.features.courses.services.CourseService
 import com.example.features.courses.services.CourseServiceImpl
 import com.example.features.users.repositories.*
-import features.users.repositories.*
 import com.example.features.users.services.UserService
 import com.example.features.users.services.UserServiceImpl
+import dagger.Module
+import dagger.Provides
 import javax.inject.Singleton
 
 

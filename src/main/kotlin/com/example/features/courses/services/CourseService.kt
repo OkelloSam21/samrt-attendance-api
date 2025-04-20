@@ -10,7 +10,6 @@ import com.example.features.courses.models.CourseResponseDto
 import com.example.features.courses.models.CourseScheduleDto
 import com.example.features.courses.models.CreateCourseRequest
 import com.example.features.courses.models.UpdateCourseRequest
-import features.courses.models.*
 import com.example.features.courses.repositories.CourseRepository
 import com.example.features.courses.repositories.CourseScheduleRepository
 import com.example.features.users.repositories.UserRepository
@@ -20,7 +19,7 @@ import java.time.Instant
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
-import java.util.UUID
+import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
 

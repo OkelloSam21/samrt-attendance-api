@@ -1,6 +1,7 @@
 package com.example.application
 
 import com.example.config.AppConfig
+import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import mu.KotlinLogging
@@ -16,10 +17,9 @@ fun main() {
         embeddedServer(
             factory = Netty,
             port = AppConfig.server.port,
-            host = AppConfig.server.host
-        ) {
-            module()
-        }.start(wait = true)
+            host = AppConfig.server.host,
+            module = Application::module
+        ).start(wait = true)
     } catch (e: Exception) {
         logger.error(e) { "Failed to start application: ${e.message}" }
     }

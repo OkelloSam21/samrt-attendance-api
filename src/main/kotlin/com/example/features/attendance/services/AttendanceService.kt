@@ -1,9 +1,5 @@
 package com.example.features.attendance.services
 
-import com.google.zxing.BarcodeFormat
-import com.google.zxing.MultiFormatWriter
-import com.google.zxing.client.j2se.MatrixToImageWriter
-import com.google.zxing.common.BitMatrix
 import com.example.common.exceptions.BadRequestException
 import com.example.common.exceptions.ConflictException
 import com.example.common.exceptions.ForbiddenException
@@ -13,17 +9,19 @@ import com.example.features.attendance.models.AttendanceResponseDto
 import com.example.features.attendance.models.CreateSessionRequest
 import com.example.features.attendance.models.MarkAttendanceRequest
 import com.example.features.attendance.models.SessionResponseDto
-import domain.models.*
-import features.attendance.models.*
 import com.example.features.attendance.repositories.AttendanceRepository
 import com.example.features.attendance.repositories.AttendanceSessionRepository
 import com.example.features.courses.repositories.CourseRepository
 import com.example.features.users.repositories.UserRepository
+import com.google.zxing.BarcodeFormat
+import com.google.zxing.MultiFormatWriter
+import com.google.zxing.client.j2se.MatrixToImageWriter
+import com.google.zxing.common.BitMatrix
 import mu.KotlinLogging
 import java.io.ByteArrayOutputStream
 import java.time.Instant
 import java.time.temporal.ChronoUnit
-import java.util.UUID
+import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.math.atan2

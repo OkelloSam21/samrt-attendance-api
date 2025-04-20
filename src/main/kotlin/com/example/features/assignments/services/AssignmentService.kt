@@ -8,8 +8,6 @@ import com.example.domain.models.Grade
 import com.example.domain.models.Submission
 import com.example.domain.models.UserRole
 import com.example.features.assignments.models.*
-import domain.models.*
-import features.assignments.models.*
 import com.example.features.assignments.repositories.AssignmentRepository
 import com.example.features.assignments.repositories.GradeRepository
 import com.example.features.assignments.repositories.SubmissionRepository
@@ -17,7 +15,7 @@ import com.example.features.courses.repositories.CourseRepository
 import com.example.features.users.repositories.UserRepository
 import mu.KotlinLogging
 import java.time.Instant
-import java.util.UUID
+import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
 
