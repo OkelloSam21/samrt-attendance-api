@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.ktor)
     kotlin("plugin.serialization") version "2.1.20"
     id("com.google.devtools.ksp") version "2.1.20-1.0.32"
+    id("com.gradleup.shadow") version "8.3.6"
 }
 
 group = "com.smart-attendance"
@@ -28,14 +29,14 @@ tasks {
     }
 }
 
-tasks.withType<Jar> {
-    manifest {
-        attributes["Main-Class"] = "application.ApplicationKt"
-    }
-
-    // Don't include dependencies in the JAR
-    archiveClassifier.set("thin")
-}
+//tasks.withType<Jar> {
+//  manifest {
+//        attributes["Main-Class"] = "application.ApplicationKt"
+//    }
+//
+//    // Don't include dependencies in the JAR
+//    archiveClassifier.set("thin")
+//}
 
 dependencies {
     implementation(libs.ktor.server.core)
