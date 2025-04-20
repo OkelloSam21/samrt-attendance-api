@@ -11,25 +11,20 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
       
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+      
+      - name: Build with Gradle
+        run: ./gradlew shadowJar
+      
       - name: Install Railway CLI
         run: npm install -g @railway/cli
       
-      - name: Login to Railway
-        run: railway login --browserless
-        env:
-          RAILWAY_TOKEN: "${{ secrets.RAILWAY_TOKEN }}"
-      
-      - name: Link to Railway project
-        run: railway link --project "${{ secrets.RAILWAY_PROJECT_ID }}"
-        env:
-          RAILWAY_TOKEN: "${{ secrets.RAILWAY_TOKEN }}"
-      
-      - name: Connect to Docker service
-        run: railway service "${{ secrets.RAILWAY_SERVICE_NAME }}"
-        env:
-          RAILWAY_TOKEN: "${{ secrets.RAILWAY_TOKEN }}"
-      
       - name: Deploy to Railway
-        run: railway up
+        run: railway up --detach
         env:
           RAILWAY_TOKEN: "${{ secrets.RAILWAY_TOKEN }}"
