@@ -1,17 +1,14 @@
+mkdir -p .github/workflows
+cat > .github/workflows/railway-deploy.yml << 'EOF'
 name: Build & Deploy Ktor Backend to Railway
 
 on:
   push:
     branches:
       - main
-  pull_request:
-    types:
-      - closed
-    branches:
-      - main
+
 jobs:
   build-and-deploy:
-    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
     runs-on: ubuntu-latest
 
     steps:
@@ -19,7 +16,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Step 2: Set up Java environment for Ktor
+      # Step 2: Set up Java environment
       - name: Set up JDK 17
         uses: actions/setup-java@v3
         with:
@@ -34,32 +31,20 @@ jobs:
       - name: Build Shadow JAR
         run: ./gradlew shadowJar
 
-      # Step 4: Check the JAR file
-      - name: Verify JAR file location and size
+      # Step 4: Verify the JAR
+      - name: Verify JAR file
         run: |
-          find . -name "*.jar" | sort
           ls -la build/libs/
-          echo "JAR file size in MB:"
-          du -h build/libs/*.jar
+          du -h build/libs/app.jar
 
-      # Step 5: Set up Docker Buildx
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      # Step 6: Login to Railway Registry
-      - name: Login to Railway Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: registry.railway.app
-          username: ${{ secrets.RAILWAY_TOKEN }}
-          password: ${{ secrets.RAILWAY_TOKEN }}
+      # Step 5: Install and configure Railway CLI
+      - name: Install Railway CLI
+        run: curl -fsSL https://railway.app/install.sh | sh
       
-      # Step 7: Build and push Docker image
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: true
-          tags: registry.railway.app/${{ secrets.RAILWAY_PROJECT_ID }}/smart-attendance-api:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+      # Step 6: Deploy to Railway
+      - name: Deploy to Railway
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: |
+          railway up --service smart-attendance-api --detach
+EOF
