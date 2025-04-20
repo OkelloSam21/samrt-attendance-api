@@ -6,9 +6,7 @@ import com.example.common.exceptions.UnauthorizedException
 import com.example.domain.models.Staff
 import com.example.domain.models.Student
 import com.example.domain.models.User
-import com.example.domain.models.UserRole
 import com.example.features.auth.models.*
-import features.auth.models.*
 import com.example.features.auth.repositories.AuthRepository
 import com.example.features.users.repositories.StaffRepository
 import com.example.features.users.repositories.StudentRepository
