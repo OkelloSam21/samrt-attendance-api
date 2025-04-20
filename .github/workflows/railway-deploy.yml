@@ -20,6 +20,9 @@ jobs:
           distribution: 'temurin'
           cache: gradle
       
+      - name: Run chmod to make gradlew executble
+        run: chmod +x ./gradlew
+      
       - name: Build with Gradle
         run: ./gradlew shadowJar
       
