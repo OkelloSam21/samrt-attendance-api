@@ -30,38 +30,37 @@ jobs:
       - name: Run chmod to make gradlew executable
         run: chmod +x ./gradlew
 
-      # Step 3: Run Gradle Build (generate the JAR)
-      - name: Build Ktor backend
-        run: ./gradlew build
+      # Step 3: Build only the shadowJar (creates a single jar with dependencies)
+      - name: Build Shadow JAR
+        run: ./gradlew shadowJar
 
-      # Step 4: Build Docker Image (now the JAR exists)
+      # Step 4: Check the JAR file size and location
+      - name: Verify JAR file location and size
+        run: |
+          find . -name "*.jar" | sort
+          ls -la build/libs/
+          echo "JAR file size in MB:"
+          du -h build/libs/*.jar
+
+      # Step 5: Build Docker Image
       - name: Build Docker Image
         run: docker build -t ktor-backend:latest .
 
-      # Step 5: Install Railway CLI
+      # Step 6: Install Railway CLI
       - name: Install Railway CLI
         run: curl -fsSL https://railway.app/install.sh | sh
 
-      # Step 6: Add Railway to PATH
+      # Step 7: Add Railway to PATH
       - name: Add Railway to PATH
         run: echo "$HOME/.railway/bin" >> $GITHUB_PATH
-      - name: Verify JAR file location
-        run: |
-          ./gradlew build
-          find . -name "*.jar" | sort
-          ls -la build/libs/
 
-      # Step 7: Deploy to Railway with retry mechanism
+      # Step 8: Deploy to Railway with retry mechanism
       - name: Deploy to Railway
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
           RAILWAY_PROJECT_ID: 14e8bb3c-1a4a-40db-bb52-da85fd4d9f90
         run: |
-              # Build the JAR
-              ./gradlew build
-      
-              # Retry mechanism for deployment
-              for i in {1..3}; do
-                railway up --service samrt-attendance-api --detach && break || sleep 10
-              done
-              
+          # Retry mechanism for deployment
+          for i in {1..3}; do
+            railway up --service samrt-attendance-api --detach && break || sleep 10
+          done
