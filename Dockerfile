@@ -11,7 +11,7 @@ COPY . .
 RUN gradle clean shadowJar
 
 # Stage 2: Runtime
-FROM openjdk:17-slim
+FROM openjdk:latest
 
 # Set application user for security
 ENV APPLICATION_USER appuser

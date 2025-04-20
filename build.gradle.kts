@@ -36,12 +36,6 @@ tasks {
     }
 }
 
-kotlin {
-    jvmToolchain {
-        languageVersion.set(JavaLanguageVersion.of(17))
-    }
-}
-
 dependencies {
     implementation(libs.ktor.server.core)
     implementation(libs.ktor.server.netty)
