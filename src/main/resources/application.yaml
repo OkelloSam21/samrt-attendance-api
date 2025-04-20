@@ -3,5 +3,5 @@ ktor:
     port: 8080
   application:
     modules:
-      - com.example
+      - com.example.ApplicationKt.module
 #      - com.example.ApplicationKt.module

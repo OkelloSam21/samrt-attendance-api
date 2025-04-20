@@ -15,6 +15,13 @@ application {
     val isDevelopment: Boolean = project.ext.has("development")
     applicationDefaultJvmArgs = listOf("-Dio.ktor.development=$isDevelopment")
 
+    tasks.withType<Jar> {
+        manifest {
+            attributes["Main-Class"] = "io.ktor.server.netty.EngineMain"
+        }
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    }
+
 }
 
 repositories {
@@ -28,15 +35,6 @@ tasks {
         archiveVersion.set("")
     }
 }
-
-//tasks.withType<Jar> {
-//  manifest {
-//        attributes["Main-Class"] = "application.ApplicationKt"
-//    }
-//
-//    // Don't include dependencies in the JAR
-//    archiveClassifier.set("thin")
-//}
 
 dependencies {
     implementation(libs.ktor.server.core)
@@ -96,8 +94,8 @@ dependencies {
     implementation("com.google.zxing:javase:3.5.2")
 
     // Testing
-    testImplementation("io.ktor:ktor-server-tests:3.1.1")
-    testImplementation("org.jetbrains.kotlin:kotlin-test:1.9.10")
+    testImplementation("io.ktor:ktor-server-test-host:3.1.1")
+    testImplementation("org.jetbrains.kotlin:kotlin-test:2.1.10")
     testImplementation("io.mockk:mockk:1.13.8")
 
 }
