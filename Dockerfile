@@ -1,5 +1,5 @@
 # Stage 1: Build the JAR file
-FROM gradle:8.3-jdk17 AS build
+FROM gradle:latest AS build
 
 # Set the working directory
 WORKDIR /appbuild
