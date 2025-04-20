@@ -15,7 +15,7 @@ jobs:
         run: npm install -g @railway/cli
       
       - name: Link to Railway project
-        run: railway link "${{ secrets.RAILWAY_PROJECT_ID }}"
+        run: railway link --project "${{ secrets.RAILWAY_PROJECT_ID }}"
         env:
           RAILWAY_TOKEN: "${{ secrets.RAILWAY_TOKEN }}"
       
