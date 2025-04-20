@@ -1,5 +1,5 @@
 # Stage 1: Build the JAR file
-FROM gradle:latest AS build
+FROM gradle:7.6.3-jdk17  AS build
 
 # Set the working directory
 WORKDIR /appbuild
@@ -11,7 +11,7 @@ COPY . .
 RUN gradle clean shadowJar
 
 # Stage 2: Runtime
-FROM openjdk:latest
+FROM openjdk:7.6.3-jdk17
 
 # Set application user for security
 ENV APPLICATION_USER appuser
