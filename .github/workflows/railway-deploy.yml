@@ -15,16 +15,16 @@ jobs:
         run: npm install -g @railway/cli
       
       - name: Link to Railway project
-        run: railway link ${{ secrets.RAILWAY_PROJECT_ID }}
+        run: railway link "${{ secrets.RAILWAY_PROJECT_ID }}"
         env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_TOKEN: "${{ secrets.RAILWAY_TOKEN }}"
       
       - name: Connect to Docker service
-        run: railway service ${{ secrets.RAILWAY_SERVICE_NAME }}
+        run: railway service "${{ secrets.RAILWAY_SERVICE_NAME }}"
         env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_TOKEN: "${{ secrets.RAILWAY_TOKEN }}"
       
       - name: Deploy to Railway
         run: railway up
         env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_TOKEN: "${{ secrets.RAILWAY_TOKEN }}"
