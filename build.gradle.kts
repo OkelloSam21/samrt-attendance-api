@@ -30,9 +30,9 @@ repositories {
 
 tasks {
     shadowJar {
-        archiveBaseName.set("smart-attendance-api")
-        archiveClassifier.set("")
-        archiveVersion.set("")
+        archiveBaseName.set("smartAttendance")
+        archiveClassifier.set("all")
+        archiveVersion.set("") // Optional: Removes the version from the filename
     }
 }
 

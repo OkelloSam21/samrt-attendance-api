@@ -21,7 +21,7 @@ RUN adduser --system --no-create-home $APPLICATION_USER
 WORKDIR /app
 
 # Copy the built JAR file from the build stage
-COPY --from=build /appbuild/build/libs/smartAttendance-all.jar app.jar
+COPY build/libs/smartAttendance-all.jar app.jar
 
 # Expose the application's port
 EXPOSE 8080
