@@ -7,8 +7,8 @@ import io.ktor.server.netty.*
 import mu.KotlinLogging
 import plugins.*
 
-
 private val logger = KotlinLogging.logger {}
+
 fun main() {
     try {
         AppConfig.logConfiguration()
