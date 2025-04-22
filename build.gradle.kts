@@ -79,7 +79,7 @@ dependencies {
     implementation("io.ktor:ktor-server-auth-jwt:2.3.6")
 
     //swagger
-    implementation("io.ktor:ktor-server-swagger:2.3.6")
+    implementation("io.ktor:ktor-server-swagger:3.1.1")
 
     implementation("io.github.cdimascio:dotenv-kotlin:6.4.1")
 

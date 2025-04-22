@@ -26,7 +26,6 @@ fun Application.module() {
         configureStatusPages()
         configureAuthentication()
         configureCors()
-        configureSwagger()
 
         // Register routes
         configureRouting()

@@ -15,7 +15,7 @@ fun Application.configureSwagger() {
 
     routing {
         swaggerUI(path = "swagger", swaggerFile = "openapi/documentation.yaml") {
-            version = "2.0"
+            version = "3.1.1"
         }
     }
 }
