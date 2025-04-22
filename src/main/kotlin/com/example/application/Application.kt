@@ -25,7 +25,7 @@ fun Application.module() {
         configureContentNegotiation()
         configureStatusPages()
         configureAuthentication()
-        configureCors()
+//        configureCors()
 
         // Register routes
         configureRouting()
