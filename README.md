@@ -8,7 +8,7 @@ Smart Attendance API is a backend system designed to manage educational resource
 
 or
 
-[Smart Attendnace Api Docs](https://samrt-attendance-api-production.up.railway.app/swagger)
+[Smart Attendnace Api Docs](https://smart-attendance-api-image-production.up.railway.app/swagger)
 
 
 
