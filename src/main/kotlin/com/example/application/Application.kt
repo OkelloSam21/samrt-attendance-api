@@ -18,13 +18,14 @@ fun Application.module() {
     try {
         // Initialize database first
         logger.info { "Initializing database..." }
-        AppInjector.databaseFactory.init()
+//        AppInjector.databaseFactory.init()
         logger.info { "Database initialized successfully" }
 
         // Install plugins in the correct order - important for proper functioning
         configureContentNegotiation()
         configureStatusPages()
         configureAuthentication()
+        configureSwagger()
 //        configureCors()
 
         // Register routes
