@@ -1,7 +1,5 @@
 package com.example.plugins
 
-import com.example.di.AppInjector
-//import features.assignments.routes.configureAssignmentRoutes
 import com.example.features.attendance.routes.configureAttendanceRoutes
 import com.example.features.auth.routes.configureAuthRoutes
 import com.example.features.courses.routes.configureCourseRoutes
@@ -28,15 +26,10 @@ fun Application.configureRouting() {
                 "status" to "running"
             ))
         }
-
-        // Feature routes
         configureAuthRoutes()
         configureUserRoutes()
         configureCourseRoutes()
         configureAttendanceRoutes()
-//        configureAssignmentRoutes()
-
-        // Other routes can be added here
     }
 
     logger.info { "Routing configuration complete" }
