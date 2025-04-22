@@ -57,7 +57,7 @@ class AuthServiceImpl @Inject constructor(
             throw ConflictException("A user with this email already exists")
         }
 
-        // Create base user
+        // Create a base user
         val hashedPassword = BCrypt.hashpw(request.password, BCrypt.gensalt())
         val user = User(
             id = UUID.randomUUID(),
