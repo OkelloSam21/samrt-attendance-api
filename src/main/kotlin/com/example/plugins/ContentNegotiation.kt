@@ -1,5 +1,6 @@
 package com.example.plugins
 
+import com.example.common.responses.ApiResponse
 import com.example.features.auth.models.AdminSignUpRequest
 import com.example.features.auth.models.LecturerSignUpRequest
 import com.example.features.auth.models.SignUpRequest
@@ -7,6 +8,8 @@ import com.example.features.auth.models.StudentSignUpRequest
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.contentnegotiation.*
+import kotlinx.serialization.Polymorphic
+import kotlinx.serialization.PolymorphicSerializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
