@@ -28,10 +28,8 @@ import com.smartattendance.android.feature.onboarding.selectusertype.UserType
 import com.smartattendance.android.feature.student.dashboard.StudentDashboardScreen
 import com.smartattendance.android.feature.student.history.StudentAttendanceHistoryScreen
 import com.smartattendance.android.feature.student.scanqr.StudentScanQrScreen
-import com.smartattendance.android.navigation.helper.navigateToAttendanceHistory
 import com.smartattendance.android.navigation.helper.navigateToDashboardIfAuthorized
 import com.smartattendance.android.navigation.helper.navigateToLogin
-import com.smartattendance.android.navigation.helper.navigateToScanQr
 import com.smartattendance.android.navigation.helper.navigateToSelectUserType
 import com.smartattendance.android.navigation.helper.navigateToSignUp
 import kotlinx.coroutines.launch
@@ -169,10 +167,10 @@ fun MainNavHost(
         composable(StudentDashboardDestination.route) {
             StudentDashboardScreen(
                 onNavigateToScanQr = {
-                    navController.navigateToScanQr()
+//                    navController.navigateTo
                 },
                 onNavigateToHistory = {
-                    navController.navigateToAttendanceHistory()
+//                    navController.navigateToAttendanceHistory()
                 }
             )
         }
