@@ -2,7 +2,7 @@ package com.example.plugins
 
 import com.example.common.exceptions.BadRequestException
 import com.example.common.exceptions.NotFoundException
-import com.example.common.responses.error
+import com.example.common.responses.errorResponse
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.*
@@ -25,7 +25,10 @@ fun Application.configureStatusPages() {
             logger.warn(cause) { "Serialization error: ${cause.message}" }
             call.respond(
                 HttpStatusCode.BadRequest,
-                error<Any>(cause.message ?: "Invalid request body", HttpStatusCode.BadRequest.value)
+                errorResponse(
+                    message = cause.message ?: "Invalid request body",
+                    code = HttpStatusCode.BadRequest.value
+                )
             )
         }
 
@@ -34,7 +37,10 @@ fun Application.configureStatusPages() {
             logger.warn { "Bad request: ${cause.message}" }
             call.respond(
                 HttpStatusCode.BadRequest,
-                error<Any>(cause.message ?:"", HttpStatusCode.BadRequest.value)
+                errorResponse(
+                    message = cause.message ?: "Bad request",
+                    code = HttpStatusCode.BadRequest.value
+                )
             )
         }
 
@@ -43,7 +49,10 @@ fun Application.configureStatusPages() {
             logger.warn { "Resource not found: ${cause.message}" }
             call.respond(
                 HttpStatusCode.NotFound,
-                error<Any>(cause.message ?:"", HttpStatusCode.NotFound.value)
+                errorResponse(
+                    message = cause.message ?: "Resource not found",
+                    code = HttpStatusCode.NotFound.value
+                )
             )
         }
 
@@ -52,7 +61,10 @@ fun Application.configureStatusPages() {
             logger.warn { "Unauthorized access: ${cause.message}" }
             call.respond(
                 HttpStatusCode.Unauthorized,
-                error<Any>(cause.message ?:"", HttpStatusCode.Unauthorized.value)
+                errorResponse(
+                    message = cause.message ?: "Unauthorized access",
+                    code = HttpStatusCode.Unauthorized.value
+                )
             )
         }
 
@@ -61,7 +73,10 @@ fun Application.configureStatusPages() {
             logger.warn { "Forbidden access: ${cause.message}" }
             call.respond(
                 HttpStatusCode.Forbidden,
-                error<Any>(cause.message ?:"", HttpStatusCode.Forbidden.value)
+                errorResponse(
+                    message = cause.message ?: "Forbidden access",
+                    code = HttpStatusCode.Forbidden.value
+                )
             )
         }
 
@@ -70,7 +85,10 @@ fun Application.configureStatusPages() {
             logger.warn { "Resource conflict: ${cause.message}" }
             call.respond(
                 HttpStatusCode.Conflict,
-                error<Any>(cause.message ?:"", HttpStatusCode.Conflict.value)
+                errorResponse(
+                    message = cause.message ?: "Resource conflict",
+                    code = HttpStatusCode.Conflict.value
+                )
             )
         }
 
@@ -79,7 +97,10 @@ fun Application.configureStatusPages() {
             logger.warn { "Parameter conversion error: ${cause.message}" }
             call.respond(
                 HttpStatusCode.BadRequest,
-                error<Any>("Invalid parameter: ${cause.parameterName}", HttpStatusCode.BadRequest.value)
+                errorResponse(
+                    message = "Invalid parameter: ${cause.parameterName}",
+                    code = HttpStatusCode.BadRequest.value
+                )
             )
         }
 
@@ -88,7 +109,10 @@ fun Application.configureStatusPages() {
             logger.error(cause) { "Unhandled exception: ${cause.message}" }
             call.respond(
                 HttpStatusCode.InternalServerError,
-                error<Any>("An unexpected error occurred", HttpStatusCode.InternalServerError.value)
+                errorResponse(
+                    message = "An unexpected error occurred",
+                    code = HttpStatusCode.InternalServerError.value
+                )
             )
         }
     }

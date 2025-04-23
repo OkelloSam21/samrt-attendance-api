@@ -23,6 +23,16 @@ data class ErrorResponse(
 )
 
 /**
+ * Non-generic version of ApiResponse just for errors
+ */
+@Serializable
+data class ErrorApiResponse(
+    val success: Boolean = false,
+    val data: String? = null,
+    val error: ErrorResponse
+)
+
+/**
  * Create a successful response with data
  */
 inline fun <reified T> success(data: T): ApiResponse<T> =
@@ -34,6 +44,14 @@ inline fun <reified T> success(data: T): ApiResponse<T> =
 inline fun <reified T> error(message: String, code: Int = 500, details: Map<String, String>? = null): ApiResponse<T> =
     ApiResponse(
         success = false,
+        error = ErrorResponse(message, code, details)
+    )
+
+/**
+ * Create a simple error response without generic parameter
+ */
+fun errorResponse(message: String, code: Int = 500, details: Map<String, String>? = null): ErrorApiResponse =
+    ErrorApiResponse(
         error = ErrorResponse(message, code, details)
     )
 

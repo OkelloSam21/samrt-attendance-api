@@ -3,7 +3,6 @@ package com.smartattendance.android.navigation
 import com.smartattendance.android.feature.onboarding.selectusertype.UserType
 import kotlinx.serialization.Serializable
 
-// In a file like NavigationDestinations.kt or within your feature packages
 object SelectUserTypeDestination {
     const val route = "select_user_type"
 }
