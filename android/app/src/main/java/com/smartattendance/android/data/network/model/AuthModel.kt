@@ -1,5 +1,6 @@
 package com.smartattendance.android.data.network.model
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 // Login Request
@@ -51,13 +52,24 @@ data class SignUpResponse(
 
 @Serializable
 data class LoginResponse(
-    val accessToken: String,
-    val refreshToken: String,
+    val success: Boolean,
+    val data: Data,
 )
 
 @Serializable
 data class RefreshTokenRequest(
     val refreshToken: String
+)
+
+@Serializable
+@SerialName("data")
+data class Data(
+    val accessToken: String,
+    val refreshToken: String,
+    val userId: String,
+    val name: String,
+    val email: String,
+    val role: String,
 )
 
 @Serializable

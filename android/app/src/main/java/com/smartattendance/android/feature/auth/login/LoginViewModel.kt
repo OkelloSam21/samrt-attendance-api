@@ -26,8 +26,7 @@ class LoginViewModel @Inject constructor(
 
     // Extract userType from SavedStateHandle
     private val userType: UserType =
-        UserType.valueOf(savedStateHandle.get<String>("userType") ?: UserType.STUDENT.name) // Provide a reasonable default like student or handle the null case as appropriate for your app
-
+        UserType.valueOf(savedStateHandle.get<String>("userType") ?: UserType.STUDENT.name)
     init{
         _uiState.update { it.copy(userType = userType) }
         Log.d("LoginViewModel", "userType: $userType")

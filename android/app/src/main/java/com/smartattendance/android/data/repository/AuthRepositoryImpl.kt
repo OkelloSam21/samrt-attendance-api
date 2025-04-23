@@ -25,7 +25,7 @@ class AuthRepositoryImpl @Inject constructor(
         return when (val response = apiClient.login(LoginRequest(email, password))) {
             is ApiResponse.Success -> {
                 saveTokens(response.data)
-                Log.d("AuthRepositoryImpl", "Login successful userId = ${response.data.accessToken}, role = ${response.data}")
+                Log.d("AuthRepositoryImpl", "Login successful userId = ${response.data.data.userId}, role = ${response.data.data.role}")
                 AuthResult.Success
             }
             is ApiResponse.Error -> {
@@ -102,7 +102,11 @@ class AuthRepositoryImpl @Inject constructor(
     }
 
     private suspend fun saveTokens(response: LoginResponse) {
-        userPreferencesRepositoryImpl.saveAccessToken(response.accessToken)
-        userPreferencesRepositoryImpl.saveRefreshToken(response.refreshToken)
+        userPreferencesRepositoryImpl.saveAccessToken(response.data.accessToken)
+        userPreferencesRepositoryImpl.saveRefreshToken(response.data.refreshToken)
+        userPreferencesRepositoryImpl.saveUserRole(response.data.role)
+        userPreferencesRepositoryImpl.saveUserId(response.data.userId)
+        userPreferencesRepositoryImpl.saveUserEmail(response.data.email)
+        userPreferencesRepositoryImpl.saveUserName(response.data.name)
     }
 }
