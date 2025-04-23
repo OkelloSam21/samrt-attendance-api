@@ -6,6 +6,8 @@ import com.example.features.auth.models.AuthResponse
 import com.example.features.auth.models.LoginRequest
 import com.example.features.auth.models.RefreshTokenRequest
 import com.example.features.auth.models.SignUpRequest
+import com.example.features.auth.models.SignUpRequestDTO
+import com.example.features.auth.models.toSignUpRequest
 import io.ktor.http.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -25,7 +27,9 @@ fun Routing.configureAuthRoutes() {
         post("/signup") {
             logger.info { "Received signup request" }
             
-            val request = call.receive<SignUpRequest>()
+            val requestDTO = call.receive<SignUpRequestDTO>()
+
+            val request = requestDTO.toSignUpRequest()
             
             val user = authService.signup(request)
             val tokens = authService.generateTokens(user)
@@ -90,5 +94,7 @@ fun Routing.configureAuthRoutes() {
                 )
             )
         }
+
+        //reset password
     }
 }
