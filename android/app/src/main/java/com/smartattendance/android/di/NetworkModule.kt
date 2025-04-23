@@ -28,7 +28,7 @@ import javax.inject.Singleton
 object NetworkModule {
 
 //    private const val BASE_URL = "https://smartattendance-backend-bug4bxgybhbwecey.canadacentral-01.azurewebsites.net/"
-    private const val BASE_URL = "https://samrt-attendance-api-production.up.railway.app/"
+    private const val BASE_URL = "https://smart-attendance-api-image-production.up.railway.app/"
 
     @Provides
     @Singleton
