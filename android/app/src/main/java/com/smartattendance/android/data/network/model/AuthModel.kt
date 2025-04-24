@@ -11,29 +11,63 @@ data class LoginRequest(
 )
 
 // Registration requests for different user types
+package com.smartattendance.android.data.network.model
+
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+
+/**
+ * Base request DTO that will be used for all sign-up requests
+ * This matches the SignUpRequestDTO on the server
+ */
+@Serializable
+data class SignUpRequestDTO(
+    val name: String,
+    val email: String,
+    val password: String,
+    val role: String,
+    val department: String = "",
+    val regNo: String? = null,
+    val employeeId: String? = null,
+    val yearOfStudy: Int? = null
+)
+
+/**
+ * Student-specific request for client-side type safety
+ */
 @Serializable
 data class StudentSignUpRequest(
     val name: String,
     val email: String,
     val password: String,
-    val role: String = "STUDENT",
-    val regNo: String
+    val regNo: String,
+    val department: String = "",
+    val yearOfStudy: Int? = null,
+    val role: String = "STUDENT"
 )
 
+/**
+ * Lecturer-specific request for client-side type safety
+ */
 @Serializable
 data class LecturerSignUpRequest(
     val name: String,
     val email: String,
     val password: String,
-    val role: String = "LECTURER",
-    val employeeRoleNo: String
+    val employeeId: String,
+    val department: String = "",
+    val role: String = "LECTURER"
 )
 
+/**
+ * Admin-specific request for client-side type safety
+ */
 @Serializable
 data class AdminSignUpRequest(
     val name: String,
     val email: String,
     val password: String,
+    val department: String = "",
     val role: String = "ADMIN"
 )
 
