@@ -54,6 +54,18 @@ class SignUpViewModel @Inject constructor(
                 _uiState.update { it.copy(password = event.password) }
             }
 
+            is SignUpScreenEvents.EmployeeIdChanged -> {
+                _uiState.update { it.copy(employeeId = event.employeeId) }
+            }
+
+            is SignUpScreenEvents.DepartmentChanged -> {
+                _uiState.update { it.copy(department = event.department) }
+            }
+
+            is SignUpScreenEvents.YearOfStudyChanged -> {
+                _uiState.update { it.copy(yearOfStudy = event.yearOfStudy) }
+            }
+
             is SignUpScreenEvents.SignUp -> {
                 _uiState.update {
                     it.copy(
@@ -64,11 +76,21 @@ class SignUpViewModel @Inject constructor(
                         errorMessage = null,
                     )
                 }
-
                 viewModelScope.launch {
                     val state = _uiState.value
 
-                    // User type is now directly from the state
+                    // Field validation
+                    if (state.name.isBlank() || state.email.isBlank() || state.password.isBlank()) {
+                        _uiState.update {
+                            it.copy(
+                                isLoading = false,
+                                errorMessage = "All fields are required"
+                            )
+                        }
+                        return@launch
+                    }
+
+                    // User type specific validations
                     val userType = state.userType ?: run {
                         _uiState.update {
                             it.copy(
@@ -79,46 +101,63 @@ class SignUpViewModel @Inject constructor(
                         return@launch
                     }
 
-                    // Validate additional ID for student and lecturer
-                    if ((userType == UserType.STUDENT || userType == UserType.LECTURER) && state.regNo.isBlank()) {
-                        _uiState.update {
-                            it.copy(
-                                isLoading = false,
-                                errorMessage = when (userType) {
-                                    UserType.STUDENT -> "Registration number is required"
-                                    UserType.LECTURER -> "Employee role number is required"
-                                    else -> "" // Should not happen, but handle it
+                    // Create the appropriate request based on user type
+                    val request = when (userType) {
+                        UserType.STUDENT -> {
+                            if (state.regNo.isBlank()) {
+                                _uiState.update {
+                                    it.copy(
+                                        isLoading = false,
+                                        errorMessage = "Registration number is required"
+                                    )
                                 }
+                                return@launch
+                            }
+
+                            StudentSignUpRequest(
+                                name = state.name,
+                                email = state.email,
+                                password = state.password,
+                                regNo = state.regNo,
+                                department = state.department,
+                                yearOfStudy = state.yearOfStudy
                             )
                         }
-                        return@launch
+
+                        UserType.LECTURER -> {
+                            if (state.employeeId.isBlank()) {
+                                _uiState.update {
+                                    it.copy(
+                                        isLoading = false,
+                                        errorMessage = "Employee ID is required for lecturers"
+                                    )
+                                }
+                                return@launch
+                            }
+
+                            LecturerSignUpRequest(
+                                name = state.name,
+                                email = state.email,
+                                password = state.password,
+                                employeeId = state.employeeId,
+                                department = state.department
+                            )
+                        }
+
+                        UserType.ADMIN -> {
+                            AdminSignUpRequest(
+                                name = state.name,
+                                email = state.email,
+                                password = state.password,
+                                department = state.department
+                            )
+                        }
                     }
 
-                    // Create appropriate request based on user type
-                    val request = when (userType) {
-                        UserType.STUDENT -> StudentSignUpRequest(
-                            name = state.name,
-                            email = state.email,
-                            password = state.password,
-                            regNo = state.regNo
-                        )
+                    // Log the request before sending it
+                    Log.d("SignUpViewModel", "Sending signup request: $request")
 
-                        UserType.LECTURER -> LecturerSignUpRequest(
-                            name = state.name,
-                            email = state.email,
-                            password = state.password,
-                            employeeRoleNo = state.regNo
-                        )
-
-                        UserType.ADMIN -> AdminSignUpRequest(
-                            name = state.name,
-                            email = state.email,
-                            password = state.password
-                        )
-                    }
-
-                    // Single registration method
-                    // Handle result
+                    // Process the registration
                     when (val result = authRepository.register(request)) {
                         is AuthResult.Error -> {
                             _uiState.update {
@@ -137,7 +176,7 @@ class SignUpViewModel @Inject constructor(
                                     isSignUpSuccessful = true
                                 )
                             }
-                            // Optionally, save the user type to preferences here for persistent login
+                            // Save the user type to preferences
                             userPreferencesRepository.saveSelectedUserType(userType.name)
                         }
                     }
@@ -160,20 +199,24 @@ data class SignUpUiState(
     val errorMessage: String? = null,
     val name: String = "",
     val email: String = "",
-    val regNo: String = "",
-    val userType: UserType? = null,
     val password: String = "",
+    val regNo: String = "",        // For students
+    val employeeId: String = "",   // For lecturers (separate from regNo)
+    val department: String = "",
+    val yearOfStudy: Int? = null,  // For students
+    val userType: UserType? = null,
     val isSignUpSuccessful: Boolean = false,
 )
 
-sealed class SignUpScreenEvents {
-    data class SignUp(val name: String, val email: String, val password: String) :
-        SignUpScreenEvents()
 
+sealed class SignUpScreenEvents {
+    data class SignUp(val name: String, val email: String, val password: String) : SignUpScreenEvents()
     data class NameChanged(val name: String) : SignUpScreenEvents()
     data class EmailChanged(val email: String) : SignUpScreenEvents()
     data class PasswordChanged(val password: String) : SignUpScreenEvents()
     data class RegNoChanged(val regNo: String) : SignUpScreenEvents()
     data class EmployeeIdChanged(val employeeId: String) : SignUpScreenEvents()
+    data class DepartmentChanged(val department: String) : SignUpScreenEvents()
+    data class YearOfStudyChanged(val yearOfStudy: Int) : SignUpScreenEvents()
     object LoginClicked : SignUpScreenEvents()
 }
