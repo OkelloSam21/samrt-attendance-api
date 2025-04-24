@@ -58,14 +58,14 @@ class LecturerDashboardViewModel @Inject constructor(
                                 createdAt = course.createdAt
                             )
                         }
-                        
+
                         _uiState.update {
                             it.copy(
                                 isLoading = false,
                                 courses = courseDataList
                             )
                         }
-                        
+
                         // Now load active sessions
                         loadActiveSessions(userId, courseDataList)
                     }
@@ -94,10 +94,11 @@ class LecturerDashboardViewModel @Inject constructor(
                     .collect { sessions ->
                         // Filter for active sessions only
                         val activeSessionsList = sessions
-//                            .filter { it. }
+//                            .filter { it.isActive }
                             .map { session ->
                                 val course = courses.find { it.id == session.course_id }
                                 val attendanceCount = 0 // This would need to be fetched from the repository
+
                                 val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
                                     Locale.getDefault())
                                 val startTime = try {
@@ -110,6 +111,7 @@ class LecturerDashboardViewModel @Inject constructor(
                                 } catch (e: Exception) {
                                     Date()
                                 }
+
                                 SessionData(
                                     id = session.id,
                                     courseId = session.course_id,
@@ -120,7 +122,7 @@ class LecturerDashboardViewModel @Inject constructor(
                                     attendanceCount = attendanceCount
                                 )
                             }
-                        
+
                         _uiState.update {
                             it.copy(
                                 activeSessions = activeSessionsList
