@@ -11,11 +11,6 @@ data class LoginRequest(
 )
 
 // Registration requests for different user types
-package com.smartattendance.android.data.network.model
-
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
-
 /**
  * Base request DTO that will be used for all sign-up requests
  * This matches the SignUpRequestDTO on the server
@@ -80,8 +75,8 @@ data class AuthResponseWrapper(
 
 @Serializable
 data class SignUpResponse(
-    val message: String? = null,
-    val userId: String
+    val success: Boolean,
+    val data: Data
 )
 
 @Serializable

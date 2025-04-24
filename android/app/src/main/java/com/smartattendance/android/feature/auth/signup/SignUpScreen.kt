@@ -216,8 +216,6 @@ fun SignUpScreenContent(
                     .align(Alignment.Start)
                     .padding(bottom = 8.dp)
             )
-        } else {
-//            return@Column
         }
 
         // Modify the TextField section
@@ -238,7 +236,7 @@ fun SignUpScreenContent(
             )
         } else if(state.userType == UserType.LECTURER) {
             OutlinedTextField(
-                value = state.regNo,
+                value = state.employeeId,
                 onValueChange = { event(SignUpScreenEvents.EmployeeIdChanged(it)) },
                 modifier = Modifier
                     .fillMaxWidth()

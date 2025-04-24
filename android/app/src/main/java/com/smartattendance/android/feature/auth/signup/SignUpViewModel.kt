@@ -101,7 +101,6 @@ class SignUpViewModel @Inject constructor(
                         return@launch
                     }
 
-                    // Create the appropriate request based on user type
                     val request = when (userType) {
                         UserType.STUDENT -> {
                             if (state.regNo.isBlank()) {
@@ -181,10 +180,6 @@ class SignUpViewModel @Inject constructor(
                         }
                     }
                 }
-            }
-
-            is SignUpScreenEvents.EmployeeIdChanged -> {
-                _uiState.update { it.copy(regNo = event.employeeId) }
             }
 
             is SignUpScreenEvents.RegNoChanged -> {
