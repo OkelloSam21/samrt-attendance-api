@@ -10,7 +10,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -25,6 +24,7 @@ fun AdminDashboardScreen(
     viewModel: AdminDashboardViewModel = hiltViewModel(),
     onNavigateToUserManagement: () -> Unit,
     onNavigateToCourseManagement: () -> Unit,
+    onNavigateToSeedCourses: () -> Unit,
     onNavigateToReports: () -> Unit,
     onNavigateToUserDetails: (String) -> Unit,
     onNavigateToCourseDetails: (String) -> Unit,
@@ -40,16 +40,7 @@ fun AdminDashboardScreen(
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                     titleContentColor = MaterialTheme.colorScheme.onPrimary
-                ),
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Back",
-                            tint = MaterialTheme.colorScheme.onPrimary
-                        )
-                    }
-                }
+                )
             )
         }
     ) { paddingValues ->
@@ -63,7 +54,7 @@ fun AdminDashboardScreen(
                 selectedTabIndex = selectedTab.ordinal,
                 containerColor = MaterialTheme.colorScheme.primaryContainer
             ) {
-                AdminDashboardTab.values().forEach { tab ->
+                AdminDashboardTab.entries.forEach { tab ->
                     Tab(
                         selected = selectedTab == tab,
                         onClick = { selectedTab = tab },
@@ -193,6 +184,7 @@ fun OverviewTab(
                     modifier = Modifier.padding(vertical = 8.dp)
                 )
             }
+
 
             if (state.recentActivities.isEmpty()) {
                 item {

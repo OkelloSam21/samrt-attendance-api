@@ -1,51 +1,90 @@
-package com.smartattendance.android.feature.admin.dashboard
+package com.smartattendance.android.navigation
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.lifecycle.SavedStateHandle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
-import kotlinx.serialization.Serializable
+import com.smartattendance.android.feature.admin.SeedCoursesScreen
+import com.smartattendance.android.feature.admin.coursemanagement.CourseManagementScreen
+import com.smartattendance.android.feature.admin.dashboard.AdminDashboardScreen
 
-@Serializable
-object AdminDashboardDestination {
-    const val route = "admin_dashboard"
+// Define the new destination routes
+object AdminCourseManagementDestination {
+    const val route = "admin_course_management"
 }
 
-class AdminDashboardArgs(savedStateHandle: SavedStateHandle)
-
-fun NavController.navigateToAdminDashboard() {
-    this.navigate(AdminDashboardDestination.route) {
-        launchSingleTop = true
-        popUpTo(0) { inclusive = true }
-    }
+object AdminSeedCoursesDestination {
+    const val route = "admin_seed_courses"
 }
 
-fun NavGraphBuilder.adminDashboardScreen(
-    navController: NavController
+// Extension functions for NavController
+fun NavController.navigateToAdminCourseManagement() {
+    this.navigate(AdminCourseManagementDestination.route)
+}
+
+fun NavController.navigateToAdminSeedCourses() {
+    this.navigate(AdminSeedCoursesDestination.route)
+}
+
+// Extension functions for NavGraphBuilder
+fun NavGraphBuilder.adminCourseManagementScreen(
+    navController: NavController,
+    onEditCourse: (String) -> Unit
 ) {
-    composable<AdminDashboardDestination> {
-        AdminDashboardScreen(
-            onNavigateBack = { navController.navigateUp() }
+    composable(AdminCourseManagementDestination.route) {
+        CourseManagementScreen(
+            onNavigateBack = { navController.popBackStack() },
+            onEditCourse = onEditCourse
         )
     }
 }
 
-// Placeholder for the actual screen
-@Composable
-fun AdminDashboardScreen(
-    onNavigateBack: () -> Unit
+fun NavGraphBuilder.adminSeedCoursesScreen(
+    navController: NavController
 ) {
-    // Implement admin dashboard UI
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center) {
-        Text(text = "Admin Dashboard")
-
+    composable(AdminSeedCoursesDestination.route) {
+        SeedCoursesScreen(
+            onNavigateBack = { navController.popBackStack() }
+        )
     }
+}
+
+// Extension to add all admin routes to the NavGraphBuilder
+fun NavGraphBuilder.adminScreens(
+    navController: NavController
+) {
+    composable(AdminDashboardDestination.route) {
+        AdminDashboardScreen(
+            onNavigateToUserManagement = {
+                // TODO: Navigate to user management when implemented
+            },
+            onNavigateToCourseManagement = {
+                navController.navigateToAdminCourseManagement()
+            },
+            onNavigateToSeedCourses = {
+                navController.navigateToAdminSeedCourses()
+            },
+            onNavigateToReports = {
+                // TODO: Navigate to reports when implemented
+            },
+            onNavigateToUserDetails = { userId ->
+                // TODO: Navigate to user details when implemented
+            },
+            onNavigateToCourseDetails = { courseId ->
+                // TODO: Navigate to course details when implemented
+            }
+        ) {
+            navController.popBackStack()
+        }
+    }
+
+    adminCourseManagementScreen(
+        navController = navController,
+        onEditCourse = { courseId ->
+            // TODO: Navigate to course edit screen when implemented
+        }
+    )
+
+    adminSeedCoursesScreen(
+        navController = navController
+    )
 }
