@@ -16,13 +16,12 @@ import androidx.navigation.navArgument
 import com.smartattendance.android.MainViewModel
 import com.smartattendance.android.NavigationEvent
 import com.smartattendance.android.domain.repository.UserPreferencesRepository
-import com.smartattendance.android.feature.admin.dashboard.AdminDashboardDestination
 import com.smartattendance.android.feature.admin.dashboard.AdminDashboardScreen
 import com.smartattendance.android.feature.auth.login.LoginScreen
 import com.smartattendance.android.feature.auth.signup.SignUpScreen
 import com.smartattendance.android.feature.auth.signup.SignUpViewModel
+import com.smartattendance.android.feature.lecturer.createsession.CreateAttendanceSessionScreen
 import com.smartattendance.android.feature.lecturer.dashboard.LecturerDashboardScreen
-import com.smartattendance.android.feature.onboarding.selectusertype.SelectUserTypeDestination
 import com.smartattendance.android.feature.onboarding.selectusertype.SelectUserTypeScreen
 import com.smartattendance.android.feature.onboarding.selectusertype.UserType
 import com.smartattendance.android.feature.student.dashboard.StudentDashboardScreen
@@ -99,8 +98,6 @@ fun MainNavHost(
         ) {
             LoginScreen(
                 onNavigateToSignUp = {
-                    // In this approach, we don't navigate to SignUp from Login anymore with userType.
-                    // If you need to, consider navigating back to SelectUserType first, or rethinking the flow.
                     navController.navigate(SelectUserTypeDestination.route)
                 },
                 onNavigateToDashboard = { userType ->
@@ -163,27 +160,18 @@ fun MainNavHost(
             }
         }
 
-
+        // Student flows
         composable(StudentDashboardDestination.route) {
             StudentDashboardScreen(
                 onNavigateToScanQr = {
-//                    navController.navigateTo
+//                    navController.navigateToScanQr()
                 },
                 onNavigateToHistory = {
 //                    navController.navigateToAttendanceHistory()
+                },
+                onNavigateToProfile = {
+                    // TODO: Navigate to profile
                 }
-            )
-        }
-
-        composable(AdminDashboardDestination.route) {
-            AdminDashboardScreen(
-                onNavigateBack = {}
-            )
-        }
-
-        composable(LecturerDashboardDestination.route) {
-            LecturerDashboardScreen(
-                onNavigateBack = {}
             )
         }
 
@@ -198,6 +186,70 @@ fun MainNavHost(
         composable(AttendanceHistoryDestination.route) {
             StudentAttendanceHistoryScreen(
                 onBackClicked = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        // Lecturer flows
+        composable(LecturerDashboardDestination.route) {
+            LecturerDashboardScreen(
+                onNavigateToCreateSession = { courseId ->
+                    navController.navigate("${CreateSessionDestination.route}/$courseId")
+                },
+                onNavigateToSessionDetail = { sessionId ->
+                    // TODO: Navigate to session detail
+                },
+                onNavigateToProfile = {
+                    // TODO: Navigate to profile
+                },
+                onNavigateToAttendanceReport = { courseId ->
+                    // TODO: Navigate to attendance report
+                },
+//                onNavigateBack = {
+//                    navController.popBackStack()
+//                }
+            )
+        }
+
+        composable(
+            route = "${CreateSessionDestination.route}/{courseId}",
+            arguments = listOf(
+                navArgument("courseId") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val courseId = backStackEntry.arguments?.getString("courseId") ?: ""
+
+            CreateAttendanceSessionScreen(
+//                courseId = courseId,
+//                onSessionCreated = {
+//                    navController.popBackStack()
+//                },
+//                onNavigateBack = {
+//                    navController.popBackStack()
+//                }
+            )
+        }
+
+        // Admin flows
+        composable(AdminDashboardDestination.route) {
+            AdminDashboardScreen(
+                onNavigateToUserManagement = {
+                    // TODO: Navigate to user management
+                },
+                onNavigateToCourseManagement = {
+                    // TODO: Navigate to course management
+                },
+                onNavigateToReports = {
+                    // TODO: Navigate to reports
+                },
+                onNavigateToUserDetails = { userId ->
+                    // TODO: Navigate to user details
+                },
+                onNavigateToCourseDetails = { courseId ->
+                    // TODO: Navigate to course details
+                },
+                onNavigateBack = {
                     navController.popBackStack()
                 }
             )

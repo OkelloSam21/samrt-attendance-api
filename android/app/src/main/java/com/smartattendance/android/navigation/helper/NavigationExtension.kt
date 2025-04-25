@@ -89,7 +89,10 @@ fun NavGraphBuilder.lecturerDashboardScreen(
 ) {
     composable<LecturerDashboardDestination> {
         LecturerDashboardScreen(
-            onNavigateBack = { navController.navigateUp() }
+            onNavigateToProfile = {},
+            onNavigateToCreateSession = {},
+            onNavigateToSessionDetail = {},
+            onNavigateToAttendanceReport = {}
         )
     }
 }
