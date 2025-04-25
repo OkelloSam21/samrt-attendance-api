@@ -3,6 +3,7 @@ package com.smartattendance.android.navigation
 import com.smartattendance.android.feature.onboarding.selectusertype.UserType
 import kotlinx.serialization.Serializable
 
+// Authentication Destinations
 object SelectUserTypeDestination {
     const val route = "select_user_type"
 }
@@ -18,16 +19,9 @@ object SignUpDestination {
     fun createRoute(userType: UserType): String = "sign_up/${userType.name}"
 }
 
+// Student Destinations
 object StudentDashboardDestination {
     const val route = "student_dashboard"
-}
-
-object LecturerDashboardDestination {
-    const val route = "lecturer_dashboard"
-}
-
-object AdminDashboardDestination {
-    const val route = "admin_dashboard"
 }
 
 object ScanQrDestination {
@@ -37,6 +31,59 @@ object ScanQrDestination {
 object AttendanceHistoryDestination {
     const val route = "attendance_history"
 }
-@Serializable
-object CreateSessionDestination
 
+// Lecturer Destinations
+object LecturerDashboardDestination {
+    const val route = "lecturer_dashboard"
+}
+
+@Serializable
+object CreateSessionDestination {
+    const val route = "create_session"
+}
+
+object SessionDetailDestination {
+    const val route = "session_detail/{sessionId}"
+
+    fun createRoute(sessionId: String): String = "session_detail/$sessionId"
+}
+
+object AttendanceReportDestination {
+    const val route = "attendance_report/{courseId}"
+
+    fun createRoute(courseId: String): String = "attendance_report/$courseId"
+}
+
+// Admin Destinations
+object AdminDashboardDestination {
+    const val route = "admin_dashboard"
+}
+
+object UserManagementDestination {
+    const val route = "user_management"
+}
+
+object CourseManagementDestination {
+    const val route = "course_management"
+}
+
+object ReportsDestination {
+    const val route = "reports"
+}
+
+object UserDetailsDestination {
+    const val route = "user_details/{userId}"
+
+    fun createRoute(userId: String): String = "user_details/$userId"
+}
+
+object CourseDetailsDestination {
+    const val route = "course_details/{courseId}"
+
+    fun createRoute(courseId: String): String = "course_details/$courseId"
+}
+
+// Shared Destinations
+object ProfileDestination {
+    const val route = "profile"
+}
