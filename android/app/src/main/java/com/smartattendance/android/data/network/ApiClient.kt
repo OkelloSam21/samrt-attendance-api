@@ -1,19 +1,7 @@
 package com.smartattendance.android.data.network
 
 import android.util.Log
-import com.smartattendance.android.data.network.model.AttendanceResponse
-import com.smartattendance.android.data.network.model.AttendanceSession
-import com.smartattendance.android.data.network.model.AttendanceSessionRequest
-import com.smartattendance.android.data.network.model.CourseRequest
-import com.smartattendance.android.data.network.model.CourseResponse
-import com.smartattendance.android.data.network.model.CourseUpdateRequest
-import com.smartattendance.android.data.network.model.LoginRequest
-import com.smartattendance.android.data.network.model.LoginResponse
-import com.smartattendance.android.data.network.model.MarkAttendanceRequest
-import com.smartattendance.android.data.network.model.QrCodeResponse
-import com.smartattendance.android.data.network.model.RefreshTokenRequest
-import com.smartattendance.android.data.network.model.SignUpResponse
-import com.smartattendance.android.data.network.model.UserProfileResponse
+import com.smartattendance.android.data.network.model.*
 import com.smartattendance.android.data.network.util.ApiResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -29,7 +17,6 @@ import io.ktor.http.contentType
 import kotlinx.serialization.json.Json
 import javax.inject.Inject
 import javax.inject.Singleton
-
 
 @Singleton
 class ApiClient @Inject constructor(
@@ -149,6 +136,30 @@ class ApiClient @Inject constructor(
         }
     }
 
+    suspend fun createUser(createUserRequest: CreateUserRequest): ApiResponse<UserProfileResponse> {
+        return try {
+            val response = httpClient.post("/users") {
+                contentType(ContentType.Application.Json)
+                setBody(createUserRequest)
+            }
+            ApiResponse.Success(response.body())
+        } catch (e: Exception) {
+            ApiResponse.Error(e.message ?: "Unknown error occurred")
+        }
+    }
+
+    suspend fun updateUser(userId: String, updateProfileRequest: UpdateProfileRequest): ApiResponse<UserProfileResponse> {
+        return try {
+            val response = httpClient.put("/users/$userId") {
+                contentType(ContentType.Application.Json)
+                setBody(updateProfileRequest)
+            }
+            ApiResponse.Success(response.body())
+        } catch (e: Exception) {
+            ApiResponse.Error(e.message ?: "Unknown error occurred")
+        }
+    }
+
     suspend fun deleteUser(userId: String): ApiResponse<Unit> {
         return try {
             httpClient.delete("/users/delete/$userId")
@@ -161,7 +172,7 @@ class ApiClient @Inject constructor(
     // Course endpoints
     suspend fun createCourse(courseRequest: CourseRequest): ApiResponse<CourseResponse> {
         return try {
-            val response = httpClient.post("/courses/create") {
+            val response = httpClient.post("/courses") {
                 contentType(ContentType.Application.Json)
                 setBody(courseRequest)
             }
@@ -194,9 +205,23 @@ class ApiClient @Inject constructor(
         updateRequest: CourseUpdateRequest
     ): ApiResponse<CourseResponse> {
         return try {
-            val response = httpClient.put("/courses/update/$courseId") {
+            val response = httpClient.put("/courses/$courseId") {
                 contentType(ContentType.Application.Json)
                 setBody(updateRequest)
+            }
+            ApiResponse.Success(response.body())
+        } catch (e: Exception) {
+            ApiResponse.Error(e.message ?: "Unknown error occurred")
+        }
+    }
+
+    suspend fun assignLecturerToCourse(
+        courseId: String,
+        lecturerId: String
+    ): ApiResponse<CourseResponse> {
+        return try {
+            val response = httpClient.put("/courses/$courseId/lecturer/$lecturerId") {
+                contentType(ContentType.Application.Json)
             }
             ApiResponse.Success(response.body())
         } catch (e: Exception) {
@@ -226,9 +251,9 @@ class ApiClient @Inject constructor(
         }
     }
 
-    suspend fun getQrCodeForSession(): ApiResponse<QrCodeResponse> {
+    suspend fun getQrCodeForSession(sessionId: String): ApiResponse<QrCodeResponse> {
         return try {
-            val response = httpClient.get("/attendance/sessions/qr")
+            val response = httpClient.get("/attendance/sessions/$sessionId/qr")
             ApiResponse.Success(response.body())
         } catch (e: Exception) {
             ApiResponse.Error(e.message ?: "Unknown error occurred")
@@ -246,4 +271,28 @@ class ApiClient @Inject constructor(
             ApiResponse.Error(e.message ?: "Unknown error occurred")
         }
     }
+
+    // Additional endpoints for batch seeding of courses
+    suspend fun seedCourses(seedCoursesRequest: SeedCoursesRequest): ApiResponse<SeedCoursesResponse> {
+        return try {
+            val response = httpClient.post("/admin/seed/courses") {
+                contentType(ContentType.Application.Json)
+                setBody(seedCoursesRequest)
+            }
+            ApiResponse.Success(response.body())
+        } catch (e: Exception) {
+            ApiResponse.Error(e.message ?: "Unknown error occurred")
+        }
+    }
 }
+
+// New data model for batch seeding courses
+data class SeedCoursesRequest(
+    val courses: List<CourseRequest>
+)
+
+data class SeedCoursesResponse(
+    val success: Boolean,
+    val coursesCreated: Int,
+    val message: String
+)
