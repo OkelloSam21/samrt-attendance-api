@@ -14,7 +14,7 @@ interface AttendanceRepository {
         radiusMeters: Int? = null
     ): Result<AttendanceSession>
     
-    suspend fun getQrCodeForLatestSession(): Result<String>
+    suspend fun getQrCodeForLatestSession(sessionId: String): Result<String>
     
     suspend fun markAttendance(
         sessionCode: String,

@@ -75,8 +75,8 @@ class AttendanceRepositoryImpl @Inject constructor(
     }
 
     // Get QR code for latest session
-    override suspend fun getQrCodeForLatestSession(): Result<String> {
-        return when (val response = apiClient.getQrCodeForSession()) {
+    override suspend fun getQrCodeForLatestSession(sessionId: String): Result<String> {
+        return when (val response = apiClient.getQrCodeForSession(sessionId)) {
             is ApiResponse.Success -> {
                 Result.success(response.data.qrCodeData)
             }
