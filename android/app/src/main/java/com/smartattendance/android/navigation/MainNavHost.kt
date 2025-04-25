@@ -16,7 +16,6 @@ import androidx.navigation.navArgument
 import com.smartattendance.android.MainViewModel
 import com.smartattendance.android.NavigationEvent
 import com.smartattendance.android.domain.repository.UserPreferencesRepository
-import com.smartattendance.android.feature.admin.dashboard.AdminDashboardScreen
 import com.smartattendance.android.feature.auth.login.LoginScreen
 import com.smartattendance.android.feature.auth.signup.SignUpScreen
 import com.smartattendance.android.feature.auth.signup.SignUpViewModel
@@ -107,7 +106,10 @@ fun MainNavHost(
                         UserType.ADMIN -> AdminDashboardDestination.route
                     }
                     coroutineScope.launch {
-                        navController.navigateToDashboardIfAuthorized(userPreferencesRepository, destination)
+                        navController.navigateToDashboardIfAuthorized(
+                            userPreferencesRepository,
+                            destination
+                        )
                     }
                 },
                 onNavigateToForgotPassword = {}
@@ -130,7 +132,7 @@ fun MainNavHost(
             if (userType != null) {
                 val signUpViewModel: SignUpViewModel = hiltViewModel()
 
-                LaunchedEffect (userType) {
+                LaunchedEffect(userType) {
                     signUpViewModel.setUserType(userType)
                     userPreferencesRepository.saveSelectedUserType(userType.name)
                 }
@@ -147,7 +149,10 @@ fun MainNavHost(
 
                         coroutineScope.launch {
                             Log.d("SignUpScreen", "Destination : $destination")
-                            navController.navigateToDashboardIfAuthorized(userPreferencesRepository, destination)
+                            navController.navigateToDashboardIfAuthorized(
+                                userPreferencesRepository,
+                                destination
+                            )
                         }
                     },
                     onLoginClicked = {
@@ -232,27 +237,6 @@ fun MainNavHost(
         }
 
         // Admin flows
-        composable(AdminDashboardDestination.route) {
-            AdminDashboardScreen(
-                onNavigateToUserManagement = {
-                    // TODO: Navigate to user management
-                },
-                onNavigateToCourseManagement = {
-                    // TODO: Navigate to course management
-                },
-                onNavigateToReports = {
-                    // TODO: Navigate to reports
-                },
-                onNavigateToUserDetails = { userId ->
-                    // TODO: Navigate to user details
-                },
-                onNavigateToCourseDetails = { courseId ->
-                    // TODO: Navigate to course details
-                },
-                onNavigateBack = {
-                    navController.popBackStack()
-                }
-            )
-        }
-    }
+        adminScreens(navController)
+}
 }

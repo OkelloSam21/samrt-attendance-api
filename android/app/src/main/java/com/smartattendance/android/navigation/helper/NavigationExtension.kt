@@ -5,12 +5,12 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import com.smartattendance.android.domain.repository.UserPreferencesRepository
-import com.smartattendance.android.feature.admin.dashboard.AdminDashboardDestination
 import com.smartattendance.android.feature.lecturer.createsession.CreateAttendanceSessionScreen
 import com.smartattendance.android.feature.lecturer.dashboard.LecturerDashboardScreen
 import com.smartattendance.android.feature.onboarding.selectusertype.SelectUserTypeDestination
 import com.smartattendance.android.feature.onboarding.selectusertype.UserType
 import com.smartattendance.android.feature.student.dashboard.StudentDashboardScreen
+import com.smartattendance.android.navigation.AdminDashboardDestination
 import com.smartattendance.android.navigation.CreateSessionDestination
 import com.smartattendance.android.navigation.LecturerDashboardDestination
 import com.smartattendance.android.navigation.LoginDestination
