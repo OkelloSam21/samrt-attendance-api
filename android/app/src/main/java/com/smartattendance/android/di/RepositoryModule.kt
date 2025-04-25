@@ -1,14 +1,15 @@
 package com.smartattendance.android.di
 
-
 import com.smartattendance.android.data.repository.AttendanceRepositoryImpl
 import com.smartattendance.android.data.repository.AuthRepositoryImpl
 import com.smartattendance.android.data.repository.CourseRepositoryImpl
 import com.smartattendance.android.data.repository.UserPreferencesRepositoryImpl
+import com.smartattendance.android.data.repository.UserRepositoryImpl
 import com.smartattendance.android.domain.repository.AttendanceRepository
 import com.smartattendance.android.domain.repository.AuthRepository
 import com.smartattendance.android.domain.repository.CourseRepository
 import com.smartattendance.android.domain.repository.UserPreferencesRepository
+import com.smartattendance.android.domain.repository.UserRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -42,4 +43,10 @@ abstract class RepositoryModule {
     abstract fun bindAttendanceRepository(
         attendanceRepositoryImpl: AttendanceRepositoryImpl
     ): AttendanceRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindUserRepository(
+        userRepositoryImpl: UserRepositoryImpl
+    ): UserRepository
 }
