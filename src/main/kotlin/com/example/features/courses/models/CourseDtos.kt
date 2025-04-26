@@ -102,3 +102,23 @@ data class CourseEnrollmentDto(
     val courseId: String,
     val studentId: String
 )
+
+/**
+ * Admin course creation request DTO
+ */
+@Serializable
+data class AdminCourseCreateRequest(
+    val name: String,
+    val lecturerId: String? = null,
+    val schedules: List<CreateScheduleRequest>? = null
+)
+
+/**
+ * Lecturer DTO for listing available lecturers
+ */
+@Serializable
+data class LecturerDto(
+    val id: String,
+    val name: String,
+    val email: String
+)

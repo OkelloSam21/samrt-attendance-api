@@ -5,6 +5,7 @@ import com.example.common.responses.success
 import com.example.common.responses.successMessage
 import com.example.di.AppInjector
 import com.example.domain.models.UserRole
+import com.example.features.courses.models.AdminCourseCreateRequest
 import com.example.features.courses.models.CreateCourseRequest
 import com.example.features.courses.models.UpdateCourseRequest
 import io.ktor.http.*
@@ -155,6 +156,54 @@ fun Routing.configureCourseRoutes() {
                 val courses = courseService.getCoursesForStudent(studentId)
 
                 call.respond(success(courses))
+            }
+
+            // Admin-specific routes
+            route("/admin") {
+                // Get all available lecturers (Admin only)
+                get("/lecturers") {
+                    roleAuthorization.requireAdmin(call)
+
+                    val lecturers = courseService.getAvailableLecturers()
+                    call.respond(success(lecturers))
+                }
+
+                // Admin create course with optional lecturer assignment
+                post("/create") {
+                    val userId = roleAuthorization.getUserId(call)
+                    roleAuthorization.requireAdmin(call)
+
+                    val request = call.receive<AdminCourseCreateRequest>()
+                    val createdCourse = courseService.adminCreateCourse(UUID.fromString(userId), request)
+
+                    call.respond(HttpStatusCode.Created, success(createdCourse))
+                }
+
+                // Admin assign lecturer to course
+                post("/assign-lecturer/{courseId}/{lecturerId}") {
+                    val userId = roleAuthorization.getUserId(call)
+                    roleAuthorization.requireAdmin(call)
+
+                    val courseId = call.parameters["courseId"]?.let {
+                        try {
+                            UUID.fromString(it)
+                        } catch (e: IllegalArgumentException) {
+                            null
+                        }
+                    } ?: throw IllegalArgumentException("Invalid course ID format")
+
+                    val lecturerId = call.parameters["lecturerId"]?.let {
+                        try {
+                            UUID.fromString(it)
+                        } catch (e: IllegalArgumentException) {
+                            null
+                        }
+                    } ?: throw IllegalArgumentException("Invalid lecturer ID format")
+
+                    val updatedCourse = courseService.adminAssignLecturerToCourse(UUID.fromString(userId), courseId, lecturerId)
+
+                    call.respond(success(updatedCourse))
+                }
             }
         }
     }

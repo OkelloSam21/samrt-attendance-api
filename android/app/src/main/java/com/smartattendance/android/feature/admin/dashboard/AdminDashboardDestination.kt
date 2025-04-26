@@ -72,9 +72,7 @@ fun NavGraphBuilder.adminScreens(
             onNavigateToCourseDetails = { courseId ->
                 // TODO: Navigate to course details when implemented
             }
-        ) {
-            navController.popBackStack()
-        }
+        )
     }
 
     adminCourseManagementScreen(

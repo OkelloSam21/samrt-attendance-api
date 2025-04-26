@@ -14,6 +14,7 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -287,10 +288,12 @@ class ApiClient @Inject constructor(
 }
 
 // New data model for batch seeding courses
+@Serializable
 data class SeedCoursesRequest(
     val courses: List<CourseRequest>
 )
 
+@Serializable
 data class SeedCoursesResponse(
     val success: Boolean,
     val coursesCreated: Int,

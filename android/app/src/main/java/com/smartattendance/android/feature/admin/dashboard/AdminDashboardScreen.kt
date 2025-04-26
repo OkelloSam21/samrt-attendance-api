@@ -28,7 +28,6 @@ fun AdminDashboardScreen(
     onNavigateToReports: () -> Unit,
     onNavigateToUserDetails: (String) -> Unit,
     onNavigateToCourseDetails: (String) -> Unit,
-    onNavigateBack: () -> Unit = {}
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var selectedTab by remember { mutableStateOf(AdminDashboardTab.OVERVIEW) }
@@ -77,6 +76,7 @@ fun AdminDashboardScreen(
                         onRefresh = { viewModel.loadDashboardData() },
                         onUserManagementClick = onNavigateToUserManagement,
                         onCourseManagementClick = onNavigateToCourseManagement,
+                        onNavigateToSeedCourses = onNavigateToSeedCourses,
                         onReportsClick = onNavigateToReports
                     )
                 }
@@ -109,6 +109,7 @@ fun OverviewTab(
     onRefresh: () -> Unit,
     onUserManagementClick: () -> Unit,
     onCourseManagementClick: () -> Unit,
+    onNavigateToSeedCourses: () -> Unit,
     onReportsClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -165,6 +166,15 @@ fun OverviewTab(
                         modifier = Modifier.weight(1f)
                     )
                 }
+            }
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
+                ActionCard(
+                    icon = Icons.Default.Add,
+                    title = "Seed Courses",
+                    onClick = onNavigateToSeedCourses,
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
 
             item {

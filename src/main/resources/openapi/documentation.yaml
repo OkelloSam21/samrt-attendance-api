@@ -477,6 +477,146 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+
+  /courses/admin/lecturers:
+    get:
+      tags:
+        - Courses
+      summary: Get all available lecturers
+      description: Get a list of all available lecturers in the system (Admin only)
+      security:
+        - bearerAuth: [ ]
+      responses:
+        "200":
+          description: Lecturers retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                data:
+                  - id: "123e4567-e89b-12d3-a456-426614174000"
+                    name: "John Lecturer"
+                    email: "john@example.com"
+                  - id: "223e4567-e89b-12d3-a456-426614174001"
+                    name: "Jane Lecturer"
+                    email: "jane@example.com"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: Forbidden - Admin access required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /courses/admin/create:
+    post:
+        tags:
+          - Courses
+        summary: Create a course as admin
+        description: Create a new course with optional lecturer assignment (Admin only)
+        security:
+          - bearerAuth: [ ]
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminCourseCreateRequest'
+        responses:
+          "201":
+            description: Course created successfully
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/SuccessResponse'
+          "400":
+            description: Bad Request - Invalid data
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ErrorResponse'
+          "401":
+            description: Unauthorized
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ErrorResponse'
+          "403":
+            description: Forbidden - Admin access required
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ErrorResponse'
+          "404":
+            description: Lecturer not found
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ErrorResponse'
+
+  /courses/admin/assign-lecturer/{courseId}/{lecturerId}:
+    post:
+      tags:
+        - Courses
+      summary: Assign lecturer to course
+      description: Assign a lecturer to an existing course (Admin only)
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Course ID
+        - name: lecturerId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Lecturer ID
+      responses:
+        "200":
+          description: Lecturer assigned successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        "400":
+          description: Bad Request - Invalid ID format or user is not a lecturer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: Forbidden - Admin access required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Course or lecturer not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+
   /courses/{id}:
     get:
       tags:
@@ -2212,6 +2352,41 @@ components:
           type: string
           example: "Updated Course Name"
           nullable: true
+
+    AdminCourseCreateRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          example: "Introduction to Computer Science"
+        lecturerId:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+          nullable: true
+          description: "Optional lecturer ID to assign to the course"
+        schedules:
+          type: array
+          items:
+            $ref: '#/components/schemas/CreateScheduleRequest'
+          nullable: true
+
+      LecturerDto:
+        type: object
+        properties:
+          id:
+            type: string
+            format: uuid
+            example: "123e4567-e89b-12d3-a456-426614174000"
+          name:
+            type: string
+            example: "John Lecturer"
+          email:
+            type: string
+            format: email
+            example: "john@example.com"
 
     # Attendance schemas
     CreateSessionRequest:

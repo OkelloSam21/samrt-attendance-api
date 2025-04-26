@@ -6,10 +6,7 @@ import com.example.common.exceptions.NotFoundException
 import com.example.domain.models.Course
 import com.example.domain.models.CourseSchedule
 import com.example.domain.models.UserRole
-import com.example.features.courses.models.CourseResponseDto
-import com.example.features.courses.models.CourseScheduleDto
-import com.example.features.courses.models.CreateCourseRequest
-import com.example.features.courses.models.UpdateCourseRequest
+import com.example.features.courses.models.*
 import com.example.features.courses.repositories.CourseRepository
 import com.example.features.courses.repositories.CourseScheduleRepository
 import com.example.features.users.repositories.UserRepository
@@ -36,6 +33,11 @@ interface CourseService {
     suspend fun createCourse(lecturerId: UUID, request: CreateCourseRequest): CourseResponseDto
     suspend fun updateCourse(id: UUID, userId: UUID, userRole: UserRole, request: UpdateCourseRequest): CourseResponseDto
     suspend fun deleteCourse(id: UUID, userId: UUID, userRole: UserRole): Boolean
+
+    // New admin-specific methods
+    suspend fun adminCreateCourse(adminId: UUID, request: AdminCourseCreateRequest): CourseResponseDto
+    suspend fun adminAssignLecturerToCourse(adminId: UUID, courseId: UUID, lecturerId: UUID): CourseResponseDto
+    suspend fun getAvailableLecturers(): List<LecturerDto>
 }
 
 /**
@@ -255,5 +257,157 @@ class CourseServiceImpl @Inject constructor(
 
         // Delete course
         return courseRepository.delete(id)
+    }
+
+    /**
+     * Admin-specific method to create a course and assign a lecturer
+     */
+    override suspend fun adminCreateCourse(adminId: UUID, request: AdminCourseCreateRequest): CourseResponseDto {
+        logger.info { "Admin $adminId creating course ${request.name}" }
+
+        // Verify admin exists and has admin role
+        val admin = userRepository.getById(adminId)
+            ?: throw NotFoundException("Admin not found")
+
+        if (admin.role != UserRole.ADMIN) {
+            throw ForbiddenException("Only admins can use this endpoint")
+        }
+
+        // Validate request
+        if (request.name.isBlank()) {
+            throw BadRequestException("Course name cannot be blank")
+        }
+
+        // Verify lecturer exists if provided
+        val lecturerId = if (request.lecturerId != null) {
+            val lecturerUUID = UUID.fromString(request.lecturerId)
+            val lecturer = userRepository.getById(lecturerUUID)
+                ?: throw NotFoundException("Lecturer not found")
+
+            if (lecturer.role != UserRole.LECTURER) {
+                throw BadRequestException("Assigned user is not a lecturer")
+            }
+
+            lecturerUUID
+        } else {
+            // If no lecturer is assigned, the admin is temporarily the course owner
+            adminId
+        }
+
+        // Create course
+        val course = Course(
+            id = UUID.randomUUID(),
+            name = request.name,
+            lecturerId = lecturerId,
+            createdAt = Instant.now()
+        )
+
+        val createdCourse = courseRepository.create(course)
+        logger.info { "Admin created course with ID: ${createdCourse.id}" }
+
+        // Create schedules if provided
+        val schedules = request.schedules?.mapNotNull { scheduleRequest ->
+            try {
+                val dayOfWeek = DayOfWeek.valueOf(scheduleRequest.dayOfWeek.uppercase()).value
+                val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
+                val startTime = LocalTime.parse(scheduleRequest.startTime, timeFormatter)
+                val endTime = LocalTime.parse(scheduleRequest.endTime, timeFormatter)
+
+                val schedule = CourseSchedule(
+                    id = UUID.randomUUID(),
+                    courseId = createdCourse.id,
+                    dayOfWeek = dayOfWeek,
+                    startTime = startTime,
+                    endTime = endTime,
+                    roomNumber = scheduleRequest.roomNumber,
+                    meetingLink = scheduleRequest.meetingLink
+                )
+
+                courseScheduleRepository.create(schedule)
+                CourseScheduleDto.fromCourseSchedule(schedule)
+            } catch (e: IllegalArgumentException) {
+                logger.warn { "Invalid day of week: ${scheduleRequest.dayOfWeek}" }
+                null
+            } catch (e: DateTimeParseException) {
+                logger.warn { "Invalid time format: ${e.message}" }
+                null
+            }
+        }
+
+        // Get lecturer name
+        val lecturer = userRepository.getById(lecturerId)
+            ?: throw NotFoundException("Lecturer not found")
+
+        return CourseResponseDto.fromCourse(
+            course = createdCourse,
+            lecturerName = lecturer.name,
+            schedules = schedules
+        )
+    }
+
+    /**
+     * Admin-specific method to assign a lecturer to a course
+     */
+    override suspend fun adminAssignLecturerToCourse(adminId: UUID, courseId: UUID, lecturerId: UUID): CourseResponseDto {
+        logger.info { "Admin $adminId assigning lecturer $lecturerId to course $courseId" }
+
+        // Verify admin exists and has admin role
+        val admin = userRepository.getById(adminId)
+            ?: throw NotFoundException("Admin not found")
+
+        if (admin.role != UserRole.ADMIN) {
+            throw ForbiddenException("Only admins can use this endpoint")
+        }
+
+        // Verify course exists
+        val course = courseRepository.getById(courseId)
+            ?: throw NotFoundException("Course not found")
+
+        // Verify lecturer exists
+        val lecturer = userRepository.getById(lecturerId)
+            ?: throw NotFoundException("Lecturer not found")
+
+        if (lecturer.role != UserRole.LECTURER) {
+            throw BadRequestException("Assigned user is not a lecturer")
+        }
+
+        // Update course with new lecturer
+        val updatedCourse = course.copy(
+            lecturerId = lecturerId
+        )
+
+        if (!courseRepository.update(updatedCourse)) {
+            throw Exception("Failed to update course")
+        }
+
+        logger.info { "Admin assigned lecturer $lecturerId to course $courseId" }
+
+        // Get schedules
+        val schedules = courseScheduleRepository.getByCourseId(courseId)
+            .map { CourseScheduleDto.fromCourseSchedule(it) }
+
+        return CourseResponseDto.fromCourse(
+            course = updatedCourse,
+            lecturerName = lecturer.name,
+            schedules = schedules
+        )
+    }
+
+    /**
+     * Get all available lecturers in the system
+     */
+    override suspend fun getAvailableLecturers(): List<LecturerDto> {
+        logger.info { "Getting all available lecturers" }
+
+        // Get all users with LECTURER role
+        return userRepository.getAll()
+            .filter { it.role == UserRole.LECTURER }
+            .map { lecturer ->
+                LecturerDto(
+                    id = lecturer.id.toString(),
+                    name = lecturer.name,
+                    email = lecturer.email
+                )
+            }
     }
 }
