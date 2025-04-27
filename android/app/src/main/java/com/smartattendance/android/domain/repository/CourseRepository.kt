@@ -1,5 +1,7 @@
 package com.smartattendance.android.domain.repository
 
+import com.smartattendance.android.data.network.model.LecturerDto
+import com.smartattendance.android.data.network.model.ScheduleRequest
 import com.smartattendance.android.domain.model.Course
 import kotlinx.coroutines.flow.Flow
 
@@ -17,12 +19,12 @@ interface CourseRepository {
     /**
      * Get courses taught by a specific lecturer
      */
-    fun getCoursesByLecturerId(lecturerId: String): Flow<List<Course>>
+    suspend fun getCoursesByLecturerId(lecturerId: String): Flow<List<Course>>
 
     /**
      * Create a new course
      */
-    suspend fun createCourse(name: String): Result<Course>
+    suspend fun createCourse(name: String, lecturerId: String, schedules: List<ScheduleRequest>): Result<Course>
 
     /**
      * Update a course
@@ -50,7 +52,12 @@ interface CourseRepository {
     suspend fun deleteCourse(courseId: String): Result<Unit>
 
     /**
-     * Seed the database with a batch of courses
+     * Admin-specific: Create a course with optional lecturer assignment
      */
-    suspend fun seedCourses(courses: List<String>): Result<Int>
+    suspend fun adminCreateCourse(name: String, lecturerId: String? = null, schedules: List<ScheduleRequest> = emptyList()): Result<Course>
+
+    /**
+     * Admin-specific: Get all available lecturers
+     */
+    suspend fun getAvailableLecturers(): Result<List<LecturerDto>>
 }

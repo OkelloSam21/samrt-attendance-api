@@ -4,10 +4,14 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -128,9 +132,10 @@ fun CourseManagementScreen(
             // Add Course Dialog
             if (showAddCourseDialog) {
                 AddCourseDialog(
+                    lecturers = state.lecturers,
                     onDismiss = { showAddCourseDialog = false },
-                    onConfirm = { courseName ->
-                        viewModel.createCourse(courseName)
+                    onConfirm = { courseName, lecturerId, schedules ->
+                        viewModel.createCourse(courseName, lecturerId, schedules)
                         showAddCourseDialog = false
                     }
                 )
@@ -232,47 +237,155 @@ fun CourseCard(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddCourseDialog(
+    lecturers: List<LecturerUiModel>,
     onDismiss: () -> Unit,
-    onConfirm: (String) -> Unit
+    onConfirm: (String, String?, List<ScheduleUiModel>) -> Unit
 ) {
     var courseName by remember { mutableStateOf("") }
-    var isError by remember { mutableStateOf(false) }
+    var selectedLecturerId by remember { mutableStateOf<String?>(null) }
+    var schedules by remember { mutableStateOf(listOf<ScheduleUiModel>()) }
+    var isCourseNameError by remember { mutableStateOf(false) }
+    var isLecturerExpanded by remember { mutableStateOf(false) }
+    var showAddScheduleDialog by remember { mutableStateOf(false) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Add New Course") },
         text = {
-            Column {
-                Text(
-                    text = "Enter course name:",
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-                
+            Column(
+                modifier = Modifier.verticalScroll(rememberScrollState())
+            ) {
+                // Course Name
                 OutlinedTextField(
                     value = courseName,
-                    onValueChange = { 
+                    onValueChange = {
                         courseName = it
-                        isError = it.isBlank()
+                        isCourseNameError = it.isBlank()
                     },
                     label = { Text("Course Name") },
-                    isError = isError,
+                    isError = isCourseNameError,
                     supportingText = {
-                        if (isError) {
+                        if (isCourseNameError) {
                             Text("Course name cannot be empty")
                         }
                     },
                     modifier = Modifier.fillMaxWidth()
                 )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Lecturer Selection
+                ExposedDropdownMenuBox(
+                    expanded = isLecturerExpanded,
+                    onExpandedChange = { isLecturerExpanded = !isLecturerExpanded },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    OutlinedTextField(
+                        value = lecturers.find { it.id == selectedLecturerId }?.name ?: "Select Lecturer (Optional)",
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Lecturer") },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isLecturerExpanded) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .menuAnchor()
+                    )
+
+                    ExposedDropdownMenu(
+                        expanded = isLecturerExpanded,
+                        onDismissRequest = { isLecturerExpanded = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("No Lecturer") },
+                            onClick = {
+                                selectedLecturerId = null
+                                isLecturerExpanded = false
+                            }
+                        )
+                        lecturers.forEach { lecturer ->
+                            DropdownMenuItem(
+                                text = { Text(lecturer.name) },
+                                onClick = {
+                                    selectedLecturerId = lecturer.id
+                                    isLecturerExpanded = false
+                                }
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Schedules Section
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Schedules",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+
+                    OutlinedButton(
+                        onClick = { showAddScheduleDialog = true }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = "Add Schedule"
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("Add Schedule")
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                if (schedules.isEmpty()) {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant
+                        )
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "No schedules added yet.",
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+                    }
+                } else {
+                    schedules.forEachIndexed { index, schedule ->
+                        ScheduleItem(
+                            schedule = schedule,
+                            onDelete = {
+                                schedules = schedules.filterIndexed { i, _ -> i != index }
+                            },
+                            onUpdate = { updatedSchedule ->
+                                schedules = schedules.toMutableList().also {
+                                    it[index] = updatedSchedule
+                                }
+                            }
+                        )
+                    }
+                }
             }
         },
         confirmButton = {
             Button(
-                onClick = { 
+                onClick = {
                     if (courseName.isNotBlank()) {
-                        onConfirm(courseName) 
+                        onConfirm(courseName, selectedLecturerId, schedules)
                     } else {
-                        isError = true
+                        isCourseNameError = courseName.isBlank()
                     }
                 }
             ) {
@@ -285,7 +398,169 @@ fun AddCourseDialog(
             }
         }
     )
+
+    // Add Schedule Dialog
+    if (showAddScheduleDialog) {
+        AddScheduleDialog(
+            onDismiss = { showAddScheduleDialog = false },
+            onConfirm = { newSchedule ->
+                schedules = schedules + newSchedule
+                showAddScheduleDialog = false
+            }
+        )
+    }
 }
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AddScheduleDialog(
+    onDismiss: () -> Unit,
+    onConfirm: (ScheduleUiModel) -> Unit
+) {
+    var day by remember { mutableStateOf("Monday") }
+    var startTime by remember { mutableStateOf("") }
+    var endTime by remember { mutableStateOf("") }
+    var roomNumber by remember { mutableStateOf("") }
+    var meetingLink by remember { mutableStateOf("") }
+
+    var isDayExpanded by remember { mutableStateOf(false) }
+    var isStartTimeError by remember { mutableStateOf(false) }
+    var isEndTimeError by remember { mutableStateOf(false) }
+
+    val days = listOf("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Add Schedule") },
+        text = {
+            Column {
+                // Day Selection
+                ExposedDropdownMenuBox(
+                    expanded = isDayExpanded,
+                    onExpandedChange = { isDayExpanded = !isDayExpanded },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    OutlinedTextField(
+                        value = day,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Day of Week") },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isDayExpanded) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .menuAnchor()
+                    )
+
+                    ExposedDropdownMenu(
+                        expanded = isDayExpanded,
+                        onDismissRequest = { isDayExpanded = false }
+                    ) {
+                        days.forEach { dayOption ->
+                            DropdownMenuItem(
+                                text = { Text(dayOption) },
+                                onClick = {
+                                    day = dayOption
+                                    isDayExpanded = false
+                                }
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Start Time
+                OutlinedTextField(
+                    value = startTime,
+                    onValueChange = {
+                        startTime = it
+                        isStartTimeError = !isValidTimeFormat(it)
+                    },
+                    label = { Text("Start Time (HH:MM)") },
+                    isError = isStartTimeError,
+                    supportingText = {
+                        if (isStartTimeError) {
+                            Text("Please enter a valid time (HH:MM)")
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // End Time
+                OutlinedTextField(
+                    value = endTime,
+                    onValueChange = {
+                        endTime = it
+                        isEndTimeError = !isValidTimeFormat(it)
+                    },
+                    label = { Text("End Time (HH:MM)") },
+                    isError = isEndTimeError,
+                    supportingText = {
+                        if (isEndTimeError) {
+                            Text("Please enter a valid time (HH:MM)")
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Room Number
+                OutlinedTextField(
+                    value = roomNumber,
+                    onValueChange = { roomNumber = it },
+                    label = { Text("Room Number (Optional)") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Meeting Link
+                OutlinedTextField(
+                    value = meetingLink,
+                    onValueChange = { meetingLink = it },
+                    label = { Text("Meeting Link (Optional)") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    if (isValidTimeFormat(startTime) && isValidTimeFormat(endTime)) {
+                        onConfirm(
+                            ScheduleUiModel(
+                                day = day,
+                                startTime = startTime,
+                                endTime = endTime,
+                                roomNumber = roomNumber,
+                                meetingLink = meetingLink
+                            )
+                        )
+                    } else {
+                        isStartTimeError = !isValidTimeFormat(startTime)
+                        isEndTimeError = !isValidTimeFormat(endTime)
+                    }
+                }
+            ) {
+                Text("Add")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
+}
+
+// Helper function to validate time format
+private fun isValidTimeFormat(time: String): Boolean {
+    return time.matches(Regex("^([01]?[0-9]|2[0-3]):[0-5][0-9]$"))
+}
+
 
 @Composable
 fun AssignLecturerDialog(
@@ -398,6 +673,170 @@ fun ErrorCard(
                 Text("Retry")
             }
         }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ScheduleItem(
+    schedule: ScheduleUiModel,
+    onDelete: () -> Unit,
+    onUpdate: (ScheduleUiModel) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val days = listOf("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "${schedule.day}: ${schedule.startTime} - ${schedule.endTime}",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+
+                Row {
+                    IconButton(onClick = { expanded = true }) {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = "Edit Schedule"
+                        )
+                    }
+
+                    IconButton(onClick = onDelete) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = "Delete Schedule"
+                        )
+                    }
+                }
+            }
+
+            if (schedule.roomNumber.isNotBlank()) {
+                Text(
+                    text = "Room: ${schedule.roomNumber}",
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+
+            if (schedule.meetingLink.isNotBlank()) {
+                Text(
+                    text = "Meeting: ${schedule.meetingLink}",
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+        }
+    }
+
+    if (expanded) {
+        AlertDialog(
+            onDismissRequest = { expanded = false },
+            title = { Text("Edit Schedule") },
+            text = {
+                Column {
+                    var day by remember { mutableStateOf(schedule.day) }
+                    var startTime by remember { mutableStateOf(schedule.startTime) }
+                    var endTime by remember { mutableStateOf(schedule.endTime) }
+                    var roomNumber by remember { mutableStateOf(schedule.roomNumber) }
+                    var meetingLink by remember { mutableStateOf(schedule.meetingLink) }
+
+                    // Day of Week
+                    ExposedDropdownMenuBox(
+                        expanded = false,
+                        onExpandedChange = {},
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        OutlinedTextField(
+                            value = day,
+                            onValueChange = { day = it },
+                            label = { Text("Day") },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // Start Time
+                    OutlinedTextField(
+                        value = startTime,
+                        onValueChange = { startTime = it },
+                        label = { Text("Start Time (HH:MM)") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // End Time
+                    OutlinedTextField(
+                        value = endTime,
+                        onValueChange = { endTime = it },
+                        label = { Text("End Time (HH:MM)") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // Room Number
+                    OutlinedTextField(
+                        value = roomNumber,
+                        onValueChange = { roomNumber = it },
+                        label = { Text("Room Number (Optional)") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // Meeting Link
+                    OutlinedTextField(
+                        value = meetingLink,
+                        onValueChange = { meetingLink = it },
+                        label = { Text("Meeting Link (Optional)") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        TextButton(onClick = { expanded = false }) {
+                            Text("Cancel")
+                        }
+
+                        Button(
+                            onClick = {
+                                onUpdate(
+                                    ScheduleUiModel(
+                                        day = day,
+                                        startTime = startTime,
+                                        endTime = endTime,
+                                        roomNumber = roomNumber,
+                                        meetingLink = meetingLink
+                                    )
+                                )
+                                expanded = false
+                            }
+                        ) {
+                            Text("Update")
+                        }
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = {}
+        )
     }
 }
 

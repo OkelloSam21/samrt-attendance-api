@@ -2,6 +2,7 @@ package com.smartattendance.android.feature.admin.coursemanagement
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.smartattendance.android.data.network.model.ScheduleRequest
 import com.smartattendance.android.domain.model.Course
 import com.smartattendance.android.domain.model.UserData
 import com.smartattendance.android.domain.repository.CourseRepository
@@ -76,7 +77,7 @@ class CourseManagementViewModel @Inject constructor(
         }
     }
 
-    fun loadLecturers() {
+    private fun loadLecturers() {
         viewModelScope.launch {
             try {
                 userRepository.getLecturers()
@@ -109,13 +110,24 @@ class CourseManagementViewModel @Inject constructor(
         }
     }
 
-    fun createCourse(name: String) {
+    fun createCourse(name: String, lecturerId: String? = null, schedules: List<ScheduleUiModel> = emptyList()) {
         _uiState.update { it.copy(isCreatingCourse = true) }
 
         viewModelScope.launch {
             try {
-                val result = courseRepository.createCourse(name)
-                
+                // Convert UI schedules to domain model
+                val schedulesList = schedules.map { schedule ->
+                    ScheduleRequest(
+                        dayOfWeek = schedule.day,
+                        startTime = schedule.startTime,
+                        endTime = schedule.endTime,
+                        roomNumber = schedule.roomNumber,
+                        meetingLink = schedule.meetingLink
+                    )
+                }
+
+                val result = courseRepository.adminCreateCourse(name, lecturerId, schedulesList)
+
                 if (result.isSuccess) {
                     loadCourses() // Refresh the course list
                     _uiState.update {
@@ -231,4 +243,12 @@ data class LecturerUiModel(
     val id: String,
     val name: String,
     val email: String
+)
+
+data class ScheduleUiModel(
+    val day: String,
+    val startTime: String,
+    val endTime: String,
+    val roomNumber: String = "",
+    val meetingLink: String = ""
 )

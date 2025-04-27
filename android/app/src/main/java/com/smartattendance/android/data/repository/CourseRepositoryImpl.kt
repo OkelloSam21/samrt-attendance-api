@@ -4,10 +4,7 @@ import android.util.Log
 import com.smartattendance.android.data.database.CourseEntity
 import com.smartattendance.android.data.database.dao.CourseDao
 import com.smartattendance.android.data.network.ApiClient
-import com.smartattendance.android.data.network.SeedCoursesRequest
-import com.smartattendance.android.data.network.model.CourseRequest
-import com.smartattendance.android.data.network.model.CourseResponse
-import com.smartattendance.android.data.network.model.CourseUpdateRequest
+import com.smartattendance.android.data.network.model.*
 import com.smartattendance.android.data.network.util.ApiResponse
 import com.smartattendance.android.domain.model.Course
 import com.smartattendance.android.domain.repository.CourseRepository
@@ -27,29 +24,80 @@ class CourseRepositoryImpl @Inject constructor(
 ) : CourseRepository {
 
     override suspend fun getAllCourses(): Flow<List<Course>> {
-        refreshCourses() // Try to refresh from network
+
+        when(val response = apiClient.getAllCourses()) {
+            is ApiResponse.Success -> {
+                val courses = response.data.map { it.toEntity() }
+                Log.e("course repository", "courses $courses")
+                courseDao.insertCourses(courses)
+            }
+            is ApiResponse.Error -> {
+                Log.e("CourseRepositoryImpl", "Failed to fetch courses: ${response.errorMessage}")
+            }
+        }
         return courseDao.getAllCourses().map { entities ->
             entities.map { it.toDomainModel() }
         }
     }
 
     override suspend fun getCourseById(courseId: String): Flow<Course?> {
-        refreshCourse(courseId) // Try to refresh from network
+        refreshCourse(courseId)
         return courseDao.getCourseById(courseId).map { entity ->
             entity?.toDomainModel()
         }
     }
 
-    override fun getCoursesByLecturerId(lecturerId: String): Flow<List<Course>> {
+    override suspend fun getCoursesByLecturerId(lecturerId: String): Flow<List<Course>> {
+        when(val response = apiClient.getCurseByLecturerId(lecturerId)) {
+            is ApiResponse.Success -> {
+                val courses = response.data.map { it.toEntity()}
+                courseDao.insertCourses(courses)
+            }
+
+            is ApiResponse.Error -> {
+                Log.e("CourseRepositoryImpl", "Failed to fetch courses: ${response.errorMessage}")
+            }
+        }
+
         return courseDao.getCoursesByLecturerId(lecturerId).map { entities ->
             entities.map { it.toDomainModel() }
         }
     }
 
-    override suspend fun createCourse(name: String): Result<Course> {
-        val request = CourseRequest(name)
+    override suspend fun createCourse(name: String, lecturerId: String, schedules: List<ScheduleRequest>): Result<Course> {
+        val request = CourseRequest(
+            name = name,
+            lecturerId = lecturerId,
+            schedules = schedules
+        )
 
         return when (val response = apiClient.createCourse(request)) {
+            is ApiResponse.Success -> {
+                if (response.data.success == true) {
+                    val courseResponse = response.data.data
+
+                    run {
+                        val courseEntity = courseResponse.firstOrNull()?.toEntity() ?: return Result.failure(Exception("Invalid course response"))
+                        courseDao.insertCourse(courseEntity)
+                        return Result.success(courseEntity.toDomainModel())
+                    }
+                } else {
+                    val errorMessage = response.data.message
+                    Result.failure(Exception(errorMessage))
+                }
+            }
+
+            is ApiResponse.Error -> {
+                Log.e("CourseRepositoryImpl", "Failed to create course: ${response.errorMessage}")
+                Result.failure(Exception(response.errorMessage))
+            }
+        }
+    }
+
+    override suspend fun adminCreateCourse(name: String, lecturerId: String?, schedules: List<ScheduleRequest>): Result<Course> {
+        val request = AdminCourseCreateRequest(name, lecturerId, schedules)
+
+        return when (val response = apiClient.adminCreateCourse(request)) {
             is ApiResponse.Success -> {
                 val courseEntity = response.data.toEntity()
                 courseDao.insertCourse(courseEntity)
@@ -57,7 +105,20 @@ class CourseRepositoryImpl @Inject constructor(
             }
 
             is ApiResponse.Error -> {
-                Log.e("CourseRepositoryImpl", "Failed to create course: ${response.errorMessage}")
+                Log.e("CourseRepositoryImpl", "Failed to create course as admin: ${response.errorMessage}")
+                Result.failure(Exception(response.errorMessage))
+            }
+        }
+    }
+
+    override suspend fun getAvailableLecturers(): Result<List<LecturerDto>> {
+        return when (val response = apiClient.getAvailableLecturers()) {
+            is ApiResponse.Success -> {
+                Result.success(response.data)
+            }
+
+            is ApiResponse.Error -> {
+                Log.e("CourseRepositoryImpl", "Failed to get available lecturers: ${response.errorMessage}")
                 Result.failure(Exception(response.errorMessage))
             }
         }
@@ -145,62 +206,6 @@ class CourseRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun seedCourses(courses: List<String>): Result<Int> {
-        val courseRequests = courses.map { CourseName ->
-            CourseRequest(CourseName)
-        }
-
-        val request = SeedCoursesRequest(courseRequests)
-
-        return when (val response = apiClient.seedCourses(request)) {
-            is ApiResponse.Success -> {
-                refreshCourses() // Refresh to get the newly created courses
-                Result.success(response.data.coursesCreated)
-            }
-            is ApiResponse.Error -> {
-                Log.e("CourseRepositoryImpl", "Failed to seed courses: ${response.errorMessage}")
-
-                // Try to create courses one by one as a fallback
-                var successCount = 0
-                for (courseName in courses) {
-                    try {
-                        val result = createCourse(courseName)
-                        if (result.isSuccess) {
-                            successCount++
-                        }
-                    } catch (e: Exception) {
-                        Log.e("CourseRepositoryImpl", "Failed to create course: $courseName", e)
-                    }
-                }
-
-                if (successCount > 0) {
-                    Result.success(successCount)
-                } else {
-                    Result.failure(Exception(response.errorMessage))
-                }
-            }
-        }
-    }
-
-    // Helper function to refresh courses from the network
-    private suspend fun refreshCourses() {
-        try {
-            when (val response = apiClient.getAllCourses()) {
-                is ApiResponse.Success -> {
-                    val courses = response.data.map { it.toEntity() }
-                    courseDao.insertCourses(courses)
-                }
-                is ApiResponse.Error -> {
-                    Log.e("CourseRepositoryImpl", "Failed to refresh courses: ${response.errorMessage}")
-                    // Continue with cached data
-                }
-            }
-        } catch (e: Exception) {
-            Log.e("CourseRepositoryImpl", "Error refreshing courses", e)
-            // Continue with cached data
-        }
-    }
-
     // Helper function to refresh a specific course from the network
     private suspend fun refreshCourse(courseId: String) {
         try {
@@ -238,7 +243,7 @@ class CourseRepositoryImpl @Inject constructor(
             name = name,
             lecturerId = lecturerId,
             lecturerName = lecturerName,
-            createdAt = createdAt
+            createdAt = createdAt,
         )
     }
 
