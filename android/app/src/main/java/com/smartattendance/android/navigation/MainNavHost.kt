@@ -19,13 +19,16 @@ import com.smartattendance.android.domain.repository.UserPreferencesRepository
 import com.smartattendance.android.feature.auth.login.LoginScreen
 import com.smartattendance.android.feature.auth.signup.SignUpScreen
 import com.smartattendance.android.feature.auth.signup.SignUpViewModel
+import com.smartattendance.android.feature.lecturer.course.CreateCourseScreen
 import com.smartattendance.android.feature.lecturer.createsession.CreateAttendanceSessionScreen
 import com.smartattendance.android.feature.lecturer.dashboard.LecturerDashboardScreen
+import com.smartattendance.android.feature.lecturer.session.SessionDetailScreen
 import com.smartattendance.android.feature.onboarding.selectusertype.SelectUserTypeScreen
 import com.smartattendance.android.feature.onboarding.selectusertype.UserType
 import com.smartattendance.android.feature.student.dashboard.StudentDashboardScreen
 import com.smartattendance.android.feature.student.history.StudentAttendanceHistoryScreen
 import com.smartattendance.android.feature.student.scanqr.StudentScanQrScreen
+import com.smartattendance.android.navigation.helper.navigateToCreateCourse
 import com.smartattendance.android.navigation.helper.navigateToDashboardIfAuthorized
 import com.smartattendance.android.navigation.helper.navigateToLogin
 import com.smartattendance.android.navigation.helper.navigateToSelectUserType
@@ -169,10 +172,10 @@ fun MainNavHost(
         composable(StudentDashboardDestination.route) {
             StudentDashboardScreen(
                 onNavigateToScanQr = {
-//                    navController.navigateToScanQr()
+                    navController.navigate(ScanQrDestination.route)
                 },
                 onNavigateToHistory = {
-//                    navController.navigateToAttendanceHistory()
+                    navController.navigate(AttendanceHistoryDestination.route)
                 },
                 onNavigateToProfile = {
                     // TODO: Navigate to profile
@@ -200,25 +203,25 @@ fun MainNavHost(
         composable(LecturerDashboardDestination.route) {
             LecturerDashboardScreen(
                 onNavigateToCreateSession = { courseId ->
-                    navController.navigate("${CreateSessionDestination.route}/$courseId")
+                    navController.navigate(CreateSessionDestination.route)
                 },
                 onNavigateToSessionDetail = { sessionId ->
-                    // TODO: Navigate to session detail
+                    navController.navigate("session_detail/$sessionId")
                 },
                 onNavigateToProfile = {
                     // TODO: Navigate to profile
                 },
                 onNavigateToAttendanceReport = { courseId ->
-                    // TODO: Navigate to attendance report
+                    navController.navigate("attendance_report/$courseId")
                 },
-//                onNavigateBack = {
-//                    navController.popBackStack()
-//                }
+                onNavigateToCreateCourse = { lecturerId ->
+                    navController.navigateToCreateCourse(lecturerId)
+                }
             )
         }
 
         composable(
-            route = "${CreateSessionDestination.route}/{courseId}",
+            route = CreateSessionDestination.route,
             arguments = listOf(
                 navArgument("courseId") { type = NavType.StringType }
             )
@@ -226,17 +229,74 @@ fun MainNavHost(
             val courseId = backStackEntry.arguments?.getString("courseId") ?: ""
 
             CreateAttendanceSessionScreen(
-//                courseId = courseId,
-//                onSessionCreated = {
-//                    navController.popBackStack()
-//                },
-//                onNavigateBack = {
-//                    navController.popBackStack()
-//                }
+                courseId = courseId,
+                onSessionCreated = {
+                    navController.popBackStack()
+                },
+                onNavigateBack = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable(
+            route = "session_detail/{sessionId}",
+            arguments = listOf(
+                navArgument("sessionId") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val sessionId = backStackEntry.arguments?.getString("sessionId") ?: ""
+
+            SessionDetailScreen(
+                sessionId = sessionId,
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onEndSession = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable(
+            route = "attendance_report/{courseId}",
+            arguments = listOf(
+                navArgument("courseId") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val courseId = backStackEntry.arguments?.getString("courseId") ?: ""
+
+            // TODO: Implement attendance report screen
+            /*
+            AttendanceReportScreen(
+                courseId = courseId,
+                onNavigateBack = {
+                    navController.popBackStack()
+                }
+            )
+            */
+        }
+
+        composable(
+            route = CreateCourseDestination.route,
+            arguments = listOf(
+                navArgument("lecturerId") { type = NavType.StringType}
+            )
+        ) { backStackEntry ->
+
+            val lecturerId = backStackEntry.arguments?.getString("lecturerId") ?: ""
+            CreateCourseScreen(
+                lecturerId = lecturerId,
+                onCourseCreated = {
+                    navController.popBackStack()
+                },
+                onBack = {
+                    navController.popBackStack()
+                }
             )
         }
 
         // Admin flows
         adminScreens(navController)
-}
+    }
 }

@@ -1,59 +1,22 @@
 package com.smartattendance.android.feature.lecturer.dashboard
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Book
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Timer
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedCard
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.smartattendance.android.domain.model.Course
 import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -63,10 +26,15 @@ fun LecturerDashboardScreen(
     onNavigateToSessionDetail: (String) -> Unit,
     onNavigateToProfile: () -> Unit,
     onNavigateToAttendanceReport: (String) -> Unit,
+    onNavigateToCreateCourse: (String) -> Unit
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var showCreateSessionDialog by remember { mutableStateOf(false) }
     var selectedCourseId by remember { mutableStateOf("") }
+
+    var showOptions by remember { mutableStateOf(false) }
+
+    var userId = viewModel.userId
 
     Scaffold(
         topBar = {
@@ -77,27 +45,59 @@ fun LecturerDashboardScreen(
                     titleContentColor = MaterialTheme.colorScheme.onPrimary
                 ),
                 actions = {
-                    IconButton(onClick = onNavigateToProfile) {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = "Profile",
-                            tint = MaterialTheme.colorScheme.onPrimary
-                        )
+                    Box {
+                        IconButton(onClick = { showOptions = !showOptions }) {
+                            Icon(
+                                imageVector = Icons.Default.MoreVert,
+                                contentDescription = "More Options",
+                                tint = MaterialTheme.colorScheme.onPrimary
+                            )
+                        }
+
+                        DropdownMenu(
+                            expanded = showOptions,
+                            onDismissRequest = { showOptions = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("Create New Course") },
+                                onClick = {
+                                    showOptions = false
+                                    onNavigateToCreateCourse(userId.toString())
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        Icons.Default.Add,
+                                        contentDescription = null
+                                    )
+                                }
+                            )
+
+                            DropdownMenuItem(
+                                text = { Text("My Profile") },
+                                onClick = {
+                                    showOptions = false
+                                    onNavigateToProfile()
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        Icons.Default.Person,
+                                        contentDescription = null
+                                    )
+                                }
+                            )
+                        }
                     }
                 }
             )
         },
         floatingActionButton = {
-            FloatingActionButton(
+            ExtendedFloatingActionButton(
                 onClick = { showCreateSessionDialog = true },
-                containerColor = MaterialTheme.colorScheme.primary
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Create Session",
-                    tint = MaterialTheme.colorScheme.onPrimary
-                )
-            }
+                icon = { Icon(Icons.Default.Add, "Create Attendance Session") },
+                text = { Text("New Session") },
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
+            )
         }
     ) { paddingValues ->
         LecturerDashboardContent(
@@ -127,35 +127,28 @@ fun LecturerDashboardScreen(
                     title = { Text("Create Attendance Session") },
                     text = {
                         Column {
-                            Text("Do you want to create a new attendance session for this course?")
+                            Text("Select a course to create an attendance session:")
 
                             Spacer(modifier = Modifier.height(16.dp))
 
-                            DropdownMenu(
-                                expanded = false,
-                                onDismissRequest = { },
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                state.courses.forEach { course ->
-                                    DropdownMenuItem(
-                                        text = { Text(course.name) },
-                                        onClick = { selectedCourseId = course.id }
-                                    )
-                                }
-                            }
-
-                            // Display selected course
-                            val selectedCourse = state.courses.find { it.id == selectedCourseId }
-                            if (selectedCourse != null) {
-                                OutlinedCard(
+                            state.courses.forEach { course ->
+                                Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(vertical = 8.dp)
+                                        .clickable { selectedCourseId = course.id }
+                                        .padding(vertical = 8.dp),
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
+                                    RadioButton(
+                                        selected = selectedCourseId == course.id,
+                                        onClick = { selectedCourseId = course.id }
+                                    )
+
+                                    Spacer(modifier = Modifier.width(8.dp))
+
                                     Text(
-                                        text = selectedCourse.name,
-                                        style = MaterialTheme.typography.titleMedium,
-                                        modifier = Modifier.padding(16.dp)
+                                        text = course.name,
+                                        style = MaterialTheme.typography.bodyLarge
                                     )
                                 }
                             }
@@ -178,6 +171,28 @@ fun LecturerDashboardScreen(
                                 selectedCourseId = ""
                             }
                         ) {
+                            Text("Cancel")
+                        }
+                    }
+                )
+            } else {
+                // No courses available
+                AlertDialog(
+                    onDismissRequest = { showCreateSessionDialog = false },
+                    title = { Text("No Courses Available") },
+                    text = { Text("You need to create a course first before you can create an attendance session.") },
+                    confirmButton = {
+                        Button(
+                            onClick = {
+                                showCreateSessionDialog = false
+                                onNavigateToCreateCourse(userId.toString())
+                            }
+                        ) {
+                            Text("Create Course")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showCreateSessionDialog = false }) {
                             Text("Cancel")
                         }
                     }
@@ -213,18 +228,31 @@ fun LecturerDashboardContent(
             item {
                 DashboardSummaryCard(
                     totalCourses = state.courses.size,
-                    activeSessions = state.activeSessions.size
+                    activeSessions = state.activeSessions.size,
+                    totalStudents = state.totalStudents // New field to track total students
                 )
             }
 
             // Courses Section
             item {
-                Text(
-                    text = "Your Courses",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Your Courses",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.weight(1f)
+                    )
+
+                    // Show a "See All" button if we have many courses
+                    if (state.courses.size > 3) {
+                        TextButton(onClick = { /* Navigate to courses list */ }) {
+                            Text("See All")
+                        }
+                    }
+                }
             }
 
             if (state.courses.isEmpty()) {
@@ -244,14 +272,14 @@ fun LecturerDashboardContent(
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = "No courses found",
+                                text = "No courses found. Create your first course to get started.",
                                 style = MaterialTheme.typography.bodyLarge
                             )
                         }
                     }
                 }
             } else {
-                items(state.courses) { course ->
+                items(state.courses.take(3)) { course ->
                     CourseCard(
                         course = course,
                         onCreateSession = { onCourseSelected(course.id) },
@@ -287,7 +315,7 @@ fun LecturerDashboardContent(
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = "No active sessions",
+                                text = "No active sessions. Create a new attendance session to start tracking.",
                                 style = MaterialTheme.typography.bodyLarge
                             )
                         }
@@ -298,6 +326,26 @@ fun LecturerDashboardContent(
                     SessionCard(
                         session = session,
                         onClick = { onSessionSelected(session.id) }
+                    )
+                }
+            }
+
+            // Recent Sessions Section (if we want to show past sessions)
+            if (state.recentSessions.isNotEmpty()) {
+                item {
+                    Text(
+                        text = "Recent Sessions",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
+                    )
+                }
+
+                items(state.recentSessions.take(3)) { session ->
+                    SessionCard(
+                        session = session,
+                        onClick = { onSessionSelected(session.id) },
+                        isActive = false
                     )
                 }
             }
@@ -319,6 +367,7 @@ fun LecturerDashboardContent(
 fun DashboardSummaryCard(
     totalCourses: Int,
     activeSessions: Int,
+    totalStudents: Int,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -327,23 +376,40 @@ fun DashboardSummaryCard(
             .padding(vertical = 8.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly
+                .padding(16.dp)
         ) {
-            StatisticItem(
-                icon = Icons.Default.Book,
-                value = totalCourses.toString(),
-                label = "Courses"
+            Text(
+                text = "Dashboard Overview",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 8.dp)
             )
 
-            StatisticItem(
-                icon = Icons.Default.Timer,
-                value = activeSessions.toString(),
-                label = "Active Sessions"
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                StatisticItem(
+                    icon = Icons.Default.Book,
+                    value = totalCourses.toString(),
+                    label = "Courses"
+                )
+
+                StatisticItem(
+                    icon = Icons.Default.Timer,
+                    value = activeSessions.toString(),
+                    label = "Active Sessions"
+                )
+
+                StatisticItem(
+                    icon = Icons.Default.People,
+                    value = totalStudents.toString(),
+                    label = "Students"
+                )
+            }
         }
     }
 }
@@ -363,10 +429,10 @@ fun StatisticItem(
             imageVector = icon,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.size(32.dp)
+            modifier = Modifier.size(28.dp)
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(4.dp))
 
         Text(
             text = value,
@@ -383,7 +449,7 @@ fun StatisticItem(
 
 @Composable
 fun CourseCard(
-    course: CourseData,
+    course: Course,
     onCreateSession: () -> Unit,
     onViewAttendance: () -> Unit,
     modifier: Modifier = Modifier
@@ -399,18 +465,39 @@ fun CourseCard(
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-            Text(
-                text = course.name,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Book,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(24.dp)
+                )
 
-            Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Text(
+                    text = course.name,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
 
             Text(
                 text = "Created: ${formatDate(course.createdAt)}",
                 style = MaterialTheme.typography.bodySmall
             )
+
+//            if (course. > 0) {
+//                Text(
+//                    text = "Students: ${course.studentCount}",
+//                    style = MaterialTheme.typography.bodySmall
+//                )
+//            }
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -422,6 +509,12 @@ fun CourseCard(
                     onClick = onViewAttendance,
                     modifier = Modifier.padding(end = 8.dp)
                 ) {
+                    Icon(
+                        imageVector = Icons.Default.Assessment,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
                     Text("View Attendance")
                 }
 
@@ -445,6 +538,7 @@ fun CourseCard(
 fun SessionCard(
     session: SessionData,
     onClick: () -> Unit,
+    isActive: Boolean = true,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -452,24 +546,65 @@ fun SessionCard(
             .fillMaxWidth()
             .padding(vertical = 8.dp)
             .clickable { onClick() },
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = if (isActive)
+                MaterialTheme.colorScheme.primaryContainer
+            else
+                MaterialTheme.colorScheme.surface
+        )
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-            Text(
-                text = session.courseName,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Class,
+                    contentDescription = null,
+                    tint = if (isActive)
+                        MaterialTheme.colorScheme.primary
+                    else
+                        MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(24.dp)
+                )
 
-            Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Text(
+                    text = session.courseName,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = if (isActive)
+                        MaterialTheme.colorScheme.onPrimaryContainer
+                    else
+                        MaterialTheme.colorScheme.onSurface
+                )
+
+                if (isActive) {
+                    Spacer(modifier = Modifier.weight(1f))
+
+                    Badge(
+                        containerColor = MaterialTheme.colorScheme.tertiary
+                    ) {
+                        Text("ACTIVE")
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
 
             Text(
                 text = "Session Code: ${session.sessionCode}",
-                style = MaterialTheme.typography.bodyMedium
+                style = MaterialTheme.typography.bodyMedium,
+                color = if (isActive)
+                    MaterialTheme.colorScheme.onPrimaryContainer
+                else
+                    MaterialTheme.colorScheme.onSurface
             )
 
             Spacer(modifier = Modifier.height(4.dp))
@@ -480,27 +615,43 @@ fun SessionCard(
             ) {
                 Text(
                     text = "Started: ${formatTime(session.startTime)}",
-                    style = MaterialTheme.typography.bodySmall
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if (isActive)
+                        MaterialTheme.colorScheme.onPrimaryContainer
+                    else
+                        MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 Text(
                     text = "Expires: ${formatTime(session.endTime)}",
-                    style = MaterialTheme.typography.bodySmall
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if (isActive)
+                        MaterialTheme.colorScheme.onPrimaryContainer
+                    else
+                        MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            LinearProgressIndicator(
-                progress = { calculateRemainingTimePercentage(session.startTime, session.endTime) },
-                modifier = Modifier.fillMaxWidth()
-            )
+            if (isActive) {
+                LinearProgressIndicator(
+                    progress = { calculateRemainingTimePercentage(session.startTime, session.endTime) },
+                    modifier = Modifier.fillMaxWidth(),
+                    color = MaterialTheme.colorScheme.primary,
+                    trackColor = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.1f)
+                )
 
-            Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(4.dp))
+            }
 
             Text(
                 text = "Attendance: ${session.attendanceCount} students",
-                style = MaterialTheme.typography.bodySmall
+                style = MaterialTheme.typography.bodySmall,
+                color = if (isActive)
+                    MaterialTheme.colorScheme.onPrimaryContainer
+                else
+                    MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }

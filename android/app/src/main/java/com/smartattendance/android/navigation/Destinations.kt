@@ -37,9 +37,16 @@ object LecturerDashboardDestination {
     const val route = "lecturer_dashboard"
 }
 
+object CreateCourseDestination {
+    const val route = "create_course/{lecturerId}"
+
+    fun createRoute(lecturerId: String): String = "create_course/$lecturerId"
+}
+
 @Serializable
 object CreateSessionDestination {
-    const val route = "create_session"
+    const val route = "create_session/{courseId}"
+    fun createRoute(courseId: String): String = "create_session/$courseId"
 }
 
 object SessionDetailDestination {

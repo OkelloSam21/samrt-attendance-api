@@ -5,12 +5,14 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import com.smartattendance.android.domain.repository.UserPreferencesRepository
+import com.smartattendance.android.feature.lecturer.course.CreateCourseScreen
 import com.smartattendance.android.feature.lecturer.createsession.CreateAttendanceSessionScreen
 import com.smartattendance.android.feature.lecturer.dashboard.LecturerDashboardScreen
 import com.smartattendance.android.feature.onboarding.selectusertype.SelectUserTypeDestination
 import com.smartattendance.android.feature.onboarding.selectusertype.UserType
 import com.smartattendance.android.feature.student.dashboard.StudentDashboardScreen
 import com.smartattendance.android.navigation.AdminDashboardDestination
+import com.smartattendance.android.navigation.CreateCourseDestination
 import com.smartattendance.android.navigation.CreateSessionDestination
 import com.smartattendance.android.navigation.LecturerDashboardDestination
 import com.smartattendance.android.navigation.LoginDestination
@@ -71,9 +73,37 @@ fun NavController.navigateToCreateSession() {
     }
 }
 
-fun NavGraphBuilder.createSession() {
+fun NavController.navigateToCreateCourse(lecturerId: String) {
+    this.navigate(CreateCourseDestination.createRoute(lecturerId)) {
+        launchSingleTop = true
+    }
+}
+
+fun NavGraphBuilder.createSession(courseId: String, navController: NavController) {
     composable<CreateSessionDestination> {
-        CreateAttendanceSessionScreen()
+        CreateAttendanceSessionScreen(
+            courseId = courseId,
+            onSessionCreated = {
+                navController.popBackStack()
+            },
+            onNavigateBack = {
+                navController.popBackStack()
+            }
+        )
+    }
+}
+
+fun NavGraphBuilder.navigateToCreateCourse(navController: NavController) {
+    composable<CreateCourseDestination> {
+        CreateCourseScreen(
+            lecturerId = it.arguments?.getString("lecturerId") ?: "",
+            onCourseCreated = {
+                navController.popBackStack()
+            },
+            onBack = {
+                navController.popBackStack()
+            }
+        )
     }
 }
 
@@ -90,9 +120,18 @@ fun NavGraphBuilder.lecturerDashboardScreen(
     composable<LecturerDashboardDestination> {
         LecturerDashboardScreen(
             onNavigateToProfile = {},
-            onNavigateToCreateSession = {},
-            onNavigateToSessionDetail = {},
-            onNavigateToAttendanceReport = {}
+            onNavigateToCreateSession = {
+                navController.navigateToCreateSession()
+            },
+            onNavigateToSessionDetail = {
+                navController.navigate("session_detail/$it")
+            },
+            onNavigateToAttendanceReport = {
+                navController.navigate("attendance_report/$it")
+            },
+            onNavigateToCreateCourse = {
+                navController.navigateToCreateSession()
+            }
         )
     }
 }

@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.smartattendance.android.data.repository.UserPreferencesRepositoryImpl
+import com.smartattendance.android.domain.repository.UserPreferencesRepository
 import com.smartattendance.android.feature.onboarding.selectusertype.UserType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.ktor.client.plugins.logging.Logger
@@ -16,7 +17,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
-    private val repository: UserPreferencesRepositoryImpl
+    private val repository: UserPreferencesRepository
 ) : ViewModel() {
     // State to keep splash screen visible
     private val _isLoading = MutableStateFlow(true)
