@@ -15,12 +15,16 @@ import com.smartattendance.android.data.network.util.ApiResponse
 import com.smartattendance.android.domain.model.Attendance
 import com.smartattendance.android.domain.model.Location
 import com.smartattendance.android.domain.repository.AttendanceRepository
+import com.smartattendance.android.domain.repository.AttendanceStats
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -34,8 +38,8 @@ class AttendanceRepositoryImpl @Inject constructor(
         courseId: String,
         durationMinutes: Int,
         sessionType: String,
-        latitude: Double? ,
-        longitude: Double? ,
+        latitude: Double?,
+        longitude: Double?,
         radiusMeters: Int?
     ): Result<AttendanceSession> {
         // Create geo fence if location is provided
@@ -89,7 +93,7 @@ class AttendanceRepositoryImpl @Inject constructor(
     // Mark attendance
     override suspend fun markAttendance(
         sessionCode: String,
-        latitude: Double? ,
+        latitude: Double?,
         longitude: Double?
     ): Result<Attendance> {
         // Create location if coordinates are provided
@@ -159,6 +163,84 @@ class AttendanceRepositoryImpl @Inject constructor(
         return attendanceDao.getAttendanceCountForStudentInCourse(studentId, courseId)
     }
 
+    // New methods for lecturer features
+    override fun getSessionById(sessionId: String): Flow<AttendanceSession?> {
+        return attendanceDao.getAttendanceSessionById(sessionId).map { sessionEntity ->
+            sessionEntity?.toDomainModel()
+        }
+    }
+
+    override suspend fun endSession(sessionId: String): Result<Unit> {
+        // In a real app, you would call an API to end the session
+        // For now, we'll just update the local database
+        try {
+            val session = attendanceDao.getAttendanceSessionById(sessionId).firstOrNull()
+            if (session != null) {
+                val updatedSession = session.copy(
+                    expiresAt = Date() // Set expiry to now to effectively end the session
+                )
+                attendanceDao.insertAttendanceSession(updatedSession)
+                return Result.success(Unit)
+            } else {
+                return Result.failure(Exception("Session not found"))
+            }
+        } catch (e: Exception) {
+            return Result.failure(e)
+        }
+    }
+
+    override suspend fun generateQrCode(sessionId: String): Result<String> {
+        // In a real app, you would generate a QR code or get it from the API
+        // For now, we'll return the session code as the QR code content
+        try {
+            val session = attendanceDao.getAttendanceSessionById(sessionId).firstOrNull()
+            if (session != null) {
+                return Result.success(session.sessionCode)
+            } else {
+                return Result.failure(Exception("Session not found"))
+            }
+        } catch (e: Exception) {
+            return Result.failure(e)
+        }
+    }
+
+    override fun getSessionsByLecturerAndStatus(lecturerId: String, isActive: Boolean): Flow<List<AttendanceSession>> {
+        return attendanceDao.getAttendanceSessionsByLecturerId(lecturerId).map { sessions ->
+            val currentTime = Date()
+            sessions.filter { session ->
+                val isSessionActive = session.expiresAt.after(currentTime)
+                isSessionActive == isActive
+            }.map { it.toDomainModel() }
+        }
+    }
+
+    override fun getAttendanceStatisticsBySession(sessionId: String): Flow<AttendanceStats> {
+        return flow {
+            try {
+                val attendanceRecords = attendanceDao.getAttendancesBySessionId(sessionId).firstOrNull() ?: emptyList()
+                val presentCount = attendanceRecords.count { it.status == "Present" }
+                val lateCount = attendanceRecords.count { it.status == "Late" }
+                val absentCount = attendanceRecords.count { it.status == "Absent" }
+                val totalStudents = presentCount + lateCount + absentCount
+
+                emit(AttendanceStats(
+                    totalStudents = totalStudents,
+                    presentCount = presentCount,
+                    absentCount = absentCount,
+                    lateCount = lateCount
+                ))
+            } catch (e: Exception) {
+                // Return empty stats on error
+                emit(AttendanceStats(
+                    totalStudents = 0,
+                    presentCount = 0,
+                    absentCount = 0,
+                    lateCount = 0
+                ))
+            }
+        }
+    }
+
     // Extension function to convert network response to session entity
     private fun AttendanceSession.toSessionEntity(): AttendanceSessionEntity {
         val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
@@ -215,13 +297,15 @@ class AttendanceRepositoryImpl @Inject constructor(
             duration_minutes = durationMinutes,
             session_type = sessionType,
             session_code = sessionCode,
-            geo_fence = GeoFence(
-                latitude = latitude ?: 0.0,
-                longitude = longitude ?: 0.0,
-                radius_meters = radiusMeters ?: 0
-            ),
+            geo_fence = if (latitude != null && longitude != null && radiusMeters != null) {
+                GeoFence(
+                    latitude = latitude,
+                    longitude = longitude,
+                    radius_meters = radiusMeters
+                )
+            } else null,
             createdAt = createdAt.toString(),
-            expiresAt = expiresAt.toString(),
+            expiresAt = expiresAt.toString()
         )
     }
 
