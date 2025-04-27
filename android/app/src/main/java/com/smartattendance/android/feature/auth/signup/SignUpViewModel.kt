@@ -112,15 +112,13 @@ class SignUpViewModel @Inject constructor(
                                 }
                                 return@launch
                             }
-
-                            StudentSignUpRequest(
-                                name = state.name,
-                                email = state.email,
-                                password = state.password,
-                                regNo = state.regNo,
-                                department = state.department,
-                                yearOfStudy = state.yearOfStudy
-                            )
+                            val name = state.name
+                            val email = state.email
+                            val password = state.password
+                            val regNo = state.regNo
+                            val department = state.department
+                            val yearOfStudy = state.yearOfStudy
+                            StudentSignUpRequest(name, email, password, regNo, department, yearOfStudy)
                         }
 
                         UserType.LECTURER -> {
