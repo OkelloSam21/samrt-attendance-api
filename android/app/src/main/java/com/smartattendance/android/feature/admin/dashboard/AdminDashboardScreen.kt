@@ -15,6 +15,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.smartattendance.android.domain.model.Course
+import com.smartattendance.android.domain.model.UserData
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -24,7 +26,6 @@ fun AdminDashboardScreen(
     viewModel: AdminDashboardViewModel = hiltViewModel(),
     onNavigateToUserManagement: () -> Unit,
     onNavigateToCourseManagement: () -> Unit,
-    onNavigateToSeedCourses: () -> Unit,
     onNavigateToReports: () -> Unit,
     onNavigateToUserDetails: (String) -> Unit,
     onNavigateToCourseDetails: (String) -> Unit,
@@ -76,7 +77,6 @@ fun AdminDashboardScreen(
                         onRefresh = { viewModel.loadDashboardData() },
                         onUserManagementClick = onNavigateToUserManagement,
                         onCourseManagementClick = onNavigateToCourseManagement,
-                        onNavigateToSeedCourses = onNavigateToSeedCourses,
                         onReportsClick = onNavigateToReports
                     )
                 }
@@ -109,7 +109,6 @@ fun OverviewTab(
     onRefresh: () -> Unit,
     onUserManagementClick: () -> Unit,
     onCourseManagementClick: () -> Unit,
-    onNavigateToSeedCourses: () -> Unit,
     onReportsClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -166,15 +165,6 @@ fun OverviewTab(
                         modifier = Modifier.weight(1f)
                     )
                 }
-            }
-            item {
-                Spacer(modifier = Modifier.height(16.dp))
-                ActionCard(
-                    icon = Icons.Default.Add,
-                    title = "Seed Courses",
-                    onClick = onNavigateToSeedCourses,
-                    modifier = Modifier.fillMaxWidth()
-                )
             }
 
             item {
@@ -315,7 +305,7 @@ fun UsersTab(
 
 @Composable
 fun CoursesTab(
-    courses: List<CourseData>,
+    courses: List<Course>,
     isLoading: Boolean,
     error: String?,
     onCourseClick: (String) -> Unit,
@@ -623,7 +613,7 @@ fun UserCard(
 
 @Composable
 fun CourseCard(
-    course: CourseData,
+    course: Course,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {

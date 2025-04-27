@@ -6,13 +6,18 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.smartattendance.android.domain.model.Course
+import com.smartattendance.android.domain.model.UserData
 import com.smartattendance.android.domain.repository.AttendanceRepository
 import com.smartattendance.android.domain.repository.CourseRepository
 import com.smartattendance.android.domain.repository.UserPreferencesRepository
+import com.smartattendance.android.domain.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.count
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.Date
@@ -21,8 +26,7 @@ import javax.inject.Inject
 @HiltViewModel
 class AdminDashboardViewModel @Inject constructor(
     private val courseRepository: CourseRepository,
-    private val attendanceRepository: AttendanceRepository,
-    private val userPreferencesRepository: UserPreferencesRepository
+    private val userRepository: UserRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AdminDashboardUiState())
@@ -37,21 +41,13 @@ class AdminDashboardViewModel @Inject constructor(
         
         viewModelScope.launch {
             try {
-                // In a real app, these would be fetched from repositories
-                // For this example, we'll use mock data
-                
-                // Mock statistics
-                val totalStudents = 120
-                val totalLecturers = 15
-                val totalCourses = 25
+                val totalStudents = userRepository.getStudents().count()
+                val totalLecturers = userRepository.getLecturers().count()
+                val totalCourses = courseRepository.getAllCourses().count()
                 val totalAttendanceSessions = 320
-                
-                // Mock recent users
-                val recentUsers = createMockUsers()
-                
-                // Mock recent courses
-                val recentCourses = createMockCourses()
-                
+
+                val recentUsers = userRepository.getAllUsers().firstOrNull() ?: emptyList()
+                val recentCourses = courseRepository.getAllCourses().firstOrNull() ?: emptyList()
                 // Mock recent activities
                 val recentActivities = createMockActivities()
                 
@@ -84,14 +80,12 @@ class AdminDashboardViewModel @Inject constructor(
         
         viewModelScope.launch {
             try {
-                // In a real app, this would fetch from a repository
-                val users = createMockUsers()
-                
+               val users = userRepository.getAllUsers().firstOrNull()
                 _uiState.update {
                     it.copy(
                         isLoading = false,
                         error = null,
-                        recentUsers = users
+                        recentUsers = users ?: emptyList()
                     )
                 }
             } catch (e: Exception) {
@@ -111,7 +105,7 @@ class AdminDashboardViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 // In a real app, this would fetch from a repository
-                val courses = createMockCourses()
+                val courses = courseRepository.getAllCourses().firstOrNull() ?: emptyList()
                 
                 _uiState.update {
                     it.copy(
@@ -129,87 +123,6 @@ class AdminDashboardViewModel @Inject constructor(
                 }
             }
         }
-    }
-
-    // Mock data helpers
-    private fun createMockUsers(): List<UserData> {
-        return listOf(
-            UserData(
-                id = "1",
-                name = "John Doe",
-                email = "john.doe@example.com",
-                role = "STUDENT",
-                registrationDate = Date(System.currentTimeMillis() - 30 * 24 * 60 * 60 * 1000L)
-            ),
-            UserData(
-                id = "2",
-                name = "Jane Smith",
-                email = "jane.smith@example.com",
-                role = "STUDENT",
-                registrationDate = Date(System.currentTimeMillis() - 45 * 24 * 60 * 60 * 1000L)
-            ),
-            UserData(
-                id = "3",
-                name = "Prof. Robert Johnson",
-                email = "robert.johnson@example.com",
-                role = "LECTURER",
-                registrationDate = Date(System.currentTimeMillis() - 60 * 24 * 60 * 60 * 1000L)
-            ),
-            UserData(
-                id = "4",
-                name = "Dr. Sarah Williams",
-                email = "sarah.williams@example.com",
-                role = "LECTURER",
-                registrationDate = Date(System.currentTimeMillis() - 90 * 24 * 60 * 60 * 1000L)
-            ),
-            UserData(
-                id = "5",
-                name = "Admin User",
-                email = "admin@example.com",
-                role = "ADMIN",
-                registrationDate = Date(System.currentTimeMillis() - 120 * 24 * 60 * 60 * 1000L)
-            )
-        )
-    }
-
-    private fun createMockCourses(): List<CourseData> {
-        return listOf(
-            CourseData(
-                id = "1",
-                name = "Introduction to Computer Science",
-                lecturerName = "Prof. Robert Johnson",
-                createdAt = Date(System.currentTimeMillis() - 60 * 24 * 60 * 60 * 1000L),
-                studentCount = 45
-            ),
-            CourseData(
-                id = "2",
-                name = "Data Structures and Algorithms",
-                lecturerName = "Dr. Sarah Williams",
-                createdAt = Date(System.currentTimeMillis() - 45 * 24 * 60 * 60 * 1000L),
-                studentCount = 38
-            ),
-            CourseData(
-                id = "3",
-                name = "Database Management Systems",
-                lecturerName = "Prof. Robert Johnson",
-                createdAt = Date(System.currentTimeMillis() - 30 * 24 * 60 * 60 * 1000L),
-                studentCount = 42
-            ),
-            CourseData(
-                id = "4",
-                name = "Software Engineering",
-                lecturerName = "Dr. Sarah Williams",
-                createdAt = Date(System.currentTimeMillis() - 15 * 24 * 60 * 60 * 1000L),
-                studentCount = 35
-            ),
-            CourseData(
-                id = "5",
-                name = "Mobile App Development",
-                lecturerName = "Prof. Alan Turing",
-                createdAt = Date(System.currentTimeMillis() - 7 * 24 * 60 * 60 * 1000L),
-                studentCount = 28
-            )
-        )
     }
 
     private fun createMockActivities(): List<ActivityData> {
@@ -256,25 +169,10 @@ data class AdminDashboardUiState(
     val totalCourses: Int = 0,
     val totalAttendanceSessions: Int = 0,
     val recentUsers: List<UserData> = emptyList(),
-    val recentCourses: List<CourseData> = emptyList(),
+    val recentCourses: List<Course> = emptyList(),
     val recentActivities: List<ActivityData> = emptyList()
 )
 
-data class UserData(
-    val id: String,
-    val name: String,
-    val email: String,
-    val role: String,
-    val registrationDate: Date
-)
-
-data class CourseData(
-    val id: String,
-    val name: String,
-    val lecturerName: String,
-    val createdAt: Date,
-    val studentCount: Int
-)
 
 data class ActivityData(
     val id: String,
