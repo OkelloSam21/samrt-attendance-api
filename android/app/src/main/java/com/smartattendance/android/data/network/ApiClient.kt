@@ -14,6 +14,7 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
+import io.ktor.http.isSuccess
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import javax.inject.Inject
@@ -171,22 +172,52 @@ class ApiClient @Inject constructor(
     }
 
     // Course endpoints
-    suspend fun createCourse(courseRequest: CourseRequest): ApiResponse<CourseResponse> {
+    suspend fun createCourse(courseRequest: CourseRequest): ApiResponse<CreateCourseApiResponse> {
         return try {
             val response = httpClient.post("/courses") {
                 contentType(ContentType.Application.Json)
                 setBody(courseRequest)
             }
-            ApiResponse.Success(response.body())
+
+            when {
+                // Accept both 200 OK and 201 Created as success
+                response.status.isSuccess() -> {
+                    ApiResponse.Success(response.body())
+                }
+
+                response.status == HttpStatusCode.Unauthorized -> {
+                    val errorMessage = response.bodyAsText()
+                    Log.e("ApiClient", "Authentication failed: $errorMessage")
+                    ApiResponse.Error(errorMessage)
+                }
+
+                else -> {
+                    val errorMessage = response.bodyAsText()
+                    Log.e(
+                        "ApiClient",
+                        "Unexpected status: ${response.status}, Message: $errorMessage"
+                    )
+                    ApiResponse.Error("Unexpected error: ${response.status}")
+                }
+            }
         } catch (e: Exception) {
+            Log.e("ApiClient", "create course error", e)
             ApiResponse.Error(e.message ?: "Unknown error occurred")
         }
     }
 
     suspend fun getAllCourses(): ApiResponse<List<CourseResponse>> {
         return try {
-            val response = httpClient.get("/courses")
-            ApiResponse.Success(response.body())
+            val response = httpClient.get("/courses") {
+                contentType(ContentType.Application.Json)
+            }
+
+            if (response.status == HttpStatusCode.OK) {
+                ApiResponse.Success(response.body())
+            } else {
+                val errorMessage = response.bodyAsText()
+                ApiResponse.Error(errorMessage)
+            }
         } catch (e: Exception) {
             ApiResponse.Error(e.message ?: "Unknown error occurred")
         }
@@ -198,6 +229,15 @@ class ApiClient @Inject constructor(
             ApiResponse.Success(response.body())
         } catch (e: Exception) {
             ApiResponse.Error(e.message ?: "Unknown error occurred")
+        }
+    }
+
+    suspend fun getCurseByLecturerId(lecturerId: String) : ApiResponse<List<CourseResponse>> {
+        return try {
+            val response = httpClient.get("/courses/lecturer/{id}")
+            ApiResponse.Success(response.body())
+        } catch (e: Exception) {
+            ApiResponse.Error(e.message ?: "Unknown error occured")
         }
     }
 
@@ -216,25 +256,47 @@ class ApiClient @Inject constructor(
         }
     }
 
-    suspend fun assignLecturerToCourse(
-        courseId: String,
-        lecturerId: String
-    ): ApiResponse<CourseResponse> {
-        return try {
-            val response = httpClient.put("/courses/$courseId/lecturer/$lecturerId") {
-                contentType(ContentType.Application.Json)
-            }
-            ApiResponse.Success(response.body())
-        } catch (e: Exception) {
-            ApiResponse.Error(e.message ?: "Unknown error occurred")
-        }
-    }
-
     suspend fun deleteCourse(courseId: String): ApiResponse<Unit> {
         return try {
             httpClient.delete("/courses/delete/$courseId")
             ApiResponse.Success(Unit)
         } catch (e: Exception) {
+            ApiResponse.Error(e.message ?: "Unknown error occurred")
+        }
+    }
+
+    // New admin course management endpoints
+    suspend fun adminCreateCourse(request: AdminCourseCreateRequest): ApiResponse<CourseResponse> {
+        return try {
+            val response = httpClient.post("/courses/admin/create") {
+                contentType(ContentType.Application.Json)
+                setBody(request)
+            }
+            ApiResponse.Success(response.body())
+        } catch (e: Exception) {
+            Log.e("ApiClient", "Admin create course error", e)
+            ApiResponse.Error(e.message ?: "Unknown error occurred")
+        }
+    }
+
+    suspend fun assignLecturerToCourse(courseId: String, lecturerId: String): ApiResponse<CourseResponse> {
+        return try {
+            val response = httpClient.post("/courses/admin/assign-lecturer/$courseId/$lecturerId") {
+                contentType(ContentType.Application.Json)
+            }
+            ApiResponse.Success(response.body())
+        } catch (e: Exception) {
+            Log.e("ApiClient", "Assign lecturer error", e)
+            ApiResponse.Error(e.message ?: "Unknown error occurred")
+        }
+    }
+
+    suspend fun getAvailableLecturers(): ApiResponse<List<LecturerDto>> {
+        return try {
+            val response = httpClient.get("/courses/admin/lecturers")
+            ApiResponse.Success(response.body())
+        } catch (e: Exception) {
+            Log.e("ApiClient", "Get lecturers error", e)
             ApiResponse.Error(e.message ?: "Unknown error occurred")
         }
     }
@@ -272,30 +334,4 @@ class ApiClient @Inject constructor(
             ApiResponse.Error(e.message ?: "Unknown error occurred")
         }
     }
-
-    // Additional endpoints for batch seeding of courses
-    suspend fun seedCourses(seedCoursesRequest: SeedCoursesRequest): ApiResponse<SeedCoursesResponse> {
-        return try {
-            val response = httpClient.post("/admin/seed/courses") {
-                contentType(ContentType.Application.Json)
-                setBody(seedCoursesRequest)
-            }
-            ApiResponse.Success(response.body())
-        } catch (e: Exception) {
-            ApiResponse.Error(e.message ?: "Unknown error occurred")
-        }
-    }
 }
-
-// New data model for batch seeding courses
-@Serializable
-data class SeedCoursesRequest(
-    val courses: List<CourseRequest>
-)
-
-@Serializable
-data class SeedCoursesResponse(
-    val success: Boolean,
-    val coursesCreated: Int,
-    val message: String
-)
