@@ -99,6 +99,10 @@ class AuthRepositoryImpl @Inject constructor(
     private suspend fun saveAuthData(authResponse: SignUpResponse) {
         userPreferencesRepositoryImpl.saveAccessToken(authResponse.data.accessToken)
         userPreferencesRepositoryImpl.saveRefreshToken(authResponse.data.refreshToken)
+        userPreferencesRepositoryImpl.saveUserRole(authResponse.data.role)
+        userPreferencesRepositoryImpl.saveUserId(authResponse.data.userId)
+        userPreferencesRepositoryImpl.saveUserEmail(authResponse.data.email)
+        userPreferencesRepositoryImpl.saveUserName(authResponse.data.name)
     }
 
     private suspend fun saveTokens(response: LoginResponse) {

@@ -103,6 +103,7 @@ dependencies {
 
     // ktor
     implementation(libs.ktor.client.core)
+    implementation(libs.ktor.ktor.client.auth)
     implementation(libs.ktor.client.android)
     implementation(libs.ktor.client.content.negotiation)
     implementation(libs.ktor.serialization.kotlinx.json)
@@ -123,4 +124,13 @@ dependencies {
     debugImplementation(libs.compose.ui.tooling)
     debugImplementation(libs.compose.ui.test.manifest)
 
+    // barcode google zxing
+//    implementation(libs.zxing.core)
+//    implementation(libs.zxing.android)
+//    implementation(libs.zxing.android.embedded)
+
+
+//    implementation(libs.zxing.android.embedded)
+    implementation(libs.core) // Or the latest version
+//    implementation(libs.zxing.android)
 }
