@@ -21,7 +21,7 @@ object AppConfig {
         val issuer: String,
         val audience: String,
         val realm: String,
-        val accessTokenExpirationMs: Long = 15 * 60 * 1000,  // 15 minutes
+        val accessTokenExpirationMs: Long = 24 * 60 * 60 * 1000,  // 24 hours
         val refreshTokenExpirationMs: Long = 7 * 24 * 60 * 60 * 1000  // 7 days
     )
 
