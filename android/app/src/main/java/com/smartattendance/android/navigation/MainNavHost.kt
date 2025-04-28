@@ -27,6 +27,7 @@ import com.smartattendance.android.feature.onboarding.selectusertype.SelectUserT
 import com.smartattendance.android.feature.onboarding.selectusertype.UserType
 import com.smartattendance.android.feature.student.dashboard.StudentDashboardScreen
 import com.smartattendance.android.feature.student.history.StudentAttendanceHistoryScreen
+import com.smartattendance.android.feature.student.naviagtion.studentFlowScreens
 import com.smartattendance.android.feature.student.scanqr.StudentScanQrScreen
 import com.smartattendance.android.navigation.helper.navigateToCreateCourse
 import com.smartattendance.android.navigation.helper.navigateToDashboardIfAuthorized
@@ -169,35 +170,7 @@ fun MainNavHost(
         }
 
         // Student flows
-        composable(StudentDashboardDestination.route) {
-            StudentDashboardScreen(
-                onNavigateToScanQr = {
-                    navController.navigate(ScanQrDestination.route)
-                },
-                onNavigateToHistory = {
-                    navController.navigate(AttendanceHistoryDestination.route)
-                },
-                onNavigateToProfile = {
-                    // TODO: Navigate to profile
-                }
-            )
-        }
-
-        composable(ScanQrDestination.route) {
-            StudentScanQrScreen(
-                onBackClicked = {
-                    navController.popBackStack()
-                }
-            )
-        }
-
-        composable(AttendanceHistoryDestination.route) {
-            StudentAttendanceHistoryScreen(
-                onBackClicked = {
-                    navController.popBackStack()
-                }
-            )
-        }
+        studentFlowScreens(navController)
 
         // Lecturer flows
         composable(LecturerDashboardDestination.route) {
