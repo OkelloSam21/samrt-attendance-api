@@ -6,8 +6,14 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class CreateCourseApiResponse(
     val success: Boolean? = null,
-    val data: List<CourseResponse?> = emptyList(),
+    val data: List<Course?> = emptyList(),
     val message: String? = null
+)
+
+@Serializable
+data class CourseResponse(
+    val success: Boolean? = null,
+    val data: List<Course?> = emptyList(),
 )
 
 @Serializable
@@ -26,8 +32,9 @@ data class ScheduleRequest(
     val roomNumber: String,
     val meetingLink: String
 )
+
 @Serializable
-data class CourseResponse(
+data class Course(
     val id: String,
     val name: String,
     val lecturerId: String,
@@ -48,7 +55,7 @@ data class ScheduleResponse(
 
 @Serializable
 data class CourseWithAttendance(
-    val course: CourseResponse,
+    val course: Course,
     val attendanceCount: Int,
     val totalSessions: Int
 )

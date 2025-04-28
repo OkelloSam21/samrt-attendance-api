@@ -1,5 +1,6 @@
 package com.smartattendance.android.data.network.model
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -46,7 +47,16 @@ data class MarkAttendanceRequest(
 data class MarkAttendanceResponse(
     val success: Boolean,
     val data: AttendanceResponse,
-    val message: String
+)
+
+@Serializable
+data class ErrorResponse(
+    @SerialName("error") val error: ErrorDetail
+)
+@Serializable
+data class ErrorDetail(
+    val message: String,
+    val code: Int
 )
 
 @Serializable

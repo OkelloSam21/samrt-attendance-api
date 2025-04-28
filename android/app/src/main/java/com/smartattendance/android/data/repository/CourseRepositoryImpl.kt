@@ -27,9 +27,8 @@ class CourseRepositoryImpl @Inject constructor(
 
         when(val response = apiClient.getAllCourses()) {
             is ApiResponse.Success -> {
-                val courses = response.data.map { it.toEntity() }
+                val courses = response.data.map { it.data}
                 Log.e("course repository", "courses $courses")
-                courseDao.insertCourses(courses)
             }
             is ApiResponse.Error -> {
                 Log.e("CourseRepositoryImpl", "Failed to fetch courses: ${response.errorMessage}")
@@ -50,12 +49,14 @@ class CourseRepositoryImpl @Inject constructor(
     override suspend fun getCoursesByLecturerId(lecturerId: String): Flow<List<Course>> {
         when(val response = apiClient.getCurseByLecturerId(lecturerId)) {
             is ApiResponse.Success -> {
-                val courses = response.data.map { it.toEntity()}
-                courseDao.insertCourses(courses)
+                val courses = response
+//                courseDao.insertCourses(courses)
+                Result.success(courses)
             }
 
             is ApiResponse.Error -> {
                 Log.e("CourseRepositoryImpl", "Failed to fetch courses: ${response.errorMessage}")
+                Result.failure(Error(response.errorMessage))
             }
         }
 
@@ -226,7 +227,7 @@ class CourseRepositoryImpl @Inject constructor(
     }
 
     // Extension function to convert API model to entity
-    private fun CourseResponse.toEntity(): CourseEntity {
+    private fun com.smartattendance.android.data.network.model.Course.toEntity(): CourseEntity {
         return CourseEntity(
             id = id,
             name = name,

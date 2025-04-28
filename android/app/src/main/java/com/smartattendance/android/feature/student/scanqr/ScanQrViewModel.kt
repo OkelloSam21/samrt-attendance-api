@@ -108,7 +108,6 @@ class StudentScanQrViewModel @Inject constructor(
 
     private fun parseQrContent(qrContent: String): SessionData? {
         return try {
-            // First, try the expected format: "sessionId:courseName"
             val parts = qrContent.split(":")
             if (parts.size >= 2) {
                 SessionData(

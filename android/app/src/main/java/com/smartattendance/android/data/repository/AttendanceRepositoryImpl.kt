@@ -1,6 +1,7 @@
 package com.smartattendance.android.data.repository
 
 import android.util.Log
+import androidx.compose.ui.semantics.error
 import com.smartattendance.android.data.database.AttendanceEntity
 import com.smartattendance.android.data.database.AttendanceSessionEntity
 import com.smartattendance.android.data.database.dao.AttendanceDao
@@ -8,6 +9,7 @@ import com.smartattendance.android.data.network.ApiClient
 import com.smartattendance.android.data.network.model.AttendanceResponse
 import com.smartattendance.android.data.network.model.AttendanceSession
 import com.smartattendance.android.data.network.model.AttendanceSessionRequest
+import com.smartattendance.android.data.network.model.ErrorResponse
 import com.smartattendance.android.data.network.model.GeoFence
 import com.smartattendance.android.data.network.model.GeoLocation
 import com.smartattendance.android.data.network.model.MarkAttendanceRequest
@@ -22,6 +24,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import kotlinx.serialization.json.Json
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -115,16 +118,29 @@ class AttendanceRepositoryImpl @Inject constructor(
             deviceID = deviceId
         )
 
-        return when (val response = apiClient.markAttendance(request)) {
-            is ApiResponse.Success -> {
-                val attendanceEntity = response.data.data.toEntity()
-                attendanceDao.insertAttendanceRecord(attendanceEntity)
-                Result.success(response.data)
+        return try {
+            when (val response = apiClient.markAttendance(request)) {
+                is ApiResponse.Success -> {
+                    val attendanceEntity = response.data.data.toEntity()
+                    attendanceDao.insertAttendanceRecord(attendanceEntity)
+                    Result.success(response.data)
+                }
+
+                is ApiResponse.Error -> {
+                    val errorResponse: ErrorResponse? = try {
+                        Json.decodeFromString<ErrorResponse>(response.errorMessage)
+                    } catch (e: Exception) {
+                        Log.e("AttendanceRepositoryImpl", "Error decoding error response: $e")
+                        return Result.failure(Exception("An unknown error occurred"))
+                    }
+                    //Get message if it's not null
+                    val errorMessage = errorResponse?.error?.message ?: "An error occurred"
+
+                    Result.failure(Exception(errorMessage))
+                }
             }
-            is ApiResponse.Error -> {
-                Log.e("Attendnace RepositoryImpl", "Erorr occured: ${response.errorMessage}")
-                Result.failure(Exception(response.errorMessage))
-            }
+        }   catch (e: Exception) {
+            Result.failure(e)
         }
     }
 

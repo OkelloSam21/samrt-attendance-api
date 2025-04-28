@@ -15,7 +15,6 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -223,7 +222,7 @@ class ApiClient @Inject constructor(
         }
     }
 
-    suspend fun getCourseById(courseId: String): ApiResponse<CourseResponse> {
+    suspend fun getCourseById(courseId: String): ApiResponse<Course> {
         return try {
             val response = httpClient.get("/courses/$courseId")
             ApiResponse.Success(response.body())
@@ -244,7 +243,7 @@ class ApiClient @Inject constructor(
     suspend fun updateCourse(
         courseId: String,
         updateRequest: CourseUpdateRequest
-    ): ApiResponse<CourseResponse> {
+    ): ApiResponse<Course> {
         return try {
             val response = httpClient.put("/courses/$courseId") {
                 contentType(ContentType.Application.Json)
@@ -266,7 +265,7 @@ class ApiClient @Inject constructor(
     }
 
     // New admin course management endpoints
-    suspend fun adminCreateCourse(request: AdminCourseCreateRequest): ApiResponse<CourseResponse> {
+    suspend fun adminCreateCourse(request: AdminCourseCreateRequest): ApiResponse<Course> {
         return try {
             val response = httpClient.post("/courses/admin/create") {
                 contentType(ContentType.Application.Json)
@@ -279,7 +278,7 @@ class ApiClient @Inject constructor(
         }
     }
 
-    suspend fun assignLecturerToCourse(courseId: String, lecturerId: String): ApiResponse<CourseResponse> {
+    suspend fun assignLecturerToCourse(courseId: String, lecturerId: String): ApiResponse<Course> {
         return try {
             val response = httpClient.post("/courses/admin/assign-lecturer/$courseId/$lecturerId") {
                 contentType(ContentType.Application.Json)
