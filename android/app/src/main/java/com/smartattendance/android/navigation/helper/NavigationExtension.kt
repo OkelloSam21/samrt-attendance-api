@@ -67,8 +67,8 @@ fun NavController.navigateToLogin(userType: UserType) {
     }
 }
 
-fun NavController.navigateToCreateSession() {
-    this.navigate(CreateSessionDestination) {
+fun NavController.navigateToCreateSession(courseId: String) {
+    this.navigate(CreateSessionDestination.createRoute(courseId)) {
         launchSingleTop = true
     }
 }
@@ -121,7 +121,7 @@ fun NavGraphBuilder.lecturerDashboardScreen(
         LecturerDashboardScreen(
             onNavigateToProfile = {},
             onNavigateToCreateSession = {
-                navController.navigateToCreateSession()
+                navController.navigateToCreateSession(it)
             },
             onNavigateToSessionDetail = {
                 navController.navigate("session_detail/$it")
@@ -130,7 +130,7 @@ fun NavGraphBuilder.lecturerDashboardScreen(
                 navController.navigate("attendance_report/$it")
             },
             onNavigateToCreateCourse = {
-                navController.navigateToCreateSession()
+                navController.navigateToCreateSession(it)
             }
         )
     }

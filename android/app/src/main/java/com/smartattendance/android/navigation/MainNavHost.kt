@@ -22,6 +22,7 @@ import com.smartattendance.android.feature.auth.signup.SignUpViewModel
 import com.smartattendance.android.feature.lecturer.course.CreateCourseScreen
 import com.smartattendance.android.feature.lecturer.createsession.CreateAttendanceSessionScreen
 import com.smartattendance.android.feature.lecturer.dashboard.LecturerDashboardScreen
+import com.smartattendance.android.feature.lecturer.report.AttendanceReportScreen
 import com.smartattendance.android.feature.lecturer.session.SessionDetailScreen
 import com.smartattendance.android.feature.onboarding.selectusertype.SelectUserTypeScreen
 import com.smartattendance.android.feature.onboarding.selectusertype.UserType
@@ -30,6 +31,7 @@ import com.smartattendance.android.feature.student.history.StudentAttendanceHist
 import com.smartattendance.android.feature.student.naviagtion.studentFlowScreens
 import com.smartattendance.android.feature.student.scanqr.StudentScanQrScreen
 import com.smartattendance.android.navigation.helper.navigateToCreateCourse
+import com.smartattendance.android.navigation.helper.navigateToCreateSession
 import com.smartattendance.android.navigation.helper.navigateToDashboardIfAuthorized
 import com.smartattendance.android.navigation.helper.navigateToLogin
 import com.smartattendance.android.navigation.helper.navigateToSelectUserType
@@ -176,7 +178,7 @@ fun MainNavHost(
         composable(LecturerDashboardDestination.route) {
             LecturerDashboardScreen(
                 onNavigateToCreateSession = { courseId ->
-                    navController.navigate(CreateSessionDestination.route)
+                    navController.navigateToCreateSession(courseId)
                 },
                 onNavigateToSessionDetail = { sessionId ->
                     navController.navigate("session_detail/$sessionId")
@@ -185,7 +187,7 @@ fun MainNavHost(
                     // TODO: Navigate to profile
                 },
                 onNavigateToAttendanceReport = { courseId ->
-                    navController.navigate("attendance_report/$courseId")
+//                    navController.navigate("attendance_report/$courseId")
                 },
                 onNavigateToCreateCourse = { lecturerId ->
                     navController.navigateToCreateCourse(lecturerId)
@@ -240,14 +242,12 @@ fun MainNavHost(
             val courseId = backStackEntry.arguments?.getString("courseId") ?: ""
 
             // TODO: Implement attendance report screen
-            /*
             AttendanceReportScreen(
                 courseId = courseId,
                 onNavigateBack = {
                     navController.popBackStack()
                 }
             )
-            */
         }
 
         composable(

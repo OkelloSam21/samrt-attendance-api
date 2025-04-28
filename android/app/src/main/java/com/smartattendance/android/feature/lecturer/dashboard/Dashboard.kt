@@ -1,5 +1,6 @@
 package com.smartattendance.android.feature.lecturer.dashboard
 
+import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -159,6 +160,7 @@ fun LecturerDashboardScreen(
                             onClick = {
                                 showCreateSessionDialog = false
                                 onNavigateToCreateSession(selectedCourseId)
+                                Log.d("dashboard", "Course Id $selectedCourseId")
                             }
                         ) {
                             Text("Create")
