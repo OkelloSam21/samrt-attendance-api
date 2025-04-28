@@ -1,5 +1,6 @@
 package com.smartattendance.android.data.repository
 
+import android.util.Log
 import com.smartattendance.android.data.database.AttendanceEntity
 import com.smartattendance.android.data.database.AttendanceSessionEntity
 import com.smartattendance.android.data.database.dao.AttendanceDao
@@ -10,6 +11,7 @@ import com.smartattendance.android.data.network.model.AttendanceSessionRequest
 import com.smartattendance.android.data.network.model.GeoFence
 import com.smartattendance.android.data.network.model.GeoLocation
 import com.smartattendance.android.data.network.model.MarkAttendanceRequest
+import com.smartattendance.android.data.network.model.MarkAttendanceResponse
 import com.smartattendance.android.data.network.model.SessionType
 import com.smartattendance.android.data.network.util.ApiResponse
 import com.smartattendance.android.domain.model.Attendance
@@ -94,8 +96,9 @@ class AttendanceRepositoryImpl @Inject constructor(
     override suspend fun markAttendance(
         sessionCode: String,
         latitude: Double?,
-        longitude: Double?
-    ): Result<Attendance> {
+        longitude: Double?,
+        deviceId: String?
+    ): Result<MarkAttendanceResponse> {
         // Create location if coordinates are provided
         val location = if (latitude != null && longitude != null) {
             GeoLocation(
@@ -107,17 +110,19 @@ class AttendanceRepositoryImpl @Inject constructor(
         }
 
         val request = MarkAttendanceRequest(
-            session_code = sessionCode,
-            location = location
+            sessionCode = sessionCode,
+            location = location,
+            deviceID = deviceId
         )
 
         return when (val response = apiClient.markAttendance(request)) {
             is ApiResponse.Success -> {
-                val attendanceEntity = response.data.toEntity()
+                val attendanceEntity = response.data.data.toEntity()
                 attendanceDao.insertAttendanceRecord(attendanceEntity)
-                Result.success(attendanceEntity.toDomainModel())
+                Result.success(response.data)
             }
             is ApiResponse.Error -> {
+                Log.e("Attendnace RepositoryImpl", "Erorr occured: ${response.errorMessage}")
                 Result.failure(Exception(response.errorMessage))
             }
         }

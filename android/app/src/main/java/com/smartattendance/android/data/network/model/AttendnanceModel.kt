@@ -37,8 +37,16 @@ data class AttendanceSession(
 
 @Serializable
 data class MarkAttendanceRequest(
-    val session_code: String,
-    val location: GeoLocation? = null
+    val sessionCode: String,
+    val location: GeoLocation? = null,
+    val deviceID: String? = "ertx434dugkvh"
+)
+
+@Serializable
+data class MarkAttendanceResponse(
+    val success: Boolean,
+    val data: AttendanceResponse,
+    val message: String
 )
 
 @Serializable

@@ -323,7 +323,7 @@ class ApiClient @Inject constructor(
         }
     }
 
-    suspend fun markAttendance(markAttendanceRequest: MarkAttendanceRequest): ApiResponse<AttendanceResponse> {
+    suspend fun markAttendance(markAttendanceRequest: MarkAttendanceRequest): ApiResponse<MarkAttendanceResponse> {
         return try {
             val response = httpClient.post("/attendance/mark") {
                 contentType(ContentType.Application.Json)

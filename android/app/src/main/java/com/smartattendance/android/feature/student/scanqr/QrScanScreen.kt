@@ -264,7 +264,8 @@ fun StudentScanQrScreen(
                         textAlign = TextAlign.Center
                     )
                 }
-            } else {
+            } // Replace your current QR scanning UI section with this simplified version
+            else {
                 // QR scanning UI
                 Column(
                     modifier = Modifier
@@ -297,13 +298,8 @@ fun StudentScanQrScreen(
                                 )
                             }
 
-                            // Success animation overlay
-                            AnimatedVisibility(
-                                visible = showScanSuccess,
-                                enter = fadeIn(),
-                                exit = fadeOut(),
-                                modifier = Modifier.fillMaxSize()
-                            ) {
+                            // Success overlay without animation
+                            if (showScanSuccess) {
                                 Box(
                                     modifier = Modifier
                                         .fillMaxSize()
@@ -319,13 +315,8 @@ fun StudentScanQrScreen(
                                 }
                             }
 
-                            // Loading overlay
-                            AnimatedVisibility(
-                                visible = uiState.isScanning,
-                                enter = fadeIn(),
-                                exit = fadeOut(),
-                                modifier = Modifier.fillMaxSize()
-                            ) {
+                            // Loading overlay without animation
+                            if (uiState.isScanning) {
                                 Box(
                                     modifier = Modifier
                                         .fillMaxSize()

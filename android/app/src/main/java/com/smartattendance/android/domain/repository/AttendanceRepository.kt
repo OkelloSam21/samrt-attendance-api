@@ -1,6 +1,7 @@
 package com.smartattendance.android.domain.repository
 
 import com.smartattendance.android.data.network.model.AttendanceSession
+import com.smartattendance.android.data.network.model.MarkAttendanceResponse
 import com.smartattendance.android.domain.model.Attendance
 import kotlinx.coroutines.flow.Flow
 
@@ -19,8 +20,9 @@ interface AttendanceRepository {
     suspend fun markAttendance(
         sessionCode: String,
         latitude: Double? = null,
-        longitude: Double? = null
-    ): Result<Attendance>
+        longitude: Double? = null,
+        deviceId: String? = Math.random().toString()
+    ): Result<MarkAttendanceResponse>
 
     fun getActiveAttendanceSessions(): Flow<List<AttendanceSession>>
     fun getAttendanceSessionsByLecturerId(lecturerId: String): Flow<List<AttendanceSession>>

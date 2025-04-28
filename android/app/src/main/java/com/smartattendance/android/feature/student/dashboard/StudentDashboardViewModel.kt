@@ -1,6 +1,11 @@
 package com.smartattendance.android.feature.student.dashboard
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import android.content.Context
+import android.content.SharedPreferences
+import android.util.Log
+import androidx.core.content.edit
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.smartattendance.android.domain.repository.AttendanceRepository
 import com.smartattendance.android.domain.repository.CourseRepository
@@ -17,14 +22,19 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.UUID
 import javax.inject.Inject
+
+private const val PREFS_DEVICE_ID = "device_id"
 
 @HiltViewModel
 class StudentDashboardViewModel @Inject constructor(
     private val attendanceRepository: AttendanceRepository,
     private val courseRepository: CourseRepository,
-    private val userPreferencesRepository: UserPreferencesRepository
-) : ViewModel() {
+    private val userPreferencesRepository: UserPreferencesRepository,
+    private val application: Application
+) : AndroidViewModel(application) {
+
 
     private val _uiState = MutableStateFlow(StudentDashboardUiState())
     val uiState: StateFlow<StudentDashboardUiState> = _uiState.asStateFlow()
@@ -63,11 +73,13 @@ class StudentDashboardViewModel @Inject constructor(
                             val startTime = try {
                                 dateFormat.parse(session.createdAt)
                             } catch (e: Exception) {
+                                Log.e("v", "${e.message}")
                                 Date()
                             }
                             val endTime = try {
                                 dateFormat.parse(session.expiresAt)
                             } catch (e: Exception) {
+                                Log.e("v", "${e.message}")
                                 Date()
                             }
                             SessionDisplayData(
@@ -132,12 +144,15 @@ class StudentDashboardViewModel @Inject constructor(
     private fun markAttendance(sessionCode: String, latitude: Double? = null, longitude: Double? = null) {
         _uiState.update { it.copy(isMarking = true) }
 
+        val deviceId = getOrGenerateUUID(context = application)
+
         viewModelScope.launch {
             try {
                 val result = attendanceRepository.markAttendance(
                     sessionCode = sessionCode,
                     latitude = latitude,
-                    longitude = longitude
+                    longitude = longitude,
+                    deviceId = deviceId
                 )
 
                 if (result.isSuccess) {
@@ -159,6 +174,23 @@ class StudentDashboardViewModel @Inject constructor(
                     )
                 }
             }
+        }
+    }
+
+
+    fun getOrGenerateUUID(context: Context): String {
+        val prefs: SharedPreferences = context.getSharedPreferences(
+            "com.yourpackage.app",
+            Context.MODE_PRIVATE
+        )
+        val existingDeviceId = prefs.getString(PREFS_DEVICE_ID, null)
+
+        return existingDeviceId ?: run {
+            val newDeviceId = UUID.randomUUID().toString()
+            prefs.edit() { putString(PREFS_DEVICE_ID, newDeviceId) }
+            Log.e("STudent dashborad", "device id $newDeviceId")
+            newDeviceId
+
         }
     }
 }
