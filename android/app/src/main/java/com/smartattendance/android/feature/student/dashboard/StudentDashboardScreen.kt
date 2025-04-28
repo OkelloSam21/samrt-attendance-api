@@ -2,15 +2,40 @@ package com.smartattendance.android.feature.student.dashboard
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.QrCodeScanner
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -20,12 +45,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.smartattendance.android.domain.model.AttendanceSession
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Date
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -78,7 +102,7 @@ fun StudentDashboardScreen(
                             contentDescription = "Scan QR"
                         )
                     },
-                    label = { Text("Scan QR") }
+                    label = { Text("Mark Attendance") }
                 )
                 NavigationBarItem(
                     selected = false,
@@ -97,7 +121,8 @@ fun StudentDashboardScreen(
         StudentDashboardContent(
             state = state,
             onRefresh = { viewModel.onEvent(StudentDashboardEvent.RefreshDashboard) },
-            onSessionSelected = { /* Future implementation */ },
+            onMarkAttendance = onNavigateToScanQr,
+            onViewHistory = onNavigateToHistory,
             modifier = Modifier.padding(paddingValues)
         )
     }
@@ -107,7 +132,8 @@ fun StudentDashboardScreen(
 fun StudentDashboardContent(
     state: StudentDashboardUiState,
     onRefresh: () -> Unit,
-    onSessionSelected: (String) -> Unit,
+    onMarkAttendance: () -> Unit,
+    onViewHistory: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     if (state.isLoading) {
@@ -125,6 +151,23 @@ fun StudentDashboardContent(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             item {
+                // Welcome message with user name
+                Text(
+                    text = "Welcome back!",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Text(
+                    text = "Check your attendance and upcoming classes",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+
+            item {
                 AttendanceStatsCard(
                     attendancePercentage = state.monthlyAttendancePercentage,
                     classesAttended = state.classesAttended,
@@ -133,13 +176,42 @@ fun StudentDashboardContent(
             }
 
             item {
+                // Quick action buttons
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    ActionButton(
+                        icon = Icons.Default.QrCodeScanner,
+                        title = "Mark Attendance",
+                        onClick = onMarkAttendance,
+                        modifier = Modifier.weight(1f),
+                        containerColor = MaterialTheme.colorScheme.primaryContainer
+                    )
+
+                    ActionButton(
+                        icon = Icons.Default.History,
+                        title = "View History",
+                        onClick = onViewHistory,
+                        modifier = Modifier.weight(1f),
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+
+            item {
                 Text(
-                    text = "Upcoming Sessions",
+                    text = "Today's Classes",
                     style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(vertical = 8.dp)
                 )
+            }
 
-                if (state.todayClasses.isEmpty()) {
+            if (state.todayClasses.isEmpty()) {
+                item {
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -155,24 +227,24 @@ fun StudentDashboardContent(
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = "No upcoming sessions",
+                                text = "No classes scheduled for today",
                                 style = MaterialTheme.typography.bodyLarge,
                                 textAlign = TextAlign.Center
                             )
                         }
                     }
                 }
-            }
-
-            items(state.todayClasses) { session ->
-                SessionCard(
-                    sessionId = session.id,
-                    courseName = session.courseName,
-                    lecturerName = session.lecturerName,
-                    startTime = formatDate(session.startTime),
-                    endTime = formatDate(session.endTime),
-                    onClick = { onSessionSelected(session.id) }
-                )
+            } else {
+                items (state.todayClasses) { session ->
+                    SessionCard(
+                        sessionId = session.id,
+                        courseName = session.courseName,
+                        lecturerName = session.lecturerName,
+                        startTime = formatDate(session.startTime),
+                        endTime = formatDate(session.endTime),
+                        onClick = onMarkAttendance
+                    )
+                }
             }
 
             // Handle error state
@@ -189,12 +261,51 @@ fun StudentDashboardContent(
 }
 
 @Composable
+fun ActionButton(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    title: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    containerColor: Color = MaterialTheme.colorScheme.primaryContainer
+) {
+    Card(
+        modifier = modifier
+            .clickable { onClick() },
+        colors = CardDefaults.cardColors(containerColor = containerColor)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = title,
+                modifier = Modifier.size(32.dp),
+                tint = MaterialTheme.colorScheme.onPrimaryContainer
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Bold
+            )
+        }
+    }
+}
+
+@Composable
 fun AttendanceStatsCard(
     attendancePercentage: Float,
     classesAttended: Int,
     totalClasses: Int,
     modifier: Modifier = Modifier
 ) {
+    val percentageInt = attendancePercentage.toInt()
+
     Card(
         modifier = modifier
             .fillMaxWidth()
@@ -215,24 +326,49 @@ fun AttendanceStatsCard(
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            Box(
+                modifier = Modifier
+                    .size(100.dp)
+                    .clip(CircleShape)
+                    .background(
+                        when {
+                            percentageInt >= 75 -> Color(0xFFE6F4EA) // Light green
+                            percentageInt >= 60 -> Color(0xFFFFF8E1) // Light yellow
+                            else -> Color(0xFFFFEBEE) // Light red
+                        }
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = "$percentageInt%",
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = when {
+                            percentageInt >= 75 -> Color(0xFF34A853) // Green
+                            percentageInt >= 60 -> Color(0xFFFBBC05) // Yellow
+                            else -> Color(0xFFEA4335) // Red
+                        }
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 AttendanceStatItem(
-                    value = "$attendancePercentage%",
-                    label = "Attendance",
-                    color = when {
-                        attendancePercentage >= 75f -> Color(0xFF4CAF50) // Green
-                        attendancePercentage >= 60f -> Color(0xFFFFC107) // Yellow
-                        else -> Color(0xFFF44336) // Red
-                    }
+                    value = "$classesAttended",
+                    label = "Classes Attended",
+                    color = MaterialTheme.colorScheme.primary
                 )
 
                 AttendanceStatItem(
-                    value = "$classesAttended/$totalClasses",
-                    label = "Classes Attended",
-                    color = MaterialTheme.colorScheme.primary
+                    value = "$totalClasses",
+                    label = "Total Classes",
+                    color = MaterialTheme.colorScheme.tertiary
                 )
             }
         }
@@ -250,22 +386,14 @@ fun AttendanceStatItem(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Box(
-            modifier = Modifier
-                .size(64.dp)
-                .clip(RoundedCornerShape(32.dp))
-                .background(color.copy(alpha = 0.2f)),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = value,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = color
-            )
-        }
+        Text(
+            text = value,
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            color = color
+        )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(4.dp))
 
         Text(
             text = label,
@@ -288,41 +416,68 @@ fun SessionCard(
         modifier = modifier
             .fillMaxWidth()
             .clickable { onClick() },
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        shape = RoundedCornerShape(12.dp)
     ) {
-        Column(
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = courseName,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
+            // Time indicator
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.padding(end = 16.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primaryContainer),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = startTime,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
+            }
 
-            Spacer(modifier = Modifier.height(4.dp))
-
-            Text(
-                text = "Lecturer: $lecturerName",
-                style = MaterialTheme.typography.bodyMedium
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+            // Course details
+            Column(
+                modifier = Modifier.weight(1f)
             ) {
                 Text(
-                    text = "Starts: $startTime",
-                    style = MaterialTheme.typography.bodySmall
+                    text = courseName,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
                 )
 
+                Spacer(modifier = Modifier.height(4.dp))
+
                 Text(
-                    text = "Ends: $endTime",
-                    style = MaterialTheme.typography.bodySmall
+                    text = "Lecturer: $lecturerName",
+                    style = MaterialTheme.typography.bodyMedium
                 )
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                Text(
+                    text = "Duration: $startTime - $endTime",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            // Mark button
+            Button(
+                onClick = onClick,
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Text("Mark")
             }
         }
     }
@@ -374,12 +529,3 @@ private fun formatDate(date: Date?): String {
     val formatter = SimpleDateFormat("HH:mm", Locale.getDefault())
     return formatter.format(date)
 }
-
-// Data class for session display
-data class SessionDisplayData(
-    val id: String,
-    val courseName: String,
-    val lecturerName: String,
-    val startTime: Date,
-    val endTime: Date
-)

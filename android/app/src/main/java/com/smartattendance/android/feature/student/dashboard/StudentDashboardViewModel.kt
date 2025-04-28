@@ -2,7 +2,6 @@ package com.smartattendance.android.feature.student.dashboard
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.smartattendance.android.domain.model.Course
 import com.smartattendance.android.domain.repository.AttendanceRepository
 import com.smartattendance.android.domain.repository.CourseRepository
 import com.smartattendance.android.domain.repository.UserPreferencesRepository
@@ -187,4 +186,13 @@ sealed class StudentDashboardEvent {
 data class AttendanceStats(
     val classesAttended: Int,
     val classesAbsent: Int
+)
+
+
+data class SessionDisplayData(
+    val id: String,
+    val courseName: String,
+    val lecturerName: String,
+    val startTime: Date,
+    val endTime: Date
 )
