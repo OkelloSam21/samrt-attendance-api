@@ -1,6 +1,7 @@
 package com.smartattendance.android.feature.student.scanqr
 
 import android.location.Location
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.smartattendance.android.domain.repository.AttendanceRepository

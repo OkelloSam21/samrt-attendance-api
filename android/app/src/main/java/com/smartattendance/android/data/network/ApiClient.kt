@@ -18,6 +18,7 @@ import io.ktor.http.isSuccess
 import kotlinx.serialization.json.Json
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.text.get
 
 @Singleton
 class ApiClient @Inject constructor(
@@ -222,21 +223,50 @@ class ApiClient @Inject constructor(
         }
     }
 
+    // In ApiClient.kt
     suspend fun getCourseById(courseId: String): ApiResponse<Course> {
         return try {
             val response = httpClient.get("/courses/$courseId")
-            ApiResponse.Success(response.body())
+            if (response.status.isSuccess()) {
+                ApiResponse.Success(response.body())
+            } else {
+                val errorMessage = response.bodyAsText()
+                ApiResponse.Error(errorMessage)
+            }
         } catch (e: Exception) {
             ApiResponse.Error(e.message ?: "Unknown error occurred")
         }
     }
 
-    suspend fun getCurseByLecturerId(lecturerId: String) : ApiResponse<List<CourseResponse>> {
+    suspend fun getCurseByLecturerId(lecturerId: String): ApiResponse<List<Course>> {
         return try {
-            val response = httpClient.get("/courses/lecturer/{id}")
-            ApiResponse.Success(response.body())
+            val response = httpClient.get("/courses/lecturer/$lecturerId")
+            when {
+                response.status.isSuccess() -> {
+                    val courseListResponse: CourseListResponse = response.body()
+                    ApiResponse.Success(courseListResponse.data ?: emptyList())
+                }
+
+                response.status == HttpStatusCode.Unauthorized -> {
+                    val errorMessage = response.bodyAsText()
+                    Log.e("ApiClient", "Authentication failed: $errorMessage")
+                    ApiResponse.Error(errorMessage)
+                }
+                else -> {
+                    val errorResponse: ErrorResponse? = try {
+                        json.decodeFromString<ErrorResponse>(response.bodyAsText())
+                    } catch (e: Exception) {
+                        Log.e("ApiClient", "Error decoding error response: $e")
+                        return ApiResponse.Error("An unknown error occurred")
+                    }
+                    val errorMessage = errorResponse?.error?.message ?: "An error occurred"
+                    ApiResponse.Error(errorMessage)
+                }
+            }
+
         } catch (e: Exception) {
-            ApiResponse.Error(e.message ?: "Unknown error occured")
+            Log.e("ApiClient", "getCurseByLecturerId error", e)
+            ApiResponse.Error(e.message ?: "Unknown error occurred")
         }
     }
 
@@ -330,6 +360,7 @@ class ApiClient @Inject constructor(
             }
             ApiResponse.Success(response.body())
         } catch (e: Exception) {
+            Log.e("APi client", "failed ${e.message}")
             ApiResponse.Error(e.message ?: "Unknown error occurred")
         }
     }

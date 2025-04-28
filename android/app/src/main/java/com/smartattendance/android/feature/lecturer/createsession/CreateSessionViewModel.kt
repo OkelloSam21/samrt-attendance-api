@@ -1,5 +1,6 @@
 package com.smartattendance.android.feature.lecturer.createsession
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.smartattendance.android.data.network.model.SessionType
@@ -25,8 +26,24 @@ class CreateSessionViewModel @Inject constructor(
 
     private var courseId: String = ""
 
+    // In CreateSessionViewModel.kt
     fun setCourseId(id: String) {
+        if (id.isBlank() || id == "{courseId}") { // Check for placeholder values
+            _uiState.update {
+                it.copy(
+                    error = "Invalid course ID format",
+                    isLoading = false
+                )
+            }
+            Log.e("ViewModel", "Invalid ID received: $id")
+            return
+        }
+
         courseId = id
+        Log.d("ViewModel", "Valid course ID set: $id")
+    }
+    init {
+        loadCourseDetails()
     }
 
     fun loadCourseDetails() {
@@ -35,6 +52,7 @@ class CreateSessionViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val course = courseRepository.getCourseById(courseId).firstOrNull()
+                Log.e("Create session", "course $course")
                 if (course != null) {
                     _uiState.update {
                         it.copy(
@@ -56,6 +74,22 @@ class CreateSessionViewModel @Inject constructor(
                         isLoading = false,
                         error = "Error loading course: ${e.message}"
                     )
+                }
+            }
+        }
+    }
+
+    private fun fetchCourseById(id: String) {
+        viewModelScope.launch {
+            courseRepository.getCourseById(id).collect { course ->
+                if (course != null) {
+                    _uiState.update {
+                        it.copy(
+                            courseName = course.name,
+                            isLoading = false,
+                            error = ""
+                        )
+                    }
                 }
             }
         }

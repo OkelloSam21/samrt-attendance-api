@@ -66,7 +66,7 @@ class StudentDashboardViewModel @Inject constructor(
                     .combine(courseRepository.getAllCourses()) { sessions, courses ->
                         // Map sessions to display data
                         sessions.map { session ->
-                            val course = courses.find { it.id == session.course_id }
+                            val course = courses.find { it.id == session.courseId }
 
                             val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
                                 Locale.getDefault())

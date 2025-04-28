@@ -6,7 +6,20 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class CreateCourseApiResponse(
     val success: Boolean? = null,
-    val data: List<Course?> = emptyList(),
+    val data: Course? = null,
+    val message: String? = null
+)
+
+@Serializable
+data class getCourseByIdResponse (
+    val success: Boolean? = null,
+    val data: Course? = null
+)
+
+@Serializable
+data class CourseListResponse(
+    val success: Boolean,
+    val data: List<Course>? = null,
     val message: String? = null
 )
 

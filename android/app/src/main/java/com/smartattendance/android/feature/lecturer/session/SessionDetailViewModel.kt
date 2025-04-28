@@ -39,7 +39,7 @@ class SessionDetailViewModel @Inject constructor(
                 
                 if (session != null) {
                     // Get course details
-                    val course = courseRepository.getCourseById(session.course_id).firstOrNull()
+                    val course = courseRepository.getCourseById(session.courseId).firstOrNull()
                     
                     // Get attendance records for this session
                     val attendanceRecords = attendanceRepository.getAttendancesBySessionId(sessionId).firstOrNull() ?: emptyList()
@@ -67,9 +67,9 @@ class SessionDetailViewModel @Inject constructor(
                             isLoading = false,
                             session = SessionDetailData(
                                 id = session.id,
-                                courseId = session.course_id,
-                                sessionType = session.session_type.name,
-                                sessionCode = session.session_code,
+                                courseId = session.courseId,
+                                sessionType = session.sessionType.name,
+                                sessionCode = session.sessionCode,
                                 startTime = startTime,
                                 endTime = endTime
                             ),
@@ -81,7 +81,7 @@ class SessionDetailViewModel @Inject constructor(
                     }
                     
                     // Generate QR code for the session
-                    generateQrCode(session.session_code)
+                    generateQrCode(session.sessionCode)
                 } else {
                     _uiState.update {
                         it.copy(
@@ -106,7 +106,7 @@ class SessionDetailViewModel @Inject constructor(
             try {
                 val session = attendanceRepository.getSessionById(sessionId).firstOrNull()
                 if (session != null) {
-                    generateQrCode(session.session_code)
+                    generateQrCode(session.sessionCode)
                 }
             } catch (e: Exception) {
                 _uiState.update {

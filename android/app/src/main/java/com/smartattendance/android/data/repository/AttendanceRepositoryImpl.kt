@@ -1,7 +1,6 @@
 package com.smartattendance.android.data.repository
 
 import android.util.Log
-import androidx.compose.ui.semantics.error
 import com.smartattendance.android.data.database.AttendanceEntity
 import com.smartattendance.android.data.database.AttendanceSessionEntity
 import com.smartattendance.android.data.database.dao.AttendanceDao
@@ -29,7 +28,6 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
-import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -52,7 +50,7 @@ class AttendanceRepositoryImpl @Inject constructor(
             GeoFence(
                 latitude = latitude,
                 longitude = longitude,
-                radius_meters = radiusMeters
+                radiusMeters = radiusMeters
             )
         } else {
             null
@@ -65,10 +63,10 @@ class AttendanceRepositoryImpl @Inject constructor(
         }
 
         val request = AttendanceSessionRequest(
-            course_id = courseId,
-            duration_minutes = durationMinutes,
-            session_type = sessionTypeEnum,
-            geo_fence = geoFence
+            courseId = courseId,
+            durationMinutes = durationMinutes,
+            sessionType = sessionTypeEnum,
+            geoFence = geoFence
         )
 
         return when (val response = apiClient.createAttendanceSession(request)) {
@@ -119,7 +117,9 @@ class AttendanceRepositoryImpl @Inject constructor(
         )
 
         return try {
-            when (val response = apiClient.markAttendance(request)) {
+            val response = apiClient.markAttendance(request)
+
+            when (response) {
                 is ApiResponse.Success -> {
                     val attendanceEntity = response.data.data.toEntity()
                     attendanceDao.insertAttendanceRecord(attendanceEntity)
@@ -127,19 +127,23 @@ class AttendanceRepositoryImpl @Inject constructor(
                 }
 
                 is ApiResponse.Error -> {
+                    Log.e("AttendanceRepositoryImpl", "API Error: ${response.errorMessage}")
+                    // Error case: Get the error message from ErrorResponse
                     val errorResponse: ErrorResponse? = try {
                         Json.decodeFromString<ErrorResponse>(response.errorMessage)
                     } catch (e: Exception) {
                         Log.e("AttendanceRepositoryImpl", "Error decoding error response: $e")
                         return Result.failure(Exception("An unknown error occurred"))
                     }
-                    //Get message if it's not null
+                    // Get message if it's not null
                     val errorMessage = errorResponse?.error?.message ?: "An error occurred"
+                    Log.e("AttendanceRepositoryImpl", "Error Message: $errorMessage")
 
                     Result.failure(Exception(errorMessage))
                 }
             }
-        }   catch (e: Exception) {
+        } catch (e: Exception) {
+            Log.e("AttendanceRepositoryImpl", "Exception during markAttendance: $e")
             Result.failure(e)
         }
     }
@@ -267,14 +271,14 @@ class AttendanceRepositoryImpl @Inject constructor(
         val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
         return AttendanceSessionEntity(
             id = id,
-            courseId = course_id,
+            courseId = courseId,
             lecturerId = lecturerId,
-            durationMinutes = duration_minutes,
-            sessionType = session_type,
-            sessionCode = session_code,
-            latitude = geo_fence?.latitude,
-            longitude = geo_fence?.longitude,
-            radiusMeters = geo_fence?.radius_meters,
+            durationMinutes = durationMinutes,
+            sessionType = sessionType,
+            sessionCode = sessionCode,
+            latitude = geoFence?.latitude,
+            longitude = geoFence?.longitude,
+            radiusMeters = geoFence?.radiusMeters,
             createdAt = try {
                 dateFormat.parse(createdAt) ?: Date()
             } catch (e: Exception) {
@@ -284,7 +288,7 @@ class AttendanceRepositoryImpl @Inject constructor(
                 dateFormat.parse(expiresAt) ?: Date()
             } catch (e: Exception) {
                 val cal = Calendar.getInstance()
-                cal.add(Calendar.MINUTE, duration_minutes)
+                cal.add(Calendar.MINUTE, durationMinutes)
                 cal.time
             }
         )
@@ -313,16 +317,16 @@ class AttendanceRepositoryImpl @Inject constructor(
     private fun AttendanceSessionEntity.toDomainModel(): AttendanceSession {
         return AttendanceSession(
             id = id,
-            course_id = courseId,
+            courseId = courseId,
             lecturerId = lecturerId,
-            duration_minutes = durationMinutes,
-            session_type = sessionType,
-            session_code = sessionCode,
-            geo_fence = if (latitude != null && longitude != null && radiusMeters != null) {
+            durationMinutes = durationMinutes,
+            sessionType = sessionType,
+            sessionCode = sessionCode,
+            geoFence = if (latitude != null && longitude != null && radiusMeters != null) {
                 GeoFence(
                     latitude = latitude,
                     longitude = longitude,
-                    radius_meters = radiusMeters
+                    radiusMeters = radiusMeters
                 )
             } else null,
             createdAt = createdAt.toString(),

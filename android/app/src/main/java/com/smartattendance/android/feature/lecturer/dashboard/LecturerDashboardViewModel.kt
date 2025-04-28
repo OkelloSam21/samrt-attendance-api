@@ -2,7 +2,6 @@ package com.smartattendance.android.feature.lecturer.dashboard
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.smartattendance.android.domain.model.Attendance
 import com.smartattendance.android.domain.model.Course
 import com.smartattendance.android.domain.repository.AttendanceRepository
 import com.smartattendance.android.domain.repository.CourseRepository
@@ -32,7 +31,7 @@ class LecturerDashboardViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(LecturerDashboardUiState())
     val uiState: StateFlow<LecturerDashboardUiState> = _uiState.asStateFlow()
 
-    val userId = userPreferencesRepository.userId ?: ""
+    val userId = userPreferencesRepository.userId
 
     init {
         loadDashboardData()
@@ -107,7 +106,7 @@ class LecturerDashboardViewModel @Inject constructor(
             val activeSessions = attendanceRepository.getSessionsByLecturerAndStatus(lecturerId, true).firstOrNull() ?: emptyList()
 
             return activeSessions.map { session ->
-                val course = courses.find { it.id == session.course_id }
+                val course = courses.find { it.id == session.courseId }
                 val attendanceCount = getAttendanceCountForSession(session.id)
 
                 val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
@@ -124,9 +123,9 @@ class LecturerDashboardViewModel @Inject constructor(
 
                 SessionData(
                     id = session.id,
-                    courseId = session.course_id,
+                    courseId = session.courseId,
                     courseName = course?.name ?: "Unknown Course",
-                    sessionCode = session.session_code,
+                    sessionCode = session.sessionCode,
                     startTime = startTime,
                     endTime = endTime,
                     attendanceCount = attendanceCount
@@ -148,7 +147,7 @@ class LecturerDashboardViewModel @Inject constructor(
                 .sortedByDescending { it.createdAt }
                 .take(5)
                 .map { session ->
-                    val course = courses.find { it.id == session.course_id }
+                    val course = courses.find { it.id == session.courseId }
                     val attendanceCount = getAttendanceCountForSession(session.id)
 
                     val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
@@ -165,9 +164,9 @@ class LecturerDashboardViewModel @Inject constructor(
 
                     SessionData(
                         id = session.id,
-                        courseId = session.course_id,
+                        courseId = session.courseId,
                         courseName = course?.name ?: "Unknown Course",
-                        sessionCode = session.session_code,
+                        sessionCode = session.sessionCode,
                         startTime = startTime,
                         endTime = endTime,
                         attendanceCount = attendanceCount

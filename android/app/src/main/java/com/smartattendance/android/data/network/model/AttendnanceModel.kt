@@ -12,26 +12,26 @@ enum class SessionType {
 data class GeoFence(
     val latitude: Double,
     val longitude: Double,
-    val radius_meters: Int
+    val radiusMeters: Int
 )
 
 @Serializable
 data class AttendanceSessionRequest(
-    val course_id: String,
-    val duration_minutes: Int,
-    val session_type: SessionType,
-    val geo_fence: GeoFence? = null
+    val courseId: String,
+    val durationMinutes: Int,
+    val sessionType: SessionType,
+    val geoFence: GeoFence? = null
 )
 
 @Serializable
 data class AttendanceSession(
     val id: String,
-    val course_id: String,
+    val courseId: String,
     val lecturerId: String,
-    val duration_minutes: Int,
-    val session_type: SessionType,
-    val session_code: String,
-    val geo_fence: GeoFence? = null,
+    val durationMinutes: Int,
+    val sessionType: SessionType,
+    val sessionCode: String,
+    val geoFence: GeoFence? = null,
     val createdAt: String,
     val expiresAt: String
 )

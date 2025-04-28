@@ -27,6 +27,7 @@ class CourseRepositoryImpl @Inject constructor(
 
         when(val response = apiClient.getAllCourses()) {
             is ApiResponse.Success -> {
+                Result.success(response.data)
                 val courses = response.data.map { it.data}
                 Log.e("course repository", "courses $courses")
             }
@@ -40,7 +41,14 @@ class CourseRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getCourseById(courseId: String): Flow<Course?> {
-        refreshCourse(courseId)
+        when(val response = apiClient.getCourseById(courseId)) {
+            is ApiResponse.Success -> {
+                Result.success(response.data)
+            }
+            is ApiResponse.Error -> {
+                Log.e("CourseRepositoryImpl get course by id", "Failed to fetch course: ${response.errorMessage}")
+            }
+        }
         return courseDao.getCourseById(courseId).map { entity ->
             entity?.toDomainModel()
         }
@@ -55,7 +63,7 @@ class CourseRepositoryImpl @Inject constructor(
             }
 
             is ApiResponse.Error -> {
-                Log.e("CourseRepositoryImpl", "Failed to fetch courses: ${response.errorMessage}")
+                Log.e("CourseRepositoryImpl get course by lecturer id", "Failed to fetch courses: ${response.errorMessage}")
                 Result.failure(Error(response.errorMessage))
             }
         }
@@ -78,7 +86,7 @@ class CourseRepositoryImpl @Inject constructor(
                     val courseResponse = response.data.data
 
                     run {
-                        val courseEntity = courseResponse.firstOrNull()?.toEntity() ?: return Result.failure(Exception("Invalid course response"))
+                        val courseEntity = courseResponse?.toEntity() ?: return Result.failure(Exception("Invalid course response"))
                         courseDao.insertCourse(courseEntity)
                         return Result.success(courseEntity.toDomainModel())
                     }
@@ -213,6 +221,7 @@ class CourseRepositoryImpl @Inject constructor(
             when (val response = apiClient.getCourseById(courseId)) {
                 is ApiResponse.Success -> {
                     val course = response.data.toEntity()
+
                     courseDao.insertCourse(course)
                 }
                 is ApiResponse.Error -> {

@@ -1,5 +1,6 @@
 package com.smartattendance.android.feature.lecturer.createsession
 
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -29,6 +30,8 @@ fun CreateAttendanceSessionScreen(
     LaunchedEffect(courseId) {
         viewModel.setCourseId(courseId)
         viewModel.loadCourseDetails()
+
+        Log.e("Create session ui", "course id : $courseId")
     }
 
     val state by viewModel.uiState.collectAsStateWithLifecycle()
