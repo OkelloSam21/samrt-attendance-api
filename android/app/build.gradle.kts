@@ -124,10 +124,16 @@ dependencies {
     debugImplementation(libs.compose.ui.tooling)
     debugImplementation(libs.compose.ui.test.manifest)
 
-    // barcode google zxing
-//    implementation(libs.zxing.core)
-//    implementation(libs.zxing.android)
-//    implementation(libs.zxing.android.embedded)
+// Camera X dependencies
+    implementation (libs.androidx.camera.camera2)
+    implementation (libs.androidx.camera.lifecycle)
+    implementation (libs.androidx.camera.view)
+
+// ML Kit for barcode scanning
+    implementation (libs.barcode.scanning)
+
+// Location services
+    implementation (libs.play.services.location)
 
 
 //    implementation(libs.zxing.android.embedded)
